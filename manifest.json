@@ -1,0 +1,41 @@
+{
+  "name": "Communication Properly",
+  "short_name": "CP",
+  "description": "Real-time AI voice translation — break every language barrier.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0e1a",
+  "theme_color": "#0a0e1a",
+  "orientation": "portrait",
+  "lang": "en",
+  "categories": ["productivity", "communication", "utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Two-Way Call",
+      "short_name": "Call",
+      "description": "Start a real-time translation call",
+      "url": "./index.html#call"
+    },
+    {
+      "name": "Conference",
+      "short_name": "Group",
+      "description": "Multi-language group call",
+      "url": "./index.html#conference"
+    }
+  ]
+}

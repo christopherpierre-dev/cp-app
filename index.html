@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Communication Properly — CP</title>
+
+<!-- PWA: iOS Safari -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="CP"/>
+<meta name="theme-color" content="#0a0e1a"/>
+<meta name="description" content="Real-time AI voice translation — break every language barrier."/>
+
+<!-- PWA: Icons -->
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+
+<!-- Azure Speech SDK -->
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<!-- PWA: Manifest -->
+<link rel="manifest" href="manifest.json"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0a0e1a;
+  --card:#131929;
+  --border:#1e2d4a;
+  --accent:#4f8ef7;
+  --accent2:#7c5cfc;
+  --green:#22c55e;
+  --red:#ef4444;
+  --yellow:#f59e0b;
+  --text:#e8edf5;
+  --muted:#64748b;
+  --radius:20px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCREENS ── */
+.screen{display:none;flex-direction:column;min-height:100vh;animation:fadeIn .3s ease;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SPLASH ── */
+#splash{align-items:center;justify-content:center;background:linear-gradient(145deg,#0a0e1a 0%,#0d1b38 100%);}
+.splash-logo{text-align:center;margin-bottom:40px;}
+.logo-circle{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 20px;box-shadow:0 0 60px rgba(79,142,247,0.4);}
+.splash-logo h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;}
+.splash-logo h1 span{color:var(--accent);}
+.splash-logo p{color:var(--muted);font-size:14px;margin-top:6px;}
+.splash-waves{position:absolute;bottom:0;left:0;right:0;height:180px;overflow:hidden;opacity:0.15;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 32px;border-radius:50px;border:none;cursor:pointer;font-size:16px;font-weight:600;transition:all .2s;width:100%;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 24px rgba(79,142,247,0.35);}
+.btn-primary:active{transform:scale(0.97);}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);}
+.splash-btns{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;padding:0 24px;}
+
+/* ── ONBOARDING ── */
+#onboarding{padding:60px 24px 40px;}
+.onboard-step{display:none;flex-direction:column;align-items:center;text-align:center;flex:1;}
+.onboard-step.active{display:flex;}
+.onboard-icon{font-size:72px;margin-bottom:24px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.onboard-step h2{font-size:24px;font-weight:700;margin-bottom:12px;line-height:1.3;}
+.onboard-step p{color:var(--muted);font-size:15px;line-height:1.6;max-width:300px;}
+.dots{display:flex;gap:8px;margin:32px 0;}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s;}
+.dot.active{background:var(--accent);width:24px;border-radius:4px;}
+.onboard-nav{width:100%;display:flex;flex-direction:column;gap:10px;}
+
+/* ── HOME ── */
+#home{padding:0 0 80px;}
+.home-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 30px;}
+.home-header h2{font-size:22px;font-weight:700;}
+.home-header p{color:var(--muted);font-size:13px;margin-top:4px;}
+.status-bar{display:flex;align-items:center;gap:8px;margin-top:16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2);border-radius:12px;padding:10px 14px;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,0.4)}50%{opacity:.7;box-shadow:0 0 0 6px rgba(34,197,94,0)}}
+.status-bar span{font-size:13px;color:var(--green);font-weight:500;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 24px;margin-top:4px;}
+.mode-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
+.mode-card:active{transform:scale(0.97);}
+.mode-card.wide{grid-column:span 2;}
+.mode-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent),var(--accent2));opacity:0;transition:opacity .3s;}
+.mode-card:hover::before{opacity:0.05;}
+.mode-icon{font-size:32px;margin-bottom:12px;}
+.mode-card h3{font-size:14px;font-weight:600;margin-bottom:4px;}
+.mode-card p{font-size:12px;color:var(--muted);line-height:1.4;}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;margin-top:8px;font-weight:600;}
+.badge-blue{background:rgba(79,142,247,0.15);color:var(--accent);}
+.badge-purple{background:rgba(124,92,252,0.15);color:var(--accent2);}
+.section-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:20px 24px 10px;font-weight:600;}
+.recent-list{padding:0 24px;display:flex;flex-direction:column;gap:10px;}
+.recent-item{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px;}
+.lang-flags{display:flex;gap:-4px;font-size:22px;}
+.recent-info{flex:1;}
+.recent-info strong{font-size:13px;}
+.recent-info span{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
+.recent-time{font-size:11px;color:var(--muted);}
+
+/* ── BOTTOM NAV ── */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 22px;z-index:200;}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);cursor:pointer;transition:color .2s;border:none;background:transparent;padding:4px 16px;}
+.nav-btn.active{color:var(--accent);}
+.nav-btn .ni{font-size:22px;}
+
+/* ── CALL SCREEN ── */
+#call{padding:0;}
+.call-bg{background:linear-gradient(180deg,#0d1b38 0%,#0a0e1a 60%);padding:50px 24px 20px;}
+.call-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+.back-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;color:var(--text);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.call-header h2{font-size:18px;font-weight:700;}
+.lang-selector-row{display:grid;grid-template-columns:1fr 36px 1fr;gap:12px;align-items:center;}
+.lang-select-box{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .2s;}
+.lang-select-box.active-speaker{border-color:var(--accent);}
+.lang-select-box .flag{font-size:24px;margin-bottom:4px;}
+.lang-select-box .lang-name{font-size:13px;font-weight:600;}
+.lang-select-box .lang-sub{font-size:11px;color:var(--muted);}
+.swap-btn{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(79,142,247,0.3);}
+
+/* Translation display */
+.translation-area{padding:0 24px;margin-top:16px;display:flex;flex-direction:column;gap:12px;}
+.speech-bubble{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;min-height:90px;position:relative;}
+.speech-bubble.speaker-a{border-bottom-left-radius:4px;}
+.speech-bubble.speaker-b{border-bottom-right-radius:4px;}
+.bubble-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.bubble-label .flag-sm{font-size:16px;}
+.original-text{font-size:15px;color:var(--text);line-height:1.5;min-height:20px;}
+.translated-text{font-size:13px;color:var(--accent);margin-top:6px;line-height:1.5;min-height:16px;font-style:italic;}
+.cursor-blink{display:inline-block;width:2px;height:14px;background:var(--accent);animation:blink .7s infinite;vertical-align:middle;margin-left:2px;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Waveform */
+.waveform-wrap{padding:0 24px;margin-top:12px;}
+.waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:48px;}
+.wave-bar{width:4px;border-radius:2px;background:var(--accent);opacity:0.3;transition:height .1s;}
+.wave-bar.active{opacity:1;animation:wave var(--d,.3s) ease-in-out infinite alternate;}
+@keyframes wave{from{height:4px}to{height:var(--h,20px)}}
+
+/* Call controls */
+.call-controls{display:flex;justify-content:center;align-items:center;gap:20px;padding:16px 24px 24px;}
+.ctrl-btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10px;color:var(--muted);cursor:pointer;}
+.ctrl-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:none;cursor:pointer;transition:all .2s;}
+.ctrl-icon:active{transform:scale(0.93);}
+.ctrl-gray{background:rgba(255,255,255,0.08);}
+.ctrl-red{background:var(--red);}
+.ctrl-mic{width:70px;height:70px;font-size:24px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 24px rgba(79,142,247,0.4);}
+.ctrl-mic.listening{animation:micPulse 1.5s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 8px 24px rgba(79,142,247,0.4)}50%{box-shadow:0 8px 40px rgba(79,142,247,0.7),0 0 0 12px rgba(79,142,247,0.1)}}
+.ctrl-mic.muted{background:rgba(239,68,68,0.2);box-shadow:none;border:2px solid var(--red);}
+
+/* ── CONFERENCE SCREEN ── */
+#conference{padding:0 0 80px;}
+.conf-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 20px;display:flex;align-items:center;gap:12px;}
+.participants-grid{padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.participant-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:16px;text-align:center;position:relative;transition:border-color .3s;}
+.participant-card.speaking{border-color:var(--green);}
+.participant-card.speaking .p-avatar{box-shadow:0 0 0 3px var(--green);}
+.p-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;transition:box-shadow .3s;}
+.p-name{font-size:13px;font-weight:600;}
+.p-lang{font-size:11px;color:var(--muted);margin-top:2px;}
+.p-status{font-size:10px;margin-top:6px;padding:3px 8px;border-radius:8px;display:inline-block;}
+.p-status.speak{background:rgba(34,197,94,0.12);color:var(--green);}
+.p-status.listen{background:rgba(100,116,139,0.12);color:var(--muted);}
+.p-add{border:2px dashed var(--border);cursor:pointer;}
+.p-add .p-avatar{background:rgba(255,255,255,0.03);}
+.conf-transcript{margin:16px 24px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.conf-transcript h4{font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
+.transcript-line{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start;}
+.t-flag{font-size:18px;flex-shrink:0;margin-top:2px;}
+.t-content{flex:1;}
+.t-original{font-size:13px;color:var(--text);}
+.t-translated{font-size:12px;color:var(--accent);font-style:italic;margin-top:3px;}
+.conf-start-btn{margin:16px 24px 0;}
+
+/* ── SETTINGS ── */
+#settings{padding:50px 24px 80px;}
+.settings-header{margin-bottom:24px;}
+.settings-header h2{font-size:22px;font-weight:700;}
+.settings-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px;}
+.settings-row{display:flex;align-items:center;gap:14px;padding:16px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .s-icon{font-size:20px;width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.settings-row .s-info{flex:1;}
+.settings-row .s-info strong{font-size:14px;}
+.settings-row .s-info span{display:block;font-size:12px;color:var(--muted);margin-top:2px;}
+.toggle{width:44px;height:26px;border-radius:13px;background:var(--border);border:none;cursor:pointer;position:relative;transition:background .2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.toggle.on::after{transform:translateX(18px);}
+.s-arrow{color:var(--muted);font-size:16px;}
+
+/* ── LANGUAGE PICKER MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{background:#131929;border-radius:24px 24px 0 0;width:100%;max-height:80vh;overflow-y:auto;padding:24px;}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px;}
+.modal-sheet h3{font-size:18px;font-weight:700;margin-bottom:16px;}
+.search-box{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:10px 14px;margin-bottom:16px;}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:14px;flex:1;}
+.lang-option{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
+.lang-option:last-child{border-bottom:none;}
+.lang-option:active{opacity:.7;}
+.lang-option .flag{font-size:28px;}
+.lang-option .info strong{font-size:14px;}
+.lang-option .info span{font-size:12px;color:var(--muted);}
+.lang-option .check{margin-left:auto;color:var(--accent);font-size:18px;}
+
+/* ── MOCK TRANSLATIONS ── */
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ SPLASH ══════════════════ -->
+<div class="screen active" id="splash">
+  <div class="splash-logo">
+    <div class="logo-circle">🌐</div>
+    <h1>Comm<span>unication</span><br>Properly</h1>
+    <p>Break every language barrier</p>
+  </div>
+  <div class="splash-btns">
+    <button class="btn btn-primary" onclick="showScreen('onboarding')">Get Started →</button>
+    <button class="btn btn-outline" onclick="showScreen('home')">Sign In</button>
+  </div>
+  <svg class="splash-waves" viewBox="0 0 1440 180" preserveAspectRatio="none">
+    <path d="M0,80 C360,160 1080,0 1440,80 L1440,180 L0,180 Z" fill="#4f8ef7"/>
+    <path d="M0,110 C480,40 960,170 1440,100 L1440,180 L0,180 Z" fill="#7c5cfc" opacity=".6"/>
+  </svg>
+</div>
+
+<!-- ══════════════════ ONBOARDING ══════════════════ -->
+<div class="screen" id="onboarding">
+  <div id="ob1" class="onboard-step active">
+    <div class="onboard-icon">🗣️</div>
+    <h2>Speak. Be Understood.<br>Instantly.</h2>
+    <p>CP translates your voice in real-time so you and anyone can talk naturally — no interpreter needed.</p>
+  </div>
+  <div id="ob2" class="onboard-step">
+    <div class="onboard-icon">🔒</div>
+    <h2>Your Voice,<br>Your Privacy.</h2>
+    <p>End-to-end encrypted conversations. Your words are never stored or shared without your consent.</p>
+  </div>
+  <div id="ob3" class="onboard-step">
+    <div class="onboard-icon">🌍</div>
+    <h2>100+ Languages.<br>One App.</h2>
+    <p>From Spanish to Swahili, CP supports a wide range of languages and dialects — and grows every month.</p>
+  </div>
+  <div class="dots">
+    <div class="dot active" id="dot0"></div>
+    <div class="dot" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+  </div>
+  <div class="onboard-nav" style="padding:0 24px;">
+    <button class="btn btn-primary" id="obNext" onclick="nextOnboard()">Next →</button>
+    <button class="btn btn-outline" onclick="showScreen('home')" style="margin-top:4px;">Skip</button>
+  </div>
+</div>
+
+<!-- ══════════════════ HOME ══════════════════ -->
+<div class="screen" id="home">
+  <div class="home-header">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-size:13px;color:var(--muted);">Good morning 👋</div>
+        <h2>Christopher</h2>
+      </div>
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;">CP</div>
+    </div>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span>AI Engine Active · 47ms latency</span>
+    </div>
+  </div>
+
+  <div class="mode-grid">
+    <div class="mode-card" onclick="showCall()">
+      <div class="mode-icon">📞</div>
+      <h3>Two-Way Call</h3>
+      <p>One-on-one real-time translation</p>
+      <span class="badge badge-blue">Live</span>
+    </div>
+    <div class="mode-card" onclick="showScreen('conference')">
+      <div class="mode-icon">👥</div>
+      <h3>Conference</h3>
+      <p>Multi-language group calls</p>
+      <span class="badge badge-purple">Beta</span>
+    </div>
+    <div class="mode-card wide" onclick="showCall()">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="mode-icon" style="margin-bottom:0;">⚡</div>
+        <div>
+          <h3>Quick Connect</h3>
+          <p>Start translating instantly with last-used language pair</p>
+          <span class="badge badge-blue">EN → FR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Recent Conversations</div>
+  <div class="recent-list">
+    <div class="recent-item">
+      <div class="lang-flags">🇺🇸&nbsp;→&nbsp;🇫🇷</div>
+      <div class="recent-info">
+        <strong>English → French</strong>
+        <span>Client call · 14 min</span>
+      </div>
+      <div class="recent-time">Today</div>
+    </div>
+    <div class="recent-item">
+      <div class="lang-flags">🇪🇸&nbsp;→&nbsp;🇩🇪</div>
+      <div class="recent-info">
+        <strong>Spanish → German</strong>
+        <span>Conference · 5 speakers</span>
+      </div>
+      <div class="recent-time">Yesterday</div>
+    </div>
+    <div class="recent-item">
+      <div class="lang-flags">🇯🇵&nbsp;→&nbsp;🇺🇸</div>
+      <div class="recent-info">
+        <strong>Japanese → English</strong>
+        <span>Customer support · 8 min</span>
+      </div>
+      <div class="recent-time">Mon</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn active" onclick="navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ CALL SCREEN ══════════════════ -->
+<div class="screen" id="call">
+  <div class="call-bg">
+    <div class="call-header">
+      <button class="back-btn" onclick="showScreen('home')">←</button>
+      <h2>Two-Way Translation</h2>
+    </div>
+    <div class="lang-selector-row">
+      <div class="lang-select-box active-speaker" id="langBoxA" onclick="openLangPicker('A')">
+        <div class="flag" id="flagA">🇺🇸</div>
+        <div class="lang-name" id="langNameA">English</div>
+        <div class="lang-sub">Speaker A (You)</div>
+      </div>
+      <button class="swap-btn" onclick="swapLangs()">⇄</button>
+      <div class="lang-select-box" id="langBoxB" onclick="openLangPicker('B')">
+        <div class="flag" id="flagB">🇫🇷</div>
+        <div class="lang-name" id="langNameB">French</div>
+        <div class="lang-sub">Speaker B</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="translation-area">
+    <!-- Speaker A bubble -->
+    <div class="speech-bubble speaker-a" id="bubbleA">
+      <div class="bubble-label"><span class="flag-sm" id="bFlagA">🇺🇸</span> You · <span id="bLangA">English</span></div>
+      <div class="original-text" id="origA">Tap the microphone to start speaking…</div>
+      <div class="translated-text" id="transA"></div>
+    </div>
+    <!-- Speaker B bubble -->
+    <div class="speech-bubble speaker-b" id="bubbleB">
+      <div class="bubble-label"><span class="flag-sm" id="bFlagB">🇫🇷</span> Them · <span id="bLangB">French</span></div>
+      <div class="original-text" id="origB">En attente de l'autre locuteur…</div>
+      <div class="translated-text" id="transB"></div>
+    </div>
+  </div>
+
+  <!-- Waveform -->
+  <div class="waveform-wrap">
+    <div class="waveform" id="waveform"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="call-controls">
+    <div class="ctrl-btn" onclick="toggleSpeaker()">
+      <button class="ctrl-icon ctrl-gray" id="speakerBtn">🔊</button>
+      <span>Speaker</span>
+    </div>
+    <div class="ctrl-btn" onclick="toggleMic()">
+      <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
+      <span id="micLabel">Tap to speak</span>
+    </div>
+    <div class="ctrl-btn" onclick="showScreen('home')">
+      <button class="ctrl-icon ctrl-red">📵</button>
+      <span>End</span>
+    </div>
+  </div>
+
+  <!-- Note about speech -->
+  <div style="text-align:center;padding:0 24px 24px;font-size:12px;color:var(--muted);">
+    🎙️ Powered by Azure AI · Real-time voice translation<br>Open in Chrome and allow microphone access
+  </div>
+</div>
+
+<!-- ══════════════════ CONFERENCE ══════════════════ -->
+<div class="screen" id="conference">
+  <div class="conf-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <h2>Conference Mode</h2>
+  </div>
+
+  <div class="participants-grid">
+    <div class="participant-card speaking" id="p1">
+      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">👨🏾</div>
+      <div class="p-name">Christopher</div>
+      <div class="p-lang">🇺🇸 English</div>
+      <div class="p-status speak">● Speaking</div>
+    </div>
+    <div class="participant-card" id="p2">
+      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">👩🏼</div>
+      <div class="p-name">Marie</div>
+      <div class="p-lang">🇫🇷 French</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="p3">
+      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">👨🏻</div>
+      <div class="p-name">Carlos</div>
+      <div class="p-lang">🇪🇸 Spanish</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card p-add" onclick="alert('Add participant — coming in v1.1!')">
+      <div class="p-avatar" style="font-size:28px;">➕</div>
+      <div class="p-name" style="color:var(--muted);">Add</div>
+      <div class="p-lang" style="color:var(--border);">Participant</div>
+    </div>
+  </div>
+
+  <div class="conf-transcript">
+    <h4>Live Transcript</h4>
+    <div id="confTranscript">
+      <div class="transcript-line">
+        <span class="t-flag">🇺🇸</span>
+        <div class="t-content">
+          <div class="t-original">Hello everyone, let's begin the meeting.</div>
+          <div class="t-translated">→ FR: Bonjour à tous, commençons la réunion.</div>
+          <div class="t-translated">→ ES: Hola a todos, empecemos la reunión.</div>
+        </div>
+      </div>
+      <div class="transcript-line">
+        <span class="t-flag">🇫🇷</span>
+        <div class="t-content">
+          <div class="t-original">Oui, je suis prêt. Merci pour l'invitation.</div>
+          <div class="t-translated">→ EN: Yes, I'm ready. Thank you for the invitation.</div>
+          <div class="t-translated">→ ES: Sí, estoy listo. Gracias por la invitación.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="conf-start-btn">
+    <button class="btn btn-primary" onclick="startConferenceDemo()">▶ Start / Resume Session</button>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn active"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ SETTINGS ══════════════════ -->
+<div class="screen" id="settings">
+  <div class="settings-header">
+    <h2>Settings</h2>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">👤</div>
+      <div class="s-info"><strong>Christopher Pierre</strong><span>ctchrispt23@gmail.com</span></div>
+      <span class="s-arrow">›</span>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(34,197,94,0.12);">🔴</div>
+      <div class="s-info"><strong>Keep Original Voice</strong><span>Preserve speaker tone & accent</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(124,92,252,0.12);">🔕</div>
+      <div class="s-info"><strong>Noise Cancellation</strong><span>Filter background sounds</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(245,158,11,0.12);">📝</div>
+      <div class="s-info"><strong>Show Transcript</strong><span>Display text alongside audio</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(239,68,68,0.12);">🔒</div>
+      <div class="s-info"><strong>End-to-End Encryption</strong><span>Always on — cannot be disabled</span></div>
+      <button class="toggle on" style="opacity:.5;pointer-events:none;"></button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">🌐</div>
+      <div class="s-info"><strong>Primary Language</strong><span>English (US)</span></div>
+      <span class="s-arrow">›</span>
+    </div>
+    <div class="settings-row">
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">📱</div>
+      <div class="s-info"><strong>Platform Integrations</strong><span>Zoom, Skype, Teams</span></div>
+      <span class="s-arrow">›</span>
+    </div>
+  </div>
+
+  <!-- Azure Key Setup -->
+  <div class="settings-section" id="keySection">
+    <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;width:100%;">
+        <div class="s-icon" style="background:rgba(245,158,11,0.12);">🔑</div>
+        <div class="s-info"><strong>Azure Speech API Key</strong><span id="keyStatus">Not configured</span></div>
+        <span id="keyIndicator" style="font-size:20px;">⚠️</span>
+      </div>
+      <input type="password" id="apiKeyInput" placeholder="Paste your Azure key here…"
+        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;"/>
+      <button onclick="saveApiKey()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Save Key</button>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:24px;font-size:12px;color:var(--muted);">
+    Communication Properly · v0.1 Beta<br>© 2026 Christopher Pierre
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn active"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ LANGUAGE PICKER MODAL ══════════════════ -->
+<div class="modal-overlay" id="langModal" onclick="closeLangPicker(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3>Select Language</h3>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Search languages…" id="langSearch" oninput="filterLangs(this.value)"/>
+    </div>
+    <div id="langList"></div>
+  </div>
+</div>
+
+<script>
+// ── Language data ─────────────────────────────────────────────
+const LANGUAGES = [
+  {flag:'🇺🇸',name:'English',sub:'United States'},
+  {flag:'🇫🇷',name:'French',sub:'France'},
+  {flag:'🇪🇸',name:'Spanish',sub:'Spain / Latin America'},
+  {flag:'🇩🇪',name:'German',sub:'Germany'},
+  {flag:'🇯🇵',name:'Japanese',sub:'Japan'},
+  {flag:'🇨🇳',name:'Chinese',sub:'Mandarin'},
+  {flag:'🇧🇷',name:'Portuguese',sub:'Brazil'},
+  {flag:'🇸🇦',name:'Arabic',sub:'Modern Standard'},
+  {flag:'🇷🇺',name:'Russian',sub:'Russia'},
+  {flag:'🇮🇳',name:'Hindi',sub:'India'},
+  {flag:'🇰🇷',name:'Korean',sub:'South Korea'},
+  {flag:'🇮🇹',name:'Italian',sub:'Italy'},
+  {flag:'🇳🇱',name:'Dutch',sub:'Netherlands'},
+  {flag:'🇵🇱',name:'Polish',sub:'Poland'},
+  {flag:'🇸🇪',name:'Swedish',sub:'Sweden'},
+  {flag:'🇹🇷',name:'Turkish',sub:'Turkey'},
+  {flag:'🇬🇷',name:'Greek',sub:'Greece'},
+  {flag:'🇻🇳',name:'Vietnamese',sub:'Vietnam'},
+  {flag:'🇳🇬',name:'Haitian Creole',sub:'Haiti'},
+  {flag:'🇰🇪',name:'Swahili',sub:'East Africa'},
+];
+
+// Mock translations per language pair
+const MOCK = {
+  'English→French':[
+    ['Hello, how can I help you today?','Bonjour, comment puis-je vous aider aujourd\'hui ?'],
+    ['I need assistance with my order.','J\'ai besoin d\'aide pour ma commande.'],
+    ['Let me transfer you to the right department.','Laissez-moi vous transférer au bon service.'],
+  ],
+  'English→Spanish':[
+    ['Good morning, what can I do for you?','Buenos días, ¿en qué puedo ayudarle?'],
+    ['Please hold while I check your account.','Por favor espere mientras verifico su cuenta.'],
+    ['Thank you for calling us today.','Gracias por llamarnos hoy.'],
+  ],
+  'English→German':[
+    ['Welcome, how may I assist you?','Willkommen, wie kann ich Ihnen helfen?'],
+    ['I understand your concern completely.','Ich verstehe Ihr Anliegen vollständig.'],
+    ['We will resolve this right away.','Wir werden das sofort lösen.'],
+  ],
+  'French→English':[
+    ['Bonjour, j\'ai un problème avec ma facture.','Hello, I have a problem with my invoice.'],
+    ['Pouvez-vous m\'expliquer les frais ?','Can you explain the charges to me?'],
+    ['Merci de votre aide précieuse.','Thank you for your valuable help.'],
+  ],
+};
+
+function getMock(langA, langB){
+  const key = `${langA}→${langB}`;
+  return MOCK[key] || [
+    [`Hello from ${langA}!`, `[Translated to ${langB}]`],
+    [`How are you?`, `[Translated greeting in ${langB}]`],
+    [`Thank you very much.`, `[Polite closing in ${langB}]`],
+  ];
+}
+
+// ── Azure Speech config (loaded securely from local storage) ──
+let AZURE_KEY    = localStorage.getItem('cp_azure_key') || '';
+let AZURE_REGION = localStorage.getItem('cp_azure_region') || 'westus2';
+
+// ── API Key management ────────────────────────────────────────
+function updateKeyStatus(){
+  const configured = !!AZURE_KEY;
+  const statusEl = document.getElementById('keyStatus');
+  const indicatorEl = document.getElementById('keyIndicator');
+  if(statusEl) statusEl.textContent = configured ? 'Configured ✓' : 'Not configured';
+  if(indicatorEl) indicatorEl.textContent = configured ? '✅' : '⚠️';
+}
+function saveApiKey(){
+  const input = document.getElementById('apiKeyInput');
+  const key = (input.value || '').trim();
+  if(!key){alert('Please paste your Azure key first.');return;}
+  localStorage.setItem('cp_azure_key', key);
+  AZURE_KEY = key;
+  input.value = '';
+  updateKeyStatus();
+  alert('Key saved! You can now use real-time translation.');
+}
+
+// Speech recognition language codes
+const LANG_SPEECH = {
+  English:'en-US', French:'fr-FR', Spanish:'es-ES', German:'de-DE',
+  Japanese:'ja-JP', Chinese:'zh-CN', Portuguese:'pt-BR', Arabic:'ar-SA',
+  Russian:'ru-RU', Hindi:'hi-IN', Korean:'ko-KR', Italian:'it-IT',
+  Dutch:'nl-NL', Polish:'pl-PL', Swedish:'sv-SE', Turkish:'tr-TR',
+  Greek:'el-GR', Vietnamese:'vi-VN', 'Haitian Creole':'fr-HT', Swahili:'sw-KE'
+};
+
+// Translation target language codes (short)
+const LANG_TRANS = {
+  English:'en', French:'fr', Spanish:'es', German:'de',
+  Japanese:'ja', Chinese:'zh-Hans', Portuguese:'pt', Arabic:'ar',
+  Russian:'ru', Hindi:'hi', Korean:'ko', Italian:'it',
+  Dutch:'nl', Polish:'pl', Swedish:'sv', Turkish:'tr',
+  Greek:'el', Vietnamese:'vi', 'Haitian Creole':'ht', Swahili:'sw'
+};
+
+// ── State ─────────────────────────────────────────────────────
+let currentLangA = {flag:'🇺🇸',name:'English'};
+let currentLangB = {flag:'🇫🇷',name:'French'};
+let activeSpeaker = 'A';
+let pickingFor = 'A';
+let isListening = false;
+let demoInterval = null;
+let mockIdx = 0;
+let recognition = null;
+let waveInterval = null;
+let obStep = 0;
+let azureRecognizer = null;
+
+// ── Screen navigation ─────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function navTo(id, btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Onboarding ────────────────────────────────────────────────
+function nextOnboard(){
+  obStep++;
+  if(obStep>=3){showScreen('home');return;}
+  ['ob1','ob2','ob3'].forEach((id,i)=>{
+    document.getElementById(id).classList.toggle('active',i===obStep);
+    document.getElementById('dot'+i).classList.toggle('active',i===obStep);
+  });
+  if(obStep===2) document.getElementById('obNext').textContent='Get Started 🚀';
+}
+
+// ── Call screen ───────────────────────────────────────────────
+function showCall(){
+  showScreen('call');
+  updateCallUI();
+  buildWaveform();
+}
+
+function updateCallUI(){
+  document.getElementById('flagA').textContent=currentLangA.flag;
+  document.getElementById('langNameA').textContent=currentLangA.name;
+  document.getElementById('flagB').textContent=currentLangB.flag;
+  document.getElementById('langNameB').textContent=currentLangB.name;
+  document.getElementById('bFlagA').textContent=currentLangA.flag;
+  document.getElementById('bLangA').textContent=currentLangA.name;
+  document.getElementById('bFlagB').textContent=currentLangB.flag;
+  document.getElementById('bLangB').textContent=currentLangB.name;
+}
+
+function swapLangs(){
+  [currentLangA,currentLangB]=[currentLangB,currentLangA];
+  updateCallUI();
+  document.getElementById('origA').textContent='Languages swapped. Tap mic to speak.';
+  document.getElementById('transA').textContent='';
+  document.getElementById('origB').textContent='';
+  document.getElementById('transB').textContent='';
+  mockIdx=0;
+}
+
+// ── Waveform ──────────────────────────────────────────────────
+function buildWaveform(){
+  const wf=document.getElementById('waveform');
+  wf.innerHTML='';
+  for(let i=0;i<28;i++){
+    const b=document.createElement('div');
+    b.className='wave-bar';
+    b.style.height='4px';
+    wf.appendChild(b);
+  }
+}
+
+function animateWave(on){
+  clearInterval(waveInterval);
+  const bars=document.querySelectorAll('.wave-bar');
+  if(!on){bars.forEach(b=>{b.classList.remove('active');b.style.height='4px';});return;}
+  bars.forEach((b,i)=>{
+    const h=6+Math.random()*28;
+    const d=(.15+Math.random()*.35)+'s';
+    b.style.setProperty('--h',h+'px');
+    b.style.setProperty('--d',d);
+    b.classList.add('active');
+  });
+  waveInterval=setInterval(()=>{
+    bars.forEach(b=>{
+      const h=6+Math.random()*28;
+      b.style.setProperty('--h',h+'px');
+    });
+  },400);
+}
+
+// ── Microphone ────────────────────────────────────────────────
+function toggleMic(){
+  if(isListening){stopListening();}else{startListening();}
+}
+
+function startListening(){
+  isListening=true;
+  const btn=document.getElementById('micBtn');
+  btn.classList.add('listening');
+  document.getElementById('micLabel').textContent='Listening…';
+  document.getElementById('origA').textContent='';
+  document.getElementById('transA').textContent='';
+  animateWave(true);
+
+  // ── Try Azure Speech Translation SDK ─────────────────────
+  if(typeof SpeechSDK !== 'undefined'){
+    try{
+      const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(AZURE_KEY, AZURE_REGION);
+      speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
+      const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
+      speechConfig.addTargetLanguage(targetLang);
+
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
+      // Show interim results as user speaks
+      azureRecognizer.recognizing = (s, e) => {
+        if(e.result.text){
+          document.getElementById('origA').innerHTML = e.result.text + '<span class="cursor-blink"></span>';
+        }
+      };
+
+      // Final result with translation
+      azureRecognizer.recognized = (s, e) => {
+        if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
+          const original = e.result.text;
+          const translated = e.result.translations.get(targetLang);
+          document.getElementById('origA').textContent = original;
+          typeText('transA', translated || '[Translation unavailable]');
+          stopListening();
+        }
+      };
+
+      azureRecognizer.canceled = () => {
+        stopListening();
+        runDemoTranslation();
+      };
+
+      azureRecognizer.startContinuousRecognitionAsync(
+        ()=>{}, // success
+        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
+      );
+
+      // Auto-stop after 10 seconds of silence
+      setTimeout(()=>{ if(isListening) stopListening(); }, 10000);
+
+    } catch(err){
+      stopListening();
+      runDemoTranslation();
+    }
+  } else {
+    // Fallback demo mode
+    runDemoTranslation();
+  }
+}
+
+function stopListening(){
+  isListening=false;
+  if(azureRecognizer){
+    try{ azureRecognizer.stopContinuousRecognitionAsync(()=>{ azureRecognizer.close(); azureRecognizer=null; }); }
+    catch(e){ azureRecognizer=null; }
+  }
+  if(recognition){try{recognition.stop();}catch(e){}}
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micLabel').textContent='Tap to speak';
+  animateWave(false);
+}
+
+function typeText(elId, text){
+  const el = document.getElementById(elId);
+  el.innerHTML = '<span class="cursor-blink"></span>';
+  let i=0;
+  const t = setInterval(()=>{
+    el.textContent = text.slice(0,i);
+    i++;
+    if(i>text.length) clearInterval(t);
+  },28);
+}
+
+function runDemoTranslation(){
+  const pairs=getMock(currentLangA.name,currentLangB.name);
+  const pair=pairs[mockIdx%pairs.length];
+  mockIdx++;
+  let i=0;
+  document.getElementById('origA').textContent='';
+  document.getElementById('transA').textContent='';
+  const typeOrig=setInterval(()=>{
+    document.getElementById('origA').textContent=pair[0].slice(0,i);
+    i++;
+    if(i>pair[0].length){
+      clearInterval(typeOrig);
+      stopListening();
+      setTimeout(()=>typeText('transA', pair[1]),600);
+    }
+  },45);
+}
+
+function showMockTranslation(original, speaker, preTranslated){
+  const pairs=getMock(currentLangA.name,currentLangB.name);
+  const match=pairs.find(p=>p[0]===original)||[original,preTranslated||`[${currentLangB.name} translation]`];
+  typeText('trans'+speaker, match[1]);
+}
+
+function toggleSpeaker(){
+  const btn=document.getElementById('speakerBtn');
+  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
+}
+
+// ── Language Picker ───────────────────────────────────────────
+function openLangPicker(side){
+  pickingFor=side;
+  document.getElementById('langSearch').value='';
+  renderLangList(LANGUAGES);
+  document.getElementById('langModal').classList.add('open');
+}
+
+function closeLangPicker(e){
+  if(e.target===document.getElementById('langModal'))
+    document.getElementById('langModal').classList.remove('open');
+}
+
+function filterLangs(q){
+  const filtered=LANGUAGES.filter(l=>l.name.toLowerCase().includes(q.toLowerCase())||l.sub.toLowerCase().includes(q.toLowerCase()));
+  renderLangList(filtered);
+}
+
+function renderLangList(langs){
+  const current=(pickingFor==='A'?currentLangA:currentLangB).name;
+  document.getElementById('langList').innerHTML=langs.map(l=>`
+    <div class="lang-option" onclick="selectLang('${l.flag}','${l.name}')">
+      <span class="flag">${l.flag}</span>
+      <div class="info"><strong>${l.name}</strong><span>${l.sub}</span></div>
+      ${l.name===current?'<span class="check">✓</span>':''}
+    </div>
+  `).join('');
+}
+
+function selectLang(flag,name){
+  if(pickingFor==='A') currentLangA={flag,name};
+  else currentLangB={flag,name};
+  document.getElementById('langModal').classList.remove('open');
+  updateCallUI();
+  mockIdx=0;
+  document.getElementById('origA').textContent='Language updated. Tap mic to speak.';
+  document.getElementById('transA').textContent='';
+}
+
+// ── Conference demo ───────────────────────────────────────────
+const CONF_LINES=[
+  {flag:'🇺🇸',pid:'p1',orig:'Our Q2 targets are looking strong this quarter.',fr:'Nos objectifs T2 semblent solides ce trimestre.',es:'Nuestros objetivos del Q2 se ven sólidos este trimestre.'},
+  {flag:'🇫🇷',pid:'p2',orig:'Très bien. Nous avons dépassé nos projections en Europe.',en:'Very good. We have exceeded our projections in Europe.',es:'Muy bien. Hemos superado nuestras proyecciones en Europa.'},
+  {flag:'🇪🇸',pid:'p3',orig:'En Latinoamérica también vemos un crecimiento del 18%.',en:'In Latin America we also see 18% growth.',fr:'En Amérique latine, nous voyons aussi une croissance de 18 %.'},
+  {flag:'🇺🇸',pid:'p1',orig:'Excellent results from every region. Let\'s align on next steps.',fr:'Excellents résultats de toutes les régions. Alignons-nous sur les prochaines étapes.',es:'Excelentes resultados de todas las regiones. Alineémonos en los próximos pasos.'},
+];
+let confIdx=0;
+let confTimer=null;
+
+function startConferenceDemo(){
+  clearInterval(confTimer);
+  document.getElementById('confTranscript').innerHTML='';
+  confIdx=0;
+  addConfLine();
+  confTimer=setInterval(()=>{
+    confIdx++;
+    if(confIdx>=CONF_LINES.length){clearInterval(confTimer);return;}
+    addConfLine();
+  },3500);
+}
+
+function addConfLine(){
+  const l=CONF_LINES[confIdx];
+  // highlight speaker
+  document.querySelectorAll('.participant-card').forEach(c=>{
+    c.classList.remove('speaking');
+    c.querySelector('.p-status').className='p-status listen';
+    c.querySelector('.p-status').textContent='Listening';
+  });
+  const card=document.getElementById(l.pid);
+  if(card){
+    card.classList.add('speaking');
+    card.querySelector('.p-status').className='p-status speak';
+    card.querySelector('.p-status').textContent='● Speaking';
+  }
+  // build translations
+  let trans='';
+  if(l.fr) trans+=`<div class="t-translated">→ FR: ${l.fr}</div>`;
+  if(l.en) trans+=`<div class="t-translated">→ EN: ${l.en}</div>`;
+  if(l.es) trans+=`<div class="t-translated">→ ES: ${l.es}</div>`;
+  const div=document.createElement('div');
+  div.className='transcript-line';
+  div.innerHTML=`<span class="t-flag">${l.flag}</span><div class="t-content"><div class="t-original">${l.orig}</div>${trans}</div>`;
+  const tc=document.getElementById('confTranscript');
+  tc.appendChild(div);
+  tc.scrollTop=tc.scrollHeight;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+buildWaveform();
+
+// ── PWA Install prompt (Android Chrome) ──────────────────────
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
+});
+
+function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(() => {
+      deferredInstallPrompt = null;
+      document.getElementById('installBanner').style.display = 'none';
+    });
+  } else {
+    // iOS fallback instructions
+    document.getElementById('iosGuide').style.display = 'flex';
+  }
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+}
+
+function dismissIos() {
+  document.getElementById('iosGuide').style.display = 'none';
+}
+
+// ── Service Worker registration ───────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Init ─────────────────────────────────────────────────────
+window.addEventListener('load', updateKeyStatus);
+</script>
+
+<!-- ── Install Banner (Android) ── -->
+<div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+  <span style="font-size:28px;">📲</span>
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:600;color:#e8edf5;">Install CP App</div>
+    <div style="font-size:12px;color:#64748b;margin-top:2px;">Add to your home screen for instant access</div>
+  </div>
+  <button onclick="installApp()" style="background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Install</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
+</div>
+
+<!-- ── iOS Install Guide ── -->
+<div id="iosGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:flex-end;">
+  <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
+    <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Install on iPhone</h3>
+    <p style="font-size:14px;color:#64748b;margin-bottom:20px;">Follow these steps to add CP to your home screen:</p>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:#e8edf5;">Open this page in <strong>Safari</strong> (not Chrome)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:#e8edf5;">Tap the <strong>Share</strong> button <span style="font-size:18px;">⎙</span> at the bottom</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">3</div>
+        <div style="font-size:14px;color:#e8edf5;">Tap <strong>"Add to Home Screen"</strong> and confirm</div>
+      </div>
+    </div>
+    <button onclick="dismissIos()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Got it!</button>
+  </div>
+</div>
+
+</body>
+</html>
