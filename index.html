@@ -287,6 +287,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <p>Multi-language group calls</p>
       <span class="badge badge-purple">Beta</span>
     </div>
+    <!-- NOUVEAU : appel à distance (2 appareils) -->
+    <div class="mode-card wide" onclick="openRemoteModal()">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="mode-icon" style="margin-bottom:0;">🌐</div>
+        <div>
+          <h3>Remote Call</h3>
+          <p>Talk from two devices — share a room code, each in your own language</p>
+          <span class="badge badge-purple">New</span>
+        </div>
+      </div>
+    </div>
     <div class="mode-card wide" onclick="showCall()">
       <div style="display:flex;align-items:center;gap:16px;">
         <div class="mode-icon" style="margin-bottom:0;">⚡</div>
@@ -339,8 +350,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="screen" id="call">
   <div class="call-bg">
     <div class="call-header">
-      <button class="back-btn" onclick="showScreen('home')">←</button>
-      <h2>Two-Way Translation</h2>
+      <button class="back-btn" onclick="endCall()">←</button>
+      <h2 id="callTitle">Two-Way Translation</h2>
     </div>
     <div class="lang-selector-row">
       <div class="lang-select-box active-speaker" id="langBoxA" onclick="openLangPicker('A')">
@@ -387,7 +398,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
       <span id="micLabel">Tap to speak</span>
     </div>
-    <div class="ctrl-btn" onclick="showScreen('home')">
+    <div class="ctrl-btn" onclick="endCall()">
       <button class="ctrl-icon ctrl-red">📵</button>
       <span>End</span>
     </div>
@@ -496,11 +507,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="s-info"><strong>Show Transcript</strong><span>Display text alongside audio</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
-    <div class="settings-row">
-      <div class="s-icon" style="background:rgba(239,68,68,0.12);">🔒</div>
-      <div class="s-info"><strong>End-to-End Encryption</strong><span>Always on — cannot be disabled</span></div>
-      <button class="toggle on" style="opacity:.5;pointer-events:none;"></button>
-    </div>
   </div>
 
   <div class="settings-section">
@@ -531,7 +537,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div style="text-align:center;padding:24px;font-size:12px;color:var(--muted);">
-    Communication Properly · v0.1 Beta<br>© 2026 Christopher Pierre
+    Communication Properly · v0.1 Beta<br>© 2026 CREDIA INC.
   </div>
 
   <div class="bottom-nav">
@@ -552,6 +558,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <input type="text" placeholder="Search languages…" id="langSearch" oninput="filterLangs(this.value)"/>
     </div>
     <div id="langList"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ REMOTE CALL MODAL (NOUVEAU) ══════════════════ -->
+<div class="modal-overlay" id="remoteModal" onclick="closeRemoteModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3>Remote Call</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+      Create a room and share the code, or join with a code you received.
+      Pick <strong>your</strong> language first (Speaker A on the call screen).
+    </p>
+    <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
+        style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;text-transform:uppercase;"/>
+      <button class="btn btn-outline" style="width:auto;padding:12px 20px;" onclick="joinRemoteRoom()">Join</button>
+    </div>
+    <div id="remoteStatus" style="margin-top:14px;font-size:13px;color:var(--muted);min-height:18px;"></div>
   </div>
 </div>
 
@@ -666,6 +691,7 @@ let recognition = null;
 let waveInterval = null;
 let obStep = 0;
 let azureRecognizer = null;
+let remoteMode = false; // NOUVEAU : mode appel à distance
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
@@ -750,6 +776,29 @@ function animateWave(on){
 
 // ── Microphone ────────────────────────────────────────────────
 function toggleMic(){
+  // NOUVEAU : en mode distance, le micro passe par CPRemote
+  if(remoteMode){
+    if(isListening){
+      isListening=false;
+      CPRemote.stopSpeaking();
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micLabel').textContent='Tap to speak';
+      animateWave(false);
+    } else {
+      isListening=true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micLabel').textContent='Listening…';
+      animateWave(true);
+      CPRemote.startSpeaking().catch(err=>{
+        isListening=false;
+        document.getElementById('micBtn').classList.remove('listening');
+        document.getElementById('micLabel').textContent='Tap to speak';
+        animateWave(false);
+        document.getElementById('origA').textContent='⚠️ '+err.message;
+      });
+    }
+    return;
+  }
   if(isListening){stopListening();}else{startListening();}
 }
 
@@ -866,6 +915,17 @@ function toggleSpeaker(){
   btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
 }
 
+// ── Fin d'appel (local ou distance) ───────────────────────────
+function endCall(){
+  if(remoteMode){
+    try{ CPRemote.leave(); }catch(e){}
+    remoteMode=false;
+  }
+  stopListening();
+  document.getElementById('callTitle').textContent='Two-Way Translation';
+  showScreen('home');
+}
+
 // ── Language Picker ───────────────────────────────────────────
 function openLangPicker(side){
   pickingFor=side;
@@ -903,6 +963,10 @@ function selectLang(flag,name){
   mockIdx=0;
   document.getElementById('origA').textContent='Language updated. Tap mic to speak.';
   document.getElementById('transA').textContent='';
+  // NOUVEAU : informer la salle du changement de langue
+  if(remoteMode && pickingFor==='A'){
+    CPRemote.setLanguage(LANG_TRANS[name]||'en', LANG_SPEECH[name]||'en-US');
+  }
 }
 
 // ── Conference demo ───────────────────────────────────────────
@@ -932,8 +996,8 @@ function addConfLine(){
   // highlight speaker
   document.querySelectorAll('.participant-card').forEach(c=>{
     c.classList.remove('speaking');
-    c.querySelector('.p-status').className='p-status listen';
-    c.querySelector('.p-status').textContent='Listening';
+    const st=c.querySelector('.p-status');
+    if(st){st.className='p-status listen';st.textContent='Listening';}
   });
   const card=document.getElementById(l.pid);
   if(card){
@@ -993,6 +1057,91 @@ if ('serviceWorker' in navigator) {
 
 // ── Init ─────────────────────────────────────────────────────
 window.addEventListener('load', updateKeyStatus);
+</script>
+
+<!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
+<script src="cp-remote.js"></script>
+<script>
+function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
+function closeRemoteModal(e){
+  if(e.target===document.getElementById('remoteModal'))
+    document.getElementById('remoteModal').classList.remove('open');
+}
+function setRemoteStatus(t){ document.getElementById('remoteStatus').textContent=t; }
+
+function myRemoteOpts(){
+  return {
+    name: 'Guest-'+Math.floor(1000+Math.random()*9000),
+    lang: LANG_TRANS[currentLangA.name] || 'en',
+    speechLang: LANG_SPEECH[currentLangA.name] || 'en-US',
+  };
+}
+
+function createRemoteRoom(){
+  setRemoteStatus('Creating room…');
+  CPRemote.create(myRemoteOpts())
+    .then(({room}) => enterRemoteCall(room, true))
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
+}
+
+function joinRemoteRoom(){
+  const code = (document.getElementById('joinCodeInput').value || '').trim().toUpperCase();
+  if(code.length !== 4){ setRemoteStatus('Enter the 4-character room code.'); return; }
+  setRemoteStatus('Joining ' + code + '…');
+  CPRemote.join(code, myRemoteOpts())
+    .then(({room}) => enterRemoteCall(room, false))
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
+}
+
+function enterRemoteCall(room, isHost){
+  remoteMode = true;
+  document.getElementById('remoteModal').classList.remove('open');
+  showCall();
+  document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
+  document.getElementById('transA').textContent = '';
+  document.getElementById('transB').textContent = '';
+  document.getElementById('origB').textContent = 'Waiting for the other participant…';
+  if(isHost){
+    const link = location.origin + location.pathname + '#join=' + room;
+    document.getElementById('origA').textContent =
+      'Share this code: ' + room + ' — or this link: ' + link;
+  } else {
+    document.getElementById('origA').textContent = 'Connected! Tap the mic to speak.';
+  }
+}
+
+CPRemote.on((type, data) => {
+  if(type === 'partial'){
+    document.getElementById('origA').innerHTML = data.text + '<span class="cursor-blink"></span>';
+  }
+  if(type === 'final'){
+    document.getElementById('origA').textContent = data.original;
+    document.getElementById('transA').textContent = Object.values(data.translations)[0] || '';
+  }
+  if(type === 'utterance'){ // reçu de l'autre appareil
+    const myLang = LANG_TRANS[currentLangA.name] || 'en';
+    document.getElementById('origB').textContent = data.original;
+    document.getElementById('transB').textContent =
+      data.translations[myLang] || Object.values(data.translations)[0] || '';
+  }
+  if(type === 'roster'){
+    const other = (data.participants || [])[0];
+    if(other && remoteMode){
+      document.getElementById('bLangB').textContent = (other.lang || '').toUpperCase();
+      if(document.getElementById('origB').textContent.startsWith('Waiting')){
+        document.getElementById('origB').textContent = other.name + ' joined the room.';
+      }
+    }
+  }
+  if(type === 'invite'){ // ouverture via lien #join=XXXX
+    openRemoteModal();
+    document.getElementById('joinCodeInput').value = data.room;
+    setRemoteStatus('Invitation detected — tap Join.');
+  }
+  if(type === 'closed' && remoteMode){
+    document.getElementById('origB').textContent = 'Connection closed.';
+  }
+});
 </script>
 
 <!-- ── Install Banner (Android) ── -->
