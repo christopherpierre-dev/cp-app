@@ -109,10 +109,12 @@
   }
 
   // ── Synthèse vocale : lire la traduction reçue dans ma langue ─────
+  // Voix plus naturelles. Alternatives : fr-CA-SylvieNeural (f), fr-FR-DeniseNeural (f),
+  // fr-FR-HenriNeural (m), en-US-JennyNeural (f), en-US-AriaNeural (f), en-CA-ClaraNeural (f)
   const TTS_VOICES = {
-    fr: 'fr-CA-SylvieNeural', en: 'en-US-JennyNeural', es: 'es-ES-ElviraNeural',
-    de: 'de-DE-KatjaNeural', pt: 'pt-BR-FranciscaNeural', ar: 'ar-SA-ZariyahNeural',
-    ht: 'fr-CA-SylvieNeural', // pas de voix créole : repli français
+    fr: 'fr-CA-JeanNeural', en: 'en-US-GuyNeural', es: 'es-MX-JorgeNeural',
+    de: 'de-DE-ConradNeural', pt: 'pt-BR-AntonioNeural', ar: 'ar-SA-HamedNeural',
+    ht: 'fr-CA-JeanNeural', // pas de voix créole : repli français
   };
 
   async function speakTranslation(m) {
