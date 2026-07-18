@@ -1,7 +1,7 @@
 {
   "name": "Communication Properly",
   "short_name": "CP",
-  "description": "Real-time AI voice translation — break every language barrier.",
+  "description": "Real-time AI voice translation for multilateral meetings and everyday conversations — break every language barrier.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0e1a",
@@ -30,6 +30,12 @@
       "short_name": "Call",
       "description": "Start a real-time translation call",
       "url": "./index.html#call"
+    },
+    {
+      "name": "Remote Call",
+      "short_name": "Remote",
+      "description": "Two-device translated call with a room code",
+      "url": "./index.html"
     },
     {
       "name": "Conference",
