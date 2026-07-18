@@ -240,12 +240,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div id="ob2" class="onboard-step">
     <div class="onboard-icon">🔒</div>
     <h2>Your Voice,<br>Your Privacy.</h2>
-    <p>End-to-end encrypted conversations. Your words are never stored or shared without your consent.</p>
+    <p>Your speech is processed securely by Microsoft Azure and is not stored by CP. You stay in control of your microphone at all times.</p>
   </div>
   <div id="ob3" class="onboard-step">
     <div class="onboard-icon">🌍</div>
-    <h2>100+ Languages.<br>One App.</h2>
-    <p>From Spanish to Swahili, CP supports a wide range of languages and dialects — and grows every month.</p>
+    <h2>20 Languages.<br>One App.</h2>
+    <p>From Spanish to Swahili to Haitian Creole, CP supports 20 languages — and the list keeps growing.</p>
   </div>
   <div class="dots">
     <div class="dot active" id="dot0"></div>
@@ -270,7 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="status-bar">
       <div class="status-dot"></div>
-      <span>AI Engine Active · 47ms latency</span>
+      <span>AI Engine Ready · Powered by Azure Speech</span>
     </div>
   </div>
 
@@ -494,8 +494,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="settings-section">
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(34,197,94,0.12);">🔴</div>
-      <div class="s-info"><strong>Keep Original Voice</strong><span>Preserve speaker tone & accent</span></div>
-      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+      <div class="s-info"><strong>Keep Original Voice</strong><span>Coming in v0.3 — voice preservation</span></div>
+      <button class="toggle" style="opacity:.5;pointer-events:none;"></button>
     </div>
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(124,92,252,0.12);">🔕</div>
@@ -519,20 +519,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="s-icon" style="background:rgba(79,142,247,0.12);">📱</div>
       <div class="s-info"><strong>Platform Integrations</strong><span>Zoom, Skype, Teams</span></div>
       <span class="s-arrow">›</span>
-    </div>
-  </div>
-
-  <!-- Azure Key Setup -->
-  <div class="settings-section" id="keySection">
-    <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-      <div style="display:flex;align-items:center;gap:10px;width:100%;">
-        <div class="s-icon" style="background:rgba(245,158,11,0.12);">🔑</div>
-        <div class="s-info"><strong>Azure Speech API Key</strong><span id="keyStatus">Not configured</span></div>
-        <span id="keyIndicator" style="font-size:20px;">⚠️</span>
-      </div>
-      <input type="password" id="apiKeyInput" placeholder="Paste your Azure key here…"
-        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;"/>
-      <button onclick="saveApiKey()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Save Key</button>
     </div>
   </div>
 
@@ -638,27 +624,13 @@ function getMock(langA, langB){
   ];
 }
 
-// ── Azure Speech config (loaded securely from local storage) ──
-let AZURE_KEY    = localStorage.getItem('cp_azure_key') || '';
-let AZURE_REGION = localStorage.getItem('cp_azure_region') || 'westus2';
-
-// ── API Key management ────────────────────────────────────────
-function updateKeyStatus(){
-  const configured = !!AZURE_KEY;
-  const statusEl = document.getElementById('keyStatus');
-  const indicatorEl = document.getElementById('keyIndicator');
-  if(statusEl) statusEl.textContent = configured ? 'Configured ✓' : 'Not configured';
-  if(indicatorEl) indicatorEl.textContent = configured ? '✅' : '⚠️';
-}
-function saveApiKey(){
-  const input = document.getElementById('apiKeyInput');
-  const key = (input.value || '').trim();
-  if(!key){alert('Please paste your Azure key first.');return;}
-  localStorage.setItem('cp_azure_key', key);
-  AZURE_KEY = key;
-  input.value = '';
-  updateKeyStatus();
-  alert('Key saved! You can now use real-time translation.');
+// ── Jetons Azure éphémères fournis par le serveur CP ──────────
+// (la clé Azure reste sur le serveur ; le client ne la voit jamais)
+const CP_TOKEN_URL = 'https://cp-server-kdbg.onrender.com/api/token';
+async function getCpToken(){
+  const r = await fetch(CP_TOKEN_URL);
+  if(!r.ok) throw new Error('Token service unavailable');
+  return r.json(); // {token, region}
 }
 
 // Speech recognition language codes
@@ -802,7 +774,7 @@ function toggleMic(){
   if(isListening){stopListening();}else{startListening();}
 }
 
-function startListening(){
+async function startListening(){
   isListening=true;
   const btn=document.getElementById('micBtn');
   btn.classList.add('listening');
@@ -811,10 +783,11 @@ function startListening(){
   document.getElementById('transA').textContent='';
   animateWave(true);
 
-  // ── Try Azure Speech Translation SDK ─────────────────────
+  // ── Try Azure Speech Translation SDK (jeton via serveur CP) ──
   if(typeof SpeechSDK !== 'undefined'){
     try{
-      const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(AZURE_KEY, AZURE_REGION);
+      const tk = await getCpToken();
+      const speechConfig = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
       speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
       const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
       speechConfig.addTargetLanguage(targetLang);
@@ -1056,7 +1029,6 @@ if ('serviceWorker' in navigator) {
 }
 
 // ── Init ─────────────────────────────────────────────────────
-window.addEventListener('load', updateKeyStatus);
 </script>
 
 <!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
