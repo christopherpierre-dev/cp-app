@@ -1,14 +1,18 @@
 {
-  "name": "Communication Properly",
-  "short_name": "CP",
-  "description": "Real-time AI voice translation for multilateral meetings and everyday conversations — break every language barrier.",
+  "name": "Equivox",
+  "short_name": "Equivox",
+  "description": "Equivox — real-time AI voice translation for multilateral meetings and everyday conversations. Powered by CP technology (CREDIA INC.).",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0e1a",
   "theme_color": "#0a0e1a",
   "orientation": "portrait",
   "lang": "en",
-  "categories": ["productivity", "communication", "utilities"],
+  "categories": [
+    "productivity",
+    "communication",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "icon-192.png",
