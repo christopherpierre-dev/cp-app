@@ -418,43 +418,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="participants-grid">
-    <div class="participant-card" id="pl-en">
+    <div class="participant-card" id="pl-en" onclick="setConfSpeaker('English','🇺🇸')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(79,142,247,0.15);">🇺🇸</div>
       <div class="p-name">English</div>
       <div class="p-lang">🇺🇸 English · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-fr">
+    <div class="participant-card" id="pl-fr" onclick="setConfSpeaker('French','🇫🇷')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(124,92,252,0.15);">🇫🇷</div>
       <div class="p-name">Français</div>
       <div class="p-lang">🇫🇷 French · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-es">
+    <div class="participant-card" id="pl-es" onclick="setConfSpeaker('Spanish','🇪🇸')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(34,197,94,0.12);">🇪🇸</div>
       <div class="p-name">Español</div>
       <div class="p-lang">🇪🇸 Spanish · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ru">
+    <div class="participant-card" id="pl-ru" onclick="setConfSpeaker('Russian','🇷🇺')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(236,72,153,0.12);">🇷🇺</div>
       <div class="p-name">Русский</div>
       <div class="p-lang">🇷🇺 Russian · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-zh">
+    <div class="participant-card" id="pl-zh" onclick="setConfSpeaker('Chinese','🇨🇳')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(245,158,11,0.12);">🇨🇳</div>
       <div class="p-name">中文</div>
       <div class="p-lang">🇨🇳 Chinese · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ar">
+    <div class="participant-card" id="pl-ar" onclick="setConfSpeaker('Arabic','🇸🇦')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(20,184,166,0.12);">🇸🇦</div>
       <div class="p-name">العربية</div>
       <div class="p-lang">🇸🇦 Arabic · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ht">
+    <div class="participant-card" id="pl-ht" onclick="setConfSpeaker('Haitian Creole','🇭🇹')" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(239,68,68,0.12);">🇭🇹</div>
       <div class="p-name">Kreyòl</div>
       <div class="p-lang">🇭🇹 Haitian Creole</div>
@@ -490,6 +490,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
     <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
   </div>
@@ -973,6 +974,29 @@ function selectLang(flag,name){
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
 const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
+let confLang = {name:'English', flag:'🇺🇸'};
+
+function setConfSpeaker(name, flag){
+  confLang = {name, flag};
+  const el = document.getElementById('confSrcLang');
+  if(el) el.textContent = name;
+  highlightConfSpeaker(name);
+  if(confActive){
+    stopConference('⏳ Switching speaker…');
+    setTimeout(()=>startConference(), 700);
+  }
+}
+
+function speakConf(text, code){
+  try{
+    if(!window.__confTk || !text) return;
+    const c = SpeechSDK.SpeechConfig.fromAuthorizationToken(window.__confTk.token, window.__confTk.region);
+    c.speechSynthesisVoiceName = CONF_VOICES[code] || 'en-US-GuyNeural';
+    const s = new SpeechSDK.SpeechSynthesizer(c);
+    s.speakTextAsync(text, ()=>s.close(), ()=>s.close());
+  }catch(e){}
+}
 let confRecognizer = null;
 let confActive = false;
 
@@ -990,20 +1014,21 @@ async function startConference(){
     alert('Speech engine unavailable — check your connection and reload.');
     return;
   }
-  document.getElementById('confSrcLang').textContent = currentLangA.name;
+  document.getElementById('confSrcLang').textContent = confLang.name;
   btn.textContent = '⏳ Connecting…';
   try{
     const tk = await getCpToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-    cfg.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
-    const targets = CONF_TARGETS.filter(n => n !== currentLangA.name).map(n => LANG_TRANS[n]);
+    window.__confTk = tk;
+    cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
+    const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
     targets.forEach(t => cfg.addTargetLanguage(t));
 
     const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
 
     document.getElementById('confTranscript').innerHTML = '';
-    highlightConfSpeaker(currentLangA.name);
+    highlightConfSpeaker(confLang.name);
 
     confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
     confRecognizer.recognized = (s, e) => {
@@ -1060,7 +1085,7 @@ function showConfInterim(text){
     el.className = 'transcript-line';
     document.getElementById('confTranscript').appendChild(el);
   }
-  el.innerHTML = `<span class="t-flag">${currentLangA.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
+  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
   const tc = document.getElementById('confTranscript');
   tc.scrollTop = tc.scrollHeight;
 }
@@ -1080,10 +1105,18 @@ function addLiveConfLine(orig, translations, targets){
   });
   const div = document.createElement('div');
   div.className = 'transcript-line';
-  div.innerHTML = `<span class="t-flag">${currentLangA.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(orig)}</div>${trans}</div>`;
+  div.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(orig)}</div>${trans}</div>`;
   const tc = document.getElementById('confTranscript');
   tc.appendChild(div);
   tc.scrollTop = tc.scrollHeight;
+  const v = document.getElementById('confVoiceSel')?.value;
+  if(v){
+    const srcCode = LANG_TRANS[confLang.name];
+    let toSpeak = null;
+    if(v === srcCode) toSpeak = orig;
+    else { try{ toSpeak = translations && translations.get(v); }catch(e){} }
+    if(toSpeak) speakConf(toSpeak, v);
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────
