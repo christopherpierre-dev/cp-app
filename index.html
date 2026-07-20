@@ -418,28 +418,52 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="participants-grid">
-    <div class="participant-card speaking" id="p1">
-      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">👨🏾</div>
-      <div class="p-name">Christopher</div>
-      <div class="p-lang">🇺🇸 English</div>
-      <div class="p-status speak">● Speaking</div>
-    </div>
-    <div class="participant-card" id="p2">
-      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">👩🏼</div>
-      <div class="p-name">Marie</div>
-      <div class="p-lang">🇫🇷 French</div>
+    <div class="participant-card" id="pl-en">
+      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">🇺🇸</div>
+      <div class="p-name">English</div>
+      <div class="p-lang">🇺🇸 English · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="p3">
-      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">👨🏻</div>
-      <div class="p-name">Carlos</div>
-      <div class="p-lang">🇪🇸 Spanish</div>
+    <div class="participant-card" id="pl-fr">
+      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">🇫🇷</div>
+      <div class="p-name">Français</div>
+      <div class="p-lang">🇫🇷 French · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card p-add" onclick="alert('Add participant — coming in v1.1!')">
+    <div class="participant-card" id="pl-es">
+      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">🇪🇸</div>
+      <div class="p-name">Español</div>
+      <div class="p-lang">🇪🇸 Spanish · UN official</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ru">
+      <div class="p-avatar" style="background:rgba(236,72,153,0.12);">🇷🇺</div>
+      <div class="p-name">Русский</div>
+      <div class="p-lang">🇷🇺 Russian · UN official</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-zh">
+      <div class="p-avatar" style="background:rgba(245,158,11,0.12);">🇨🇳</div>
+      <div class="p-name">中文</div>
+      <div class="p-lang">🇨🇳 Chinese · UN official</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ar">
+      <div class="p-avatar" style="background:rgba(20,184,166,0.12);">🇸🇦</div>
+      <div class="p-name">العربية</div>
+      <div class="p-lang">🇸🇦 Arabic · UN official</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ht">
+      <div class="p-avatar" style="background:rgba(239,68,68,0.12);">🇭🇹</div>
+      <div class="p-name">Kreyòl</div>
+      <div class="p-lang">🇭🇹 Haitian Creole</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card p-add" onclick="alert('Custom languages — coming in v1.1!')">
       <div class="p-avatar" style="font-size:28px;">➕</div>
       <div class="p-name" style="color:var(--muted);">Add</div>
-      <div class="p-lang" style="color:var(--border);">Participant</div>
+      <div class="p-lang" style="color:var(--border);">Language</div>
     </div>
   </div>
 
@@ -947,7 +971,8 @@ function selectLang(flag,name){
 // Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
 // Azure traduit chaque énoncé vers les langues des participants affichés,
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
-const CONF_TARGETS = ['English','French','Spanish'];
+const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
+const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
 let confRecognizer = null;
 let confActive = false;
 
@@ -1051,7 +1076,7 @@ function addLiveConfLine(orig, translations, targets){
   targets.forEach(t => {
     let txt = null;
     try{ txt = translations && translations.get(t); }catch(e){}
-    if(txt) trans += `<div class="t-translated">→ ${t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
+    if(txt) trans += `<div class="t-translated" dir="auto">→ ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
   });
   const div = document.createElement('div');
   div.className = 'transcript-line';
