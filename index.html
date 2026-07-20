@@ -466,7 +466,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
-    <button class="btn btn-primary" onclick="startConferenceDemo()">▶ Start / Resume Session</button>
+    <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
+    <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
   </div>
 
   <div class="bottom-nav">
@@ -942,53 +943,122 @@ function selectLang(flag,name){
   }
 }
 
-// ── Conference demo ───────────────────────────────────────────
-const CONF_LINES=[
-  {flag:'🇺🇸',pid:'p1',orig:'Our Q2 targets are looking strong this quarter.',fr:'Nos objectifs T2 semblent solides ce trimestre.',es:'Nuestros objetivos del Q2 se ven sólidos este trimestre.'},
-  {flag:'🇫🇷',pid:'p2',orig:'Très bien. Nous avons dépassé nos projections en Europe.',en:'Very good. We have exceeded our projections in Europe.',es:'Muy bien. Hemos superado nuestras proyecciones en Europa.'},
-  {flag:'🇪🇸',pid:'p3',orig:'En Latinoamérica también vemos un crecimiento del 18%.',en:'In Latin America we also see 18% growth.',fr:'En Amérique latine, nous voyons aussi une croissance de 18 %.'},
-  {flag:'🇺🇸',pid:'p1',orig:'Excellent results from every region. Let\'s align on next steps.',fr:'Excellents résultats de toutes les régions. Alignons-nous sur les prochaines étapes.',es:'Excelentes resultados de todas las regiones. Alineémonos en los próximos pasos.'},
-];
-let confIdx=0;
-let confTimer=null;
+// ── Conference (LIVE — real Azure multi-target translation) ──
+// Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
+// Azure traduit chaque énoncé vers les langues des participants affichés,
+// en une seule passe (multi-cibles) — la brique du futur mode événement.
+const CONF_TARGETS = ['English','French','Spanish'];
+let confRecognizer = null;
+let confActive = false;
 
-function startConferenceDemo(){
-  clearInterval(confTimer);
-  document.getElementById('confTranscript').innerHTML='';
-  confIdx=0;
-  addConfLine();
-  confTimer=setInterval(()=>{
-    confIdx++;
-    if(confIdx>=CONF_LINES.length){clearInterval(confTimer);return;}
-    addConfLine();
-  },3500);
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function addConfLine(){
-  const l=CONF_LINES[confIdx];
-  // highlight speaker
-  document.querySelectorAll('.participant-card').forEach(c=>{
-    c.classList.remove('speaking');
-    const st=c.querySelector('.p-status');
-    if(st){st.className='p-status listen';st.textContent='Listening';}
-  });
-  const card=document.getElementById(l.pid);
-  if(card){
-    card.classList.add('speaking');
-    card.querySelector('.p-status').className='p-status speak';
-    card.querySelector('.p-status').textContent='● Speaking';
+function toggleConference(){
+  if(confActive){ stopConference(); } else { startConference(); }
+}
+
+async function startConference(){
+  const btn = document.getElementById('confBtn');
+  if(typeof SpeechSDK === 'undefined'){
+    alert('Speech engine unavailable — check your connection and reload.');
+    return;
   }
-  // build translations
-  let trans='';
-  if(l.fr) trans+=`<div class="t-translated">→ FR: ${l.fr}</div>`;
-  if(l.en) trans+=`<div class="t-translated">→ EN: ${l.en}</div>`;
-  if(l.es) trans+=`<div class="t-translated">→ ES: ${l.es}</div>`;
-  const div=document.createElement('div');
-  div.className='transcript-line';
-  div.innerHTML=`<span class="t-flag">${l.flag}</span><div class="t-content"><div class="t-original">${l.orig}</div>${trans}</div>`;
-  const tc=document.getElementById('confTranscript');
+  document.getElementById('confSrcLang').textContent = currentLangA.name;
+  btn.textContent = '⏳ Connecting…';
+  try{
+    const tk = await getCpToken();
+    const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+    cfg.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
+    const targets = CONF_TARGETS.filter(n => n !== currentLangA.name).map(n => LANG_TRANS[n]);
+    targets.forEach(t => cfg.addTargetLanguage(t));
+
+    const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
+
+    document.getElementById('confTranscript').innerHTML = '';
+    highlightConfSpeaker(currentLangA.name);
+
+    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
+    confRecognizer.recognized = (s, e) => {
+      if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech && e.result.text){
+        addLiveConfLine(e.result.text, e.result.translations, targets);
+      }
+    };
+    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
+
+    confRecognizer.startContinuousRecognitionAsync(
+      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
+      (err) => { stopConference(); alert('Could not start the session: ' + err); }
+    );
+  } catch(err){
+    btn.textContent = '▶ Start live session';
+    alert('Speech service unavailable: ' + err.message);
+  }
+}
+
+function stopConference(label){
+  confActive = false;
+  const btn = document.getElementById('confBtn');
+  if(btn) btn.textContent = label || '▶ Start live session';
+  clearConfInterim();
+  if(confRecognizer){
+    try{ confRecognizer.stopContinuousRecognitionAsync(() => { confRecognizer.close(); confRecognizer = null; }); }
+    catch(e){ confRecognizer = null; }
+  }
+  document.querySelectorAll('.participant-card').forEach(c => {
+    c.classList.remove('speaking');
+    const st = c.querySelector('.p-status');
+    if(st){ st.className = 'p-status listen'; st.textContent = 'Listening'; }
+  });
+}
+
+function highlightConfSpeaker(langName){
+  document.querySelectorAll('.participant-card').forEach(c => {
+    c.classList.remove('speaking');
+    const st = c.querySelector('.p-status');
+    if(st){ st.className = 'p-status listen'; st.textContent = 'Listening'; }
+    const pl = c.querySelector('.p-lang');
+    if(pl && pl.textContent.includes(langName)){
+      c.classList.add('speaking');
+      if(st){ st.className = 'p-status speak'; st.textContent = '● Speaking'; }
+    }
+  });
+}
+
+function showConfInterim(text){
+  let el = document.getElementById('confInterim');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'confInterim';
+    el.className = 'transcript-line';
+    document.getElementById('confTranscript').appendChild(el);
+  }
+  el.innerHTML = `<span class="t-flag">${currentLangA.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
+  const tc = document.getElementById('confTranscript');
+  tc.scrollTop = tc.scrollHeight;
+}
+
+function clearConfInterim(){
+  const el = document.getElementById('confInterim');
+  if(el) el.remove();
+}
+
+function addLiveConfLine(orig, translations, targets){
+  clearConfInterim();
+  let trans = '';
+  targets.forEach(t => {
+    let txt = null;
+    try{ txt = translations && translations.get(t); }catch(e){}
+    if(txt) trans += `<div class="t-translated">→ ${t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
+  });
+  const div = document.createElement('div');
+  div.className = 'transcript-line';
+  div.innerHTML = `<span class="t-flag">${currentLangA.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(orig)}</div>${trans}</div>`;
+  const tc = document.getElementById('confTranscript');
   tc.appendChild(div);
-  tc.scrollTop=tc.scrollHeight;
+  tc.scrollTop = tc.scrollHeight;
 }
 
 // ── Init ──────────────────────────────────────────────────────
