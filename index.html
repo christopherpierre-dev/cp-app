@@ -772,6 +772,51 @@ function animateWave(on){
   },400);
 }
 
+
+// ── Vérification préalable du micro (message clair si l'autorisation manque) ──
+async function ensureMic(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    throw new Error("Microphone unavailable. Open this page over https:// in Chrome, Edge or Safari.");
+  }
+  let state = null;
+  try{ state = (await navigator.permissions.query({name:'microphone'})).state; }catch(e){}
+  if(state === 'denied'){
+    throw new Error("Microphone blocked for this site. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+  }
+  try{
+    const stream = await Promise.race([
+      navigator.mediaDevices.getUserMedia({audio:true}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('__PROMPT_TIMEOUT__')), 12000))
+    ]);
+    stream.getTracks().forEach(t=>t.stop());
+    return true;
+  }catch(err){
+    if(err && err.message === '__PROMPT_TIMEOUT__'){
+      throw new Error("Waiting for microphone permission. Chrome should show a prompt at the top of the window — click Allow. If you see no prompt, click the padlock in the address bar, set Microphone to Allow, then reload.");
+    }
+    if(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')){
+      throw new Error("Microphone permission denied. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+    }
+    if(err && err.name === 'NotFoundError'){
+      throw new Error("No microphone detected. Connect a microphone or headset and reload.");
+    }
+    throw new Error("Microphone error: " + (err && (err.name || err.message) || 'unknown'));
+  }
+}
+
+function showMicError(msg){
+  let bar = document.getElementById('micErrBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'micErrBar';
+    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:9999;background:#3b1d21;border:1px solid #a33;border-radius:12px;padding:12px 14px;color:#ffd9dc;font-size:13px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.45);';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = '<b>&#9888; ' + msg + '</b><span style="float:right;cursor:pointer;opacity:.7;padding-left:12px" onclick="this.parentNode.remove()">&times;</span>';
+  clearTimeout(window.__micErrT);
+  window.__micErrT = setTimeout(()=>{ const b=document.getElementById('micErrBar'); if(b) b.remove(); }, 15000);
+}
+
 // ── Microphone ────────────────────────────────────────────────
 function toggleMic(){
   // NOUVEAU : en mode distance, le micro passe par CPRemote
@@ -787,12 +832,12 @@ function toggleMic(){
       document.getElementById('micBtn').classList.add('listening');
       document.getElementById('micLabel').textContent='Listening…';
       animateWave(true);
-      CPRemote.startSpeaking().catch(err=>{
+      ensureMic().then(()=>CPRemote.startSpeaking()).catch(err=>{
         isListening=false;
         document.getElementById('micBtn').classList.remove('listening');
         document.getElementById('micLabel').textContent='Tap to speak';
         animateWave(false);
-        document.getElementById('origA').textContent='⚠️ '+err.message;
+        showMicError(err.message);
       });
     }
     return;
@@ -801,6 +846,8 @@ function toggleMic(){
 }
 
 async function startListening(){
+  try{ await ensureMic(); }
+  catch(e){ showMicError(e.message); return; }
   isListening=true;
   const btn=document.getElementById('micBtn');
   btn.classList.add('listening');
@@ -1020,6 +1067,8 @@ async function startConference(){
     return;
   }
   document.getElementById('confSrcLang').textContent = confLang.name;
+  try{ await ensureMic(); }
+  catch(e){ showMicError(e.message); btn.textContent = '▶ Start live session'; return; }
   btn.textContent = '⏳ Connecting…';
   try{
     const tk = await getCpToken();
