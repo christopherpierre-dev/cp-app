@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cp-app-v1';
+const CACHE_NAME = 'equivox-v1';
 const ASSETS = [
   './',
   './index.html',
