@@ -454,11 +454,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="p-lang">🇸🇦 Arabic · UN official</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ht" onclick="setConfSpeaker('Haitian Creole','🇭🇹')" style="cursor:pointer;">
+    <div class="participant-card" id="pl-ht" onclick="explainHtLimit()" style="cursor:pointer;">
       <div class="p-avatar" style="background:rgba(239,68,68,0.12);">🇭🇹</div>
       <div class="p-name">Kreyòl</div>
       <div class="p-lang">🇭🇹 Haitian Creole</div>
-      <div class="p-status listen">Listening</div>
+      <div class="p-status listen">Text + audio out</div>
     </div>
     <div class="participant-card p-add" onclick="alert('Custom languages — coming in v1.1!')">
       <div class="p-avatar" style="font-size:28px;">➕</div>
@@ -977,7 +977,12 @@ const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR',
 const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
 let confLang = {name:'English', flag:'🇺🇸'};
 
+function explainHtLimit(){
+  alert("Kreyol ayisyen — available as OUTPUT (live text translation + spoken audio) for every statement.\n\nSpeaking Kreyol INTO the mic is not yet possible: no commercial engine (including Azure) offers Haitian Creole speech recognition today. This is precisely the linguistic inequity CREDIA's research documents.\n\nPlanned: Kreyol speech input via open-source models (v0.4).");
+}
+
 function setConfSpeaker(name, flag){
+  if(name === 'Haitian Creole'){ explainHtLimit(); return; }
   confLang = {name, flag};
   const el = document.getElementById('confSrcLang');
   if(el) el.textContent = name;
