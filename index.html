@@ -210,6 +210,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 /* ── MOCK TRANSLATIONS ── */
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -574,6 +575,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <!-- ══════════════════ REMOTE CALL MODAL (NOUVEAU) ══════════════════ -->
+
+<div id="qrPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:#0a0e1a;color:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
+  <div style="font-size:13px;letter-spacing:2px;color:#8b93a7;text-transform:uppercase;margin-bottom:6px;">Equivox · Join the room</div>
+  <div style="font-size:15px;color:#c9d3e6;margin-bottom:20px;">Scan with your phone camera — then pick your language</div>
+  <div id="qrBox" style="background:#fff;padding:18px;border-radius:16px;line-height:0;"></div>
+  <div id="qrCode" style="font-size:52px;font-weight:700;letter-spacing:10px;margin-top:22px;color:#7fb3e8;"></div>
+  <div style="font-size:14px;color:#8b93a7;margin-top:4px;">or enter this code in the app</div>
+  <div id="qrLink" style="font-size:12px;color:#5a6a85;margin-top:14px;word-break:break-all;max-width:90%;"></div>
+  <button onclick="hideQR()" style="margin-top:28px;background:#2b6cb8;color:#fff;border:0;border-radius:999px;padding:12px 32px;font-size:15px;cursor:pointer;">Close</button>
+</div>
+
 <div class="modal-overlay" id="remoteModal" onclick="closeRemoteModal(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
@@ -1223,6 +1235,34 @@ function closeRemoteModal(e){
 }
 function setRemoteStatus(t){ document.getElementById('remoteStatus').textContent=t; }
 
+
+// ── Code QR pour rejoindre la salle ──────────────────────────
+let currentRoomCode = null;
+
+function roomLink(room){
+  return location.origin + location.pathname + '#join=' + room;
+}
+
+function showQR(room){
+  if(!room) return;
+  const link = roomLink(room);
+  const box = document.getElementById('qrBox');
+  box.innerHTML = '';
+  try{
+    new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  }catch(e){
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
+  }
+  document.getElementById('qrCode').textContent = room;
+  document.getElementById('qrLink').textContent = link;
+  const p = document.getElementById('qrPanel');
+  p.style.display = 'flex';
+}
+
+function hideQR(){ document.getElementById('qrPanel').style.display = 'none'; }
+
+function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
+
 function myRemoteOpts(){
   return {
     name: 'Guest-'+Math.floor(1000+Math.random()*9000),
@@ -1255,10 +1295,11 @@ function enterRemoteCall(room, isHost){
   document.getElementById('transA').textContent = '';
   document.getElementById('transB').textContent = '';
   document.getElementById('origB').textContent = 'Waiting for the other participant…';
+  currentRoomCode = room;
   if(isHost){
-    const link = location.origin + location.pathname + '#join=' + room;
-    document.getElementById('origA').textContent =
-      'Share this code: ' + room + ' — or this link: ' + link;
+    document.getElementById('origA').innerHTML =
+      'Room <b>' + room + '</b> is open. <a href="#" onclick="showQRAgain();return false;" style="color:#7fb3e8">Show QR code</a> so others can join.';
+    showQR(room);
   } else {
     document.getElementById('origA').textContent = 'Connected! Tap the mic to speak.';
   }
