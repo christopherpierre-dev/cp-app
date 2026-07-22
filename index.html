@@ -1064,7 +1064,8 @@ function speakConf(text, code){
     if(!window.__confTk || !text) return;
     const c = SpeechSDK.SpeechConfig.fromAuthorizationToken(window.__confTk.token, window.__confTk.region);
     c.speechSynthesisVoiceName = CONF_VOICES[code] || 'en-US-GuyNeural';
-    const s = new SpeechSDK.SpeechSynthesizer(c);
+    const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+    const s = new SpeechSDK.SpeechSynthesizer(c, ac);
     s.speakTextAsync(text, ()=>s.close(), ()=>s.close());
   }catch(e){}
 }
@@ -1482,7 +1483,7 @@ async function doJoinConference(){
   }
 }
 
-function showAttendeeView(name){
+async function showAttendeeView(name){
   confAttendeeActive = true;
   document.getElementById('attRoomLabel').textContent = (name ? name + ' · ' : '') + 'Room ' + confJoinCode;
   document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' · TTS on';
@@ -1491,6 +1492,8 @@ function showAttendeeView(name){
   const v = document.getElementById('confAttendeeView');
   v.style.display = 'flex';
   v.style.flexDirection = 'column';
+  // Pre-fetch Azure token so TTS works for attendees
+  try { if(!window.__confTk) window.__confTk = await getCpToken(); } catch(e){}
 }
 
 function leaveAttendeeView(){
@@ -1513,6 +1516,7 @@ CPRemote.on((type, data) => {
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
       document.getElementById('attPartialText').textContent = '';
       document.getElementById('attFinalText').textContent = txt;
+      if(txt) speakConf(txt, confJoinLang.code);
     }
     return;
   }
