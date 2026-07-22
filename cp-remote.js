@@ -11,6 +11,7 @@
  *   CPRemote.stopSpeaking()        — stop STT
  *   CPRemote.startAudioStream()    — stream raw microphone audio to room (original voice)
  *   CPRemote.stopAudioStream()     — stop audio streaming
+ *   CPRemote.setTtsMuted(bool)     — mute/unmute spoken translations (text stays)
  *   CPRemote.setLanguage(code, speechCode)
  *   CPRemote.leave()               — disconnect
  *   CPRemote.on(cb)                — event callback: (type, data) => {}
@@ -44,6 +45,7 @@
     peers: [],
     recognizer: null,
     ttsQueue: Promise.resolve(),
+    ttsMuted: false,
     onEvent: () => {},
   };
 
@@ -173,7 +175,7 @@
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 24000 }
       });
 
-      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
         .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
       let chunkIndex = 0;
@@ -198,7 +200,7 @@
         chunkIndex++;
       };
 
-      mediaRecorder.start(200); // 200ms chunks → ~4 per second, low latency
+      mediaRecorder.start(200); // 200ms chunks → ~5 per second, low latency
       state.onEvent('audio_started', { mimeType });
     } catch (err) {
       console.warn('[CPRemote] Audio stream error:', err);
@@ -229,9 +231,11 @@
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
     ht: 'fr-CA-JeanNeural',     sw: 'sw-KE-RafikiNeural',
     el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
+    'zh-Hans': 'zh-CN-YunxiNeural',
   };
 
   function speakTranslation(m) {
+    if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
     const text = m.translations?.[state.myLang];
     if (!text) return;
 
@@ -274,6 +278,7 @@
     startAudioStream,
     stopAudioStream,
     setLanguage,
+    setTtsMuted:     (b) => { state.ttsMuted = !!b; },
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
     sendRaw:         (obj) => state.ws?.send(JSON.stringify(obj)),
