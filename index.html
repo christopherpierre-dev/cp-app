@@ -1396,23 +1396,31 @@ function selectAttLang(idx){
 
 async function doJoinConference(){
   if(!confJoinCode) return;
+  const nameInput = document.getElementById('confJoinNameInput');
+  const attendeeName = (nameInput && nameInput.value.trim()) || ('Guest-' + Math.floor(1000+Math.random()*9000));
+  if(nameInput && !nameInput.value.trim()){
+    nameInput.style.borderColor = '#ef4444';
+    nameInput.placeholder = 'Please enter your name';
+    nameInput.focus();
+    return;
+  }
   document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + '…';
   try {
     await CPRemote.join(confJoinCode, {
-      name: 'Attendee-' + Math.floor(1000+Math.random()*9000),
+      name: attendeeName,
       lang: confJoinLang.code,
       speechLang: confJoinLang.speechCode,
     });
     document.getElementById('confJoinPanel').style.display = 'none';
-    showAttendeeView();
+    showAttendeeView(attendeeName);
   } catch(e) {
     document.getElementById('confJoinStatus').textContent = '⚠️ ' + e.message;
   }
 }
 
-function showAttendeeView(){
+function showAttendeeView(name){
   confAttendeeActive = true;
-  document.getElementById('attRoomLabel').textContent = 'Room ' + confJoinCode;
+  document.getElementById('attRoomLabel').textContent = (name ? name + ' · ' : '') + 'Room ' + confJoinCode;
   document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' · TTS on';
   document.getElementById('attFinalText').textContent = '';
   document.getElementById('attPartialText').textContent = '';
@@ -1536,7 +1544,10 @@ function addLiveConfLine(orig, translations, targets){
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
     <h3 style="font-size:18px;font-weight:700;margin-bottom:6px;">Join Conference</h3>
-    <p id="confJoinRoomLabel" style="font-size:13px;color:#64748b;margin-bottom:20px;">Room — pick your language to receive live translation</p>
+    <p id="confJoinRoomLabel" style="font-size:13px;color:#64748b;margin-bottom:16px;">Room — enter your name and pick your language</p>
+    <input id="confJoinNameInput" type="text" placeholder="Your name" maxlength="30"
+      style="width:100%;background:rgba(255,255,255,0.05);border:1.5px solid #1e2d4a;border-radius:14px;padding:13px 16px;color:#e8edf5;font-size:15px;outline:none;margin-bottom:14px;"
+      oninput="this.style.borderColor=this.value.trim()?'#4f8ef7':'#1e2d4a'"/>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;" id="confJoinLangGrid"></div>
     <div id="confJoinStatus" style="font-size:13px;color:#64748b;text-align:center;min-height:18px;margin-bottom:12px;"></div>
     <button onclick="doJoinConference()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Join in my language</button>
