@@ -845,6 +845,7 @@ function toggleMic(){
     if(isListening){
       isListening=false;
       CPRemote.stopSpeaking();
+      try{ CPRemote.stopAudioStream(); }catch(e){}
       document.getElementById('micBtn').classList.remove('listening');
       document.getElementById('micLabel').textContent='Tap to speak';
       animateWave(false);
@@ -853,8 +854,13 @@ function toggleMic(){
       document.getElementById('micBtn').classList.add('listening');
       document.getElementById('micLabel').textContent='Listening…';
       animateWave(true);
-      ensureMic().then(()=>CPRemote.startSpeaking()).catch(err=>{
+      // Voix originale + reconnaissance/traduction, en parallèle
+      ensureMic().then(()=>{
+        try{ CPRemote.startAudioStream(); }catch(e){}
+        return CPRemote.startSpeaking();
+      }).catch(err=>{
         isListening=false;
+        try{ CPRemote.stopAudioStream(); }catch(e){}
         document.getElementById('micBtn').classList.remove('listening');
         document.getElementById('micLabel').textContent='Tap to speak';
         animateWave(false);
@@ -979,7 +985,60 @@ function showMockTranslation(original, speaker, preTranslated){
 
 function toggleSpeaker(){
   const btn=document.getElementById('speakerBtn');
-  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
+  const nowMuted = btn.textContent==='🔊';
+  btn.textContent = nowMuted?'🔇':'🔊';
+  window.__ttsMuted = nowMuted;
+  try{ CPRemote.setTtsMuted(nowMuted); }catch(e){}
+  // TTS coupé → la voix originale monte à plein volume (appel « normal »)
+  if(rcAudio) rcAudio.volume = nowMuted ? 1.0 : RC_DUCK_VOL;
+}
+
+// ── Voix originale : lecture des morceaux audio reçus (Remote Call) ──
+// L'orateur envoie sa vraie voix en morceaux de 200 ms ; on les recolle
+// ici avec MediaSource. Volume réduit sous la traduction parlée (comme
+// une cabine d'interprétation), plein volume si la TTS est coupée (🔇).
+const RC_DUCK_VOL = 0.35;
+let rcAudio=null, rcMS=null, rcSB=null, rcQueue=[], rcMime=null;
+
+function rcResetVoice(){
+  try{ if(rcAudio){ rcAudio.pause(); rcAudio.removeAttribute('src'); rcAudio.load(); } }catch(e){}
+  rcMS=null; rcSB=null; rcQueue=[]; rcMime=null;
+}
+
+function rcPlayChunk(m){
+  let bytes;
+  try{ bytes = Uint8Array.from(atob(m.data), c=>c.charCodeAt(0)); }catch(e){ return; }
+  const fresh = m.isFirst || !rcMS || rcMime !== m.mimeType;
+  if(fresh){
+    rcResetVoice();
+    if(!('MediaSource' in window) || !MediaSource.isTypeSupported(m.mimeType)) return; // repli : texte + TTS seulement
+    rcMime = m.mimeType;
+    if(!rcAudio){ rcAudio = document.createElement('audio'); rcAudio.autoplay = true; document.body.appendChild(rcAudio); }
+    rcAudio.volume = window.__ttsMuted ? 1.0 : RC_DUCK_VOL;
+    rcMS = new MediaSource();
+    rcAudio.src = URL.createObjectURL(rcMS);
+    rcMS.addEventListener('sourceopen', () => {
+      try{
+        rcSB = rcMS.addSourceBuffer(rcMime);
+        rcSB.mode = 'sequence';
+        rcSB.addEventListener('updateend', () => {
+          if(rcSB && !rcSB.updating && rcQueue.length) rcSB.appendBuffer(rcQueue.shift());
+          // Rester proche du direct : si on a >1,5 s de retard, on saute au bord
+          try{
+            if(rcAudio && rcSB && rcSB.buffered.length){
+              const end = rcSB.buffered.end(rcSB.buffered.length-1);
+              if(end - rcAudio.currentTime > 1.5) rcAudio.currentTime = end - 0.3;
+            }
+          }catch(e){}
+        });
+        rcSB.appendBuffer(bytes);
+        rcAudio.play().catch(()=>{});
+      }catch(e){ rcResetVoice(); }
+    }, {once:true});
+  } else if(rcSB){
+    if(rcSB.updating || rcQueue.length) rcQueue.push(bytes);
+    else { try{ rcSB.appendBuffer(bytes); }catch(e){ rcResetVoice(); } }
+  }
 }
 
 // ── Fin d'appel (local ou distance) ───────────────────────────
@@ -987,6 +1046,7 @@ function endCall(){
   if(remoteMode){
     try{ CPRemote.leave(); }catch(e){}
     remoteMode=false;
+    rcResetVoice(); // couper la lecture de la voix originale
   }
   stopListening();
   document.getElementById('callTitle').textContent='Two-Way Translation';
@@ -1584,7 +1644,7 @@ CPRemote.on((type, data) => {
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
       document.getElementById('attPartialText').textContent = '';
       document.getElementById('attFinalText').textContent = txt;
-      if(txt) speakConf(txt, confJoinLang.code);
+      // (la voix est lue par cp-remote.js — pas de second appel ici, sinon écho double)
     }
     return;
   }
@@ -1596,14 +1656,21 @@ CPRemote.on((type, data) => {
     document.getElementById('origA').textContent = data.original;
     document.getElementById('transA').textContent = Object.values(data.translations)[0] || '';
   }
+  if(type === 'partial_utterance' && remoteMode){
+    // L'autre est en train de parler : aperçu instantané dans ma langue
+    const myLang = LANG_TRANS[currentLangA.name] || 'en';
+    const txt = data.translations[myLang] || data.original || '';
+    if(txt) document.getElementById('transB').innerHTML = escapeHtml(txt) + '<span class="cursor-blink"></span>';
+  }
+  if(type === 'audio_chunk' && remoteMode){
+    rcPlayChunk(data); // vraie voix de l'interlocuteur
+  }
   if(type === 'utterance'){
     const myLang = LANG_TRANS[currentLangA.name] || 'en';
     const heard = data.translations[myLang] || Object.values(data.translations)[0] || '';
     document.getElementById('origB').textContent = data.original;
     document.getElementById('transB').textContent = heard;
-    // Voix : lire l'énoncé reçu dans ma langue, sauf si le haut-parleur (🔇) est coupé
-    const spk = document.getElementById('speakerBtn');
-    if(heard && remoteMode && (!spk || spk.textContent !== '🔇')) speakConf(heard, myLang);
+    // (la traduction est lue à voix haute par cp-remote.js ; 🔇 la coupe)
   }
   if(type === 'roster'){
     const other = (data.participants || [])[0];
