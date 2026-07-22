@@ -496,7 +496,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
   <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
+    <div style="text-align:center;font-size:11.5px;color:var(--muted,#8b93a7);margin-bottom:8px;line-height:1.5;">Tap a language card to <b>give the floor</b> to that speaker · <b>Hold the floor</b> mutes the mic between speakers</div>
     <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
+    <button class="btn btn-outline" id="confHoldBtn" onclick="holdFloor()" style="display:none;margin-top:8px;">⏸ Hold the floor (mute mic)</button>
   </div>
 
   <div class="bottom-nav">
@@ -1053,10 +1055,8 @@ function setConfSpeaker(name, flag){
   const el = document.getElementById('confSrcLang');
   if(el) el.textContent = name;
   highlightConfSpeaker(name);
-  if(confActive){
-    stopConference('⏳ Switching speaker…');
-    setTimeout(()=>startConference(), 700);
-  }
+  // Cliquer une carte = donner la parole à cette langue (et reprendre après une pause).
+  if(confSession) startCapture(true);
 }
 
 function speakConf(text, code){
@@ -1070,14 +1070,30 @@ function speakConf(text, code){
   }catch(e){}
 }
 let confRecognizer = null;
+// Modèle « présidence » :
+//  confSession   = la séance est ouverte (bouton Start pressé)
+//  confCapturing = le micro écoute activement l'orateur en cours
+//  confHeld      = séance ouverte mais parole suspendue (micro coupé)
+// confActive reste un alias de compatibilité (= confCapturing) car
+// showConfQR() s'en sert pour exiger une séance démarrée avant de partager le QR.
+let confSession = false;
+let confCapturing = false;
+let confHeld = false;
 let confActive = false;
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function stopRecognizer(){
+  if(confRecognizer){
+    try{ confRecognizer.stopContinuousRecognitionAsync(() => { try{confRecognizer.close();}catch(e){} confRecognizer = null; }); }
+    catch(e){ confRecognizer = null; }
+  }
+}
+
 function toggleConference(){
-  if(confActive){ stopConference(); } else { startConference(); }
+  if(confSession){ endConference(); } else { startConference(); }
 }
 
 async function startConference(){
@@ -1086,9 +1102,23 @@ async function startConference(){
     alert('Speech engine unavailable — check your connection and reload.');
     return;
   }
-  document.getElementById('confSrcLang').textContent = confLang.name;
+  const el = document.getElementById('confSrcLang');
+  if(el) el.textContent = confLang.name;
   try{ await ensureMic(); }
   catch(e){ showMicError(e.message); btn.textContent = '▶ Start live session'; return; }
+  confSession = true;
+  document.getElementById('confTranscript').innerHTML = '';
+  startCapture(false);
+}
+
+// (Re)construit le recognizer pour la langue courante (confLang).
+// Sert à démarrer, à changer d'orateur, et à reprendre après une pause :
+// dans les trois cas, cela « donne la parole » à cette langue.
+async function startCapture(isSwitch){
+  const btn = document.getElementById('confBtn');
+  const hold = document.getElementById('confHoldBtn');
+  stopRecognizer();
+  clearConfInterim();
   btn.textContent = '⏳ Connecting…';
   try{
     const tk = await getCpToken();
@@ -1100,8 +1130,6 @@ async function startConference(){
 
     const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
-
-    document.getElementById('confTranscript').innerHTML = '';
     highlightConfSpeaker(confLang.name);
 
     confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
@@ -1110,27 +1138,54 @@ async function startConference(){
         addLiveConfLine(e.result.text, e.result.translations, targets);
       }
     };
-    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
+    confRecognizer.canceled = () => { holdFloor(true); };
 
     confRecognizer.startContinuousRecognitionAsync(
-      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
-      (err) => { stopConference(); alert('Could not start the session: ' + err); }
+      () => {
+        confCapturing = true; confActive = true; confHeld = false;
+        btn.textContent = '⏹ End session';
+        if(hold){ hold.style.display = ''; hold.textContent = '⏸ Hold the floor (mute mic)'; }
+      },
+      (err) => { endConference(); alert('Could not start the session: ' + err); }
     );
   } catch(err){
-    btn.textContent = '▶ Start live session';
+    btn.textContent = confSession ? '⏹ End session' : '▶ Start live session';
     alert('Speech service unavailable: ' + err.message);
   }
 }
 
-function stopConference(label){
-  confActive = false;
-  const btn = document.getElementById('confBtn');
-  if(btn) btn.textContent = label || '▶ Start live session';
-  clearConfInterim();
-  if(confRecognizer){
-    try{ confRecognizer.stopContinuousRecognitionAsync(() => { confRecognizer.close(); confRecognizer = null; }); }
-    catch(e){ confRecognizer = null; }
+// Suspendre le micro entre deux orateurs (personne n'a la parole) — ou reprendre.
+function holdFloor(fromCancel){
+  if(!confSession) return;
+  const hold = document.getElementById('confHoldBtn');
+  const hint = document.getElementById('confHint');
+  if(confCapturing || fromCancel){
+    // → PAROLE SUSPENDUE : on coupe la capture, la séance reste ouverte
+    confCapturing = false; confActive = false; confHeld = true;
+    clearConfInterim();
+    stopRecognizer();
+    document.querySelectorAll('.participant-card').forEach(c => {
+      c.classList.remove('speaking');
+      const st = c.querySelector('.p-status');
+      if(st){ st.className = 'p-status listen'; st.textContent = 'Floor open'; }
+    });
+    if(hold){ hold.textContent = '▶ Give the floor back'; }
+    if(hint) hint.innerHTML = "⏸ Floor held — tap a speaker's language card to give them the floor";
+  } else {
+    // → REPRISE : on redonne la parole à la langue courante
+    if(hint) hint.innerHTML = '🎙 You speak <b id="confSrcLang">' + confLang.name + '</b> — the room reads you live in every language';
+    startCapture(true);
   }
+}
+
+function endConference(){
+  confSession = false; confCapturing = false; confActive = false; confHeld = false;
+  const btn = document.getElementById('confBtn');
+  if(btn) btn.textContent = '▶ Start live session';
+  const hold = document.getElementById('confHoldBtn');
+  if(hold) hold.style.display = 'none';
+  clearConfInterim();
+  stopRecognizer();
   document.querySelectorAll('.participant-card').forEach(c => {
     c.classList.remove('speaking');
     const st = c.querySelector('.p-status');
@@ -1420,7 +1475,7 @@ function showConfRoomQR(room){
 }
 
 function showConfQR(){
-  if(!confActive){
+  if(!confSession){
     alert('Start the live session first, then share the QR.');
     return;
   }
