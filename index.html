@@ -265,7 +265,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
         <div style="font-size:13px;color:var(--muted);">Good morning 👋</div>
-        <h2>Christopher</h2>
+        <h2 id="homeUserName">there</h2>
       </div>
       <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;">CP</div>
     </div>
@@ -516,8 +516,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="settings-section">
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(79,142,247,0.12);">👤</div>
-      <div class="s-info"><strong>Christopher Pierre</strong><span>contact@credia.ca</span></div>
-      <span class="s-arrow">›</span>
+      <div class="s-info" id="profileNameRow">
+        <strong id="profileNameDisplay">Your Name</strong>
+        <span style="color:var(--accent);font-size:12px;cursor:pointer;" onclick="openNameEditor()">✏️ Change name</span>
+      </div>
     </div>
   </div>
 
@@ -711,6 +713,7 @@ function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
+  if(id === 'home') { applyMyName(); checkFirstVisit(); }
 }
 function navTo(id, btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
@@ -1229,6 +1232,54 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
+// ── User name (localStorage) ─────────────────────────────────
+function getMyName(){
+  return localStorage.getItem('equivox_name') || '';
+}
+
+function applyMyName(){
+  const name = getMyName();
+  const display = name || 'there';
+  const el = document.getElementById('homeUserName');
+  if(el) el.textContent = display;
+  const pd = document.getElementById('profileNameDisplay');
+  if(pd) pd.textContent = name || 'Set your name';
+  // Pre-fill attendee join name field if open
+  const ni = document.getElementById('confJoinNameInput');
+  if(ni && !ni.value) ni.value = name;
+}
+
+function openNameEditor(){
+  const overlay = document.getElementById('nameEditorOverlay');
+  const input = document.getElementById('nameEditorInput');
+  input.value = getMyName();
+  overlay.style.display = 'flex';
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeNameEditor(){
+  document.getElementById('nameEditorOverlay').style.display = 'none';
+}
+
+function saveNameEditor(){
+  const val = document.getElementById('nameEditorInput').value.trim();
+  if(!val){ document.getElementById('nameEditorInput').style.borderColor='#ef4444'; return; }
+  localStorage.setItem('equivox_name', val);
+  applyMyName();
+  closeNameEditor();
+}
+
+// On first visit — prompt for name after onboarding
+function checkFirstVisit(){
+  if(!getMyName()){
+    // Show name editor after a short delay so the app has loaded
+    setTimeout(() => openNameEditor(), 800);
+  }
+}
+
+// Apply name immediately on load
+applyMyName();
+
 // ── Init ─────────────────────────────────────────────────────
 </script>
 
@@ -1272,7 +1323,7 @@ function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
 
 function myRemoteOpts(){
   return {
-    name: 'Guest-'+Math.floor(1000+Math.random()*9000),
+    name: getMyName(),
     lang: LANG_TRANS[currentLangA.name] || 'en',
     speechLang: LANG_SPEECH[currentLangA.name] || 'en-US',
   };
@@ -1369,7 +1420,10 @@ function showConfQR(){
 
 function openConfJoin(code){
   confJoinCode = code;
-  document.getElementById('confJoinRoomLabel').textContent = 'Room ' + code + ' — pick your language';
+  document.getElementById('confJoinRoomLabel').textContent = 'Room ' + code + ' — enter your name and pick your language';
+  // Pre-fill with saved name
+  const ni = document.getElementById('confJoinNameInput');
+  if(ni) ni.value = getMyName();
   // Build language grid
   const grid = document.getElementById('confJoinLangGrid');
   grid.innerHTML = CONF_JOIN_LANGS.map((l,i) => `
@@ -1397,13 +1451,14 @@ function selectAttLang(idx){
 async function doJoinConference(){
   if(!confJoinCode) return;
   const nameInput = document.getElementById('confJoinNameInput');
-  const attendeeName = (nameInput && nameInput.value.trim()) || ('Guest-' + Math.floor(1000+Math.random()*9000));
-  if(nameInput && !nameInput.value.trim()){
-    nameInput.style.borderColor = '#ef4444';
-    nameInput.placeholder = 'Please enter your name';
-    nameInput.focus();
+  const attendeeName = (nameInput && nameInput.value.trim()) || '';
+  if(!attendeeName){
+    if(nameInput){ nameInput.style.borderColor = '#ef4444'; nameInput.placeholder = 'Please enter your name'; nameInput.focus(); }
     return;
   }
+  // Save for next time
+  localStorage.setItem('equivox_name', attendeeName);
+  applyMyName();
   document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + '…';
   try {
     await CPRemote.join(confJoinCode, {
@@ -1502,6 +1557,21 @@ function addLiveConfLine(orig, translations, targets){
 }
 
 </script>
+
+<!-- ══════════════════ NAME EDITOR MODAL ══════════════════ -->
+<div id="nameEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:20000;align-items:flex-end;">
+  <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
+    <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Your name</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:18px;">This is how you appear to others in calls and conferences.</p>
+    <input id="nameEditorInput" type="text" placeholder="Enter your name" maxlength="30"
+      style="width:100%;background:rgba(255,255,255,0.06);border:1.5px solid #1e2d4a;border-radius:14px;padding:14px 16px;color:#e8edf5;font-size:16px;outline:none;margin-bottom:16px;"
+      oninput="this.style.borderColor=this.value.trim()?'#4f8ef7':'#1e2d4a'"
+      onkeydown="if(event.key==='Enter') saveNameEditor()"/>
+    <button onclick="saveNameEditor()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px;">Save</button>
+    <button onclick="closeNameEditor()" style="width:100%;padding:13px;background:none;border:none;color:#64748b;font-size:14px;cursor:pointer;">Cancel</button>
+  </div>
+</div>
 
 <!-- ── Install Banner (Android) ── -->
 <div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
