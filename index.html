@@ -1195,6 +1195,12 @@ function addLiveConfLine(orig, translations, targets){
     else { try{ toSpeak = translations && translations.get(v); }catch(e){} }
     if(toSpeak) speakConf(toSpeak, v);
   }
+  // Broadcast to remote attendees in the room
+  if(currentRoomCode && CPRemote.room){
+    const t = {};
+    targets.forEach(code => { try { const val = translations.get(code); if(val) t[code]=val; } catch(e){} });
+    try { CPRemote.sendRaw({type:'utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: orig, translations: t}); } catch(e){}
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────
@@ -1557,17 +1563,6 @@ window.addEventListener('load', () => {
   if(match) openConfJoin(match[1].toUpperCase());
 });
 
-// Broadcast conf utterances to remote attendees
-const _origAddLiveConfLine = addLiveConfLine;
-function addLiveConfLine(orig, translations, targets){
-  _origAddLiveConfLine(orig, translations, targets);
-  if(currentRoomCode && CPRemote.room){
-    const t = {};
-    targets.forEach(code => { try { const v = translations.get(code); if(v) t[code]=v; } catch(e){} });
-    // The server broadcast is handled by cp-remote's ws — send directly
-    try { CPRemote.sendRaw({type:'utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: orig, translations: t}); } catch(e){}
-  }
-}
 
 </script>
 
