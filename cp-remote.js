@@ -276,6 +276,7 @@
     setLanguage,
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
+    sendRaw:         (obj) => state.ws?.send(JSON.stringify(obj)),
     get room()       { return state.room; },
     get peers()      { return state.peers; },
   };

@@ -4,30 +4,50 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
 <title>Equivox — Real-Time AI Voice Translation</title>
+
+<!-- PWA: iOS Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Equivox"/>
 <meta name="theme-color" content="#0a0e1a"/>
-<meta name="description" content="Real-time AI voice translation — break every language barrier."/>
+<meta name="description" content="Real-time AI voice translation for multilateral meetings and everyday conversations — break every language barrier. Born from CREDIA's research on linguistic justice."/>
+
+<!-- PWA: Icons -->
 <link rel="apple-touch-icon" href="icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+
+<!-- Azure Speech SDK -->
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<!-- PWA: Manifest -->
 <link rel="manifest" href="manifest.json"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#0a0e1a;--card:#131929;--border:#1e2d4a;--accent:#4f8ef7;--accent2:#7c5cfc;
-  --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;--text:#e8edf5;--muted:#64748b;--radius:20px;
+  --bg:#0a0e1a;
+  --card:#131929;
+  --border:#1e2d4a;
+  --accent:#4f8ef7;
+  --accent2:#7c5cfc;
+  --green:#22c55e;
+  --red:#ef4444;
+  --yellow:#f59e0b;
+  --text:#e8edf5;
+  --muted:#64748b;
+  --radius:20px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCREENS ── */
 .screen{display:none;flex-direction:column;min-height:100vh;animation:fadeIn .3s ease;}
 .screen.active{display:flex;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SPLASH ── */
 #splash{align-items:center;justify-content:center;background:linear-gradient(145deg,#0a0e1a 0%,#0d1b38 100%);}
 .splash-logo{text-align:center;margin-bottom:40px;}
 .logo-circle{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 20px;box-shadow:0 0 60px rgba(79,142,247,0.4);}
-.splash-logo h1{font-size:32px;font-weight:800;letter-spacing:-0.5px;}
+.splash-logo h1{font-size:28px;font-weight:800;letter-spacing:-0.5px;}
 .splash-logo h1 span{color:var(--accent);}
 .splash-logo p{color:var(--muted);font-size:14px;margin-top:6px;}
 .splash-waves{position:absolute;bottom:0;left:0;right:0;height:180px;overflow:hidden;opacity:0.15;}
@@ -36,6 +56,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-primary:active{transform:scale(0.97);}
 .btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);}
 .splash-btns{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;padding:0 24px;}
+
+/* ── ONBOARDING ── */
 #onboarding{padding:60px 24px 40px;}
 .onboard-step{display:none;flex-direction:column;align-items:center;text-align:center;flex:1;}
 .onboard-step.active{display:flex;}
@@ -47,6 +69,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .3s;}
 .dot.active{background:var(--accent);width:24px;border-radius:4px;}
 .onboard-nav{width:100%;display:flex;flex-direction:column;gap:10px;}
+
+/* ── HOME ── */
 #home{padding:0 0 80px;}
 .home-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 30px;}
 .home-header h2{font-size:22px;font-weight:700;}
@@ -59,6 +83,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .mode-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 16px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;}
 .mode-card:active{transform:scale(0.97);}
 .mode-card.wide{grid-column:span 2;}
+.mode-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent),var(--accent2));opacity:0;transition:opacity .3s;}
+.mode-card:hover::before{opacity:0.05;}
 .mode-icon{font-size:32px;margin-bottom:12px;}
 .mode-card h3{font-size:14px;font-weight:600;margin-bottom:4px;}
 .mode-card p{font-size:12px;color:var(--muted);line-height:1.4;}
@@ -73,10 +99,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .recent-info strong{font-size:13px;}
 .recent-info span{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
 .recent-time{font-size:11px;color:var(--muted);}
+
+/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 22px;z-index:200;}
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);cursor:pointer;transition:color .2s;border:none;background:transparent;padding:4px 16px;}
 .nav-btn.active{color:var(--accent);}
 .nav-btn .ni{font-size:22px;}
+
+/* ── CALL SCREEN ── */
 #call{padding:0;}
 .call-bg{background:linear-gradient(180deg,#0d1b38 0%,#0a0e1a 60%);padding:50px 24px 20px;}
 .call-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
@@ -89,19 +119,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lang-select-box .lang-name{font-size:13px;font-weight:600;}
 .lang-select-box .lang-sub{font-size:11px;color:var(--muted);}
 .swap-btn{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(79,142,247,0.3);}
+
+/* Translation display */
 .translation-area{padding:0 24px;margin-top:16px;display:flex;flex-direction:column;gap:12px;}
 .speech-bubble{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;min-height:90px;position:relative;}
+.speech-bubble.speaker-a{border-bottom-left-radius:4px;}
+.speech-bubble.speaker-b{border-bottom-right-radius:4px;}
 .bubble-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .bubble-label .flag-sm{font-size:16px;}
 .original-text{font-size:15px;color:var(--text);line-height:1.5;min-height:20px;}
 .translated-text{font-size:13px;color:var(--accent);margin-top:6px;line-height:1.5;min-height:16px;font-style:italic;}
 .cursor-blink{display:inline-block;width:2px;height:14px;background:var(--accent);animation:blink .7s infinite;vertical-align:middle;margin-left:2px;}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* Waveform */
 .waveform-wrap{padding:0 24px;margin-top:12px;}
 .waveform{display:flex;align-items:center;justify-content:center;gap:3px;height:48px;}
 .wave-bar{width:4px;border-radius:2px;background:var(--accent);opacity:0.3;transition:height .1s;}
 .wave-bar.active{opacity:1;animation:wave var(--d,.3s) ease-in-out infinite alternate;}
 @keyframes wave{from{height:4px}to{height:var(--h,20px)}}
+
+/* Call controls */
 .call-controls{display:flex;justify-content:center;align-items:center;gap:20px;padding:16px 24px 24px;}
 .ctrl-btn{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10px;color:var(--muted);cursor:pointer;}
 .ctrl-icon{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:none;cursor:pointer;transition:all .2s;}
@@ -111,18 +149,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ctrl-mic{width:70px;height:70px;font-size:24px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 24px rgba(79,142,247,0.4);}
 .ctrl-mic.listening{animation:micPulse 1.5s infinite;}
 @keyframes micPulse{0%,100%{box-shadow:0 8px 24px rgba(79,142,247,0.4)}50%{box-shadow:0 8px 40px rgba(79,142,247,0.7),0 0 0 12px rgba(79,142,247,0.1)}}
+.ctrl-mic.muted{background:rgba(239,68,68,0.2);box-shadow:none;border:2px solid var(--red);}
+
+/* ── CONFERENCE SCREEN ── */
 #conference{padding:0 0 80px;}
 .conf-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 20px;display:flex;align-items:center;gap:12px;}
 .participants-grid{padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
 .participant-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:16px;text-align:center;position:relative;transition:border-color .3s;}
 .participant-card.speaking{border-color:var(--green);}
-.p-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;}
+.participant-card.speaking .p-avatar{box-shadow:0 0 0 3px var(--green);}
+.p-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;margin:0 auto 10px;transition:box-shadow .3s;}
 .p-name{font-size:13px;font-weight:600;}
 .p-lang{font-size:11px;color:var(--muted);margin-top:2px;}
 .p-status{font-size:10px;margin-top:6px;padding:3px 8px;border-radius:8px;display:inline-block;}
 .p-status.speak{background:rgba(34,197,94,0.12);color:var(--green);}
 .p-status.listen{background:rgba(100,116,139,0.12);color:var(--muted);}
 .p-add{border:2px dashed var(--border);cursor:pointer;}
+.p-add .p-avatar{background:rgba(255,255,255,0.03);}
 .conf-transcript{margin:16px 24px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
 .conf-transcript h4{font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
 .transcript-line{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start;}
@@ -131,6 +174,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .t-original{font-size:13px;color:var(--text);}
 .t-translated{font-size:12px;color:var(--accent);font-style:italic;margin-top:3px;}
 .conf-start-btn{margin:16px 24px 0;}
+
+/* ── SETTINGS ── */
 #settings{padding:50px 24px 80px;}
 .settings-header{margin-bottom:24px;}
 .settings-header h2{font-size:22px;font-weight:700;}
@@ -146,6 +191,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toggle::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.3);}
 .toggle.on::after{transform:translateX(18px);}
 .s-arrow{color:var(--muted);font-size:16px;}
+
+/* ── LANGUAGE PICKER MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:flex-end;}
 .modal-overlay.open{display:flex;}
 .modal-sheet{background:#131929;border-radius:24px 24px 0 0;width:100%;max-height:80vh;overflow-y:auto;padding:24px;}
@@ -155,19 +202,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .search-box input{background:none;border:none;outline:none;color:var(--text);font-size:14px;flex:1;}
 .lang-option{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer;}
 .lang-option:last-child{border-bottom:none;}
+.lang-option:active{opacity:.7;}
 .lang-option .flag{font-size:28px;}
 .lang-option .info strong{font-size:14px;}
 .lang-option .info span{font-size:12px;color:var(--muted);}
 .lang-option .check{margin-left:auto;color:var(--accent);font-size:18px;}
-/* ── Conference real states ── */
-.partial-line{opacity:.65;}
-.partial-line .t-original{color:var(--muted);}
-.partial-line .t-translated{color:var(--yellow)!important;animation:pulse-opacity .7s ease-in-out infinite;}
-@keyframes pulse-opacity{0%,100%{opacity:1}50%{opacity:.45}}
-.speak-badge{display:flex;align-items:center;gap:10px;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:10px 16px;}
-.attendee-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
-.attendee-item:last-child{border-bottom:none;}
+
+/* ── MOCK TRANSLATIONS ── */
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -175,12 +218,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="screen active" id="splash">
   <div class="splash-logo">
     <div class="logo-circle">🌐</div>
-    <h1><span>Equivox</span></h1>
+    <h1>Equi<span>vox</span></h1>
     <p>Break every language barrier</p>
   </div>
   <div class="splash-btns">
-    <button class="btn btn-primary" onclick="goToHome()">Get Started →</button>
-    <button class="btn btn-outline" onclick="goToHome()">Sign In</button>
+    <button class="btn btn-primary" onclick="showScreen('onboarding')">Get Started →</button>
+    <button class="btn btn-outline" onclick="showScreen('home')">Sign In</button>
   </div>
   <svg class="splash-waves" viewBox="0 0 1440 180" preserveAspectRatio="none">
     <path d="M0,80 C360,160 1080,0 1440,80 L1440,180 L0,180 Z" fill="#4f8ef7"/>
@@ -193,17 +236,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div id="ob1" class="onboard-step active">
     <div class="onboard-icon">🗣️</div>
     <h2>Speak. Be Understood.<br>Instantly.</h2>
-    <p>Equivox translates your voice in real-time so everyone can talk naturally — no interpreter needed.</p>
+    <p>Designed for multilateral meetings and everyday conversations alike, Equivox translates your voice in real time — every participant speaks and listens in their own language.</p>
   </div>
   <div id="ob2" class="onboard-step">
     <div class="onboard-icon">🔒</div>
     <h2>Your Voice,<br>Your Privacy.</h2>
-    <p>Your speech is processed securely by Microsoft Azure and is never stored by Equivox.</p>
+    <p>Your speech is processed securely by Microsoft Azure and is not stored by Equivox. You stay in control of your microphone at all times.</p>
   </div>
   <div id="ob3" class="onboard-step">
     <div class="onboard-icon">🌍</div>
-    <h2>20+ Languages.<br>One App.</h2>
-    <p>From Spanish to Swahili to Haitian Creole — and the list keeps growing.</p>
+    <h2>20 Languages.<br>One App.</h2>
+    <p>From Spanish to Swahili to Haitian Creole, Equivox supports 20 languages — and the list keeps growing.</p>
   </div>
   <div class="dots">
     <div class="dot active" id="dot0"></div>
@@ -212,25 +255,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
   <div class="onboard-nav" style="padding:0 24px;">
     <button class="btn btn-primary" id="obNext" onclick="nextOnboard()">Next →</button>
-    <button class="btn btn-outline" onclick="goToHome()" style="margin-top:4px;">Skip</button>
-  </div>
-</div>
-
-<!-- ══════════════════ PROFILE SETUP ══════════════════ -->
-<div class="screen" id="profileSetup" style="align-items:center;justify-content:center;padding:40px 28px;">
-  <div style="text-align:center;margin-bottom:32px;">
-    <div style="font-size:64px;margin-bottom:16px;">👤</div>
-    <h2 style="font-size:24px;font-weight:700;margin-bottom:8px;">What's your name?</h2>
-    <p style="color:var(--muted);font-size:15px;">We'll use this to personalize your experience.</p>
-  </div>
-  <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;">
-    <input id="setupFirstName" type="text" placeholder="First name" autocomplete="given-name"
-      style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-size:16px;outline:none;"/>
-    <input id="setupLastName" type="text" placeholder="Last name (optional)" autocomplete="family-name"
-      style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-size:16px;outline:none;"/>
-    <input id="setupEmail" type="email" placeholder="Email (optional)" autocomplete="email"
-      style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-size:16px;outline:none;"/>
-    <button onclick="saveProfile()" class="btn btn-primary" style="margin-top:4px;">Continue →</button>
+    <button class="btn btn-outline" onclick="showScreen('home')" style="margin-top:4px;">Skip</button>
   </div>
 </div>
 
@@ -239,10 +264,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-size:13px;color:var(--muted);" id="homeGreeting">Good morning 👋</div>
-        <h2 id="homeUserName">Welcome</h2>
+        <div style="font-size:13px;color:var(--muted);">Good morning 👋</div>
+        <h2>Christopher</h2>
       </div>
-      <div id="homeAvatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;">?</div>
+      <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;">CP</div>
     </div>
     <div class="status-bar">
       <div class="status-dot"></div>
@@ -263,13 +288,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <p>Multi-language group calls</p>
       <span class="badge badge-purple">Beta</span>
     </div>
-    <div class="mode-card wide" onclick="showCall()">
+    <!-- NOUVEAU : appel à distance (2 appareils) -->
+    <div class="mode-card wide" onclick="openRemoteModal()">
       <div style="display:flex;align-items:center;gap:16px;">
         <div class="mode-icon" style="margin-bottom:0;">🌐</div>
         <div>
           <h3>Remote Call</h3>
           <p>Talk from two devices — share a room code, each in your own language</p>
-          <span class="badge badge-blue">New</span>
+          <span class="badge badge-purple">New</span>
         </div>
       </div>
     </div>
@@ -289,17 +315,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="recent-list">
     <div class="recent-item">
       <div class="lang-flags">🇺🇸&nbsp;→&nbsp;🇫🇷</div>
-      <div class="recent-info"><strong>English → French</strong><span>Client call · 14 min</span></div>
+      <div class="recent-info">
+        <strong>English → French</strong>
+        <span>Client call · 14 min</span>
+      </div>
       <div class="recent-time">Today</div>
     </div>
     <div class="recent-item">
       <div class="lang-flags">🇪🇸&nbsp;→&nbsp;🇩🇪</div>
-      <div class="recent-info"><strong>Spanish → German</strong><span>Conference · 5 speakers</span></div>
+      <div class="recent-info">
+        <strong>Spanish → German</strong>
+        <span>Conference · 5 speakers</span>
+      </div>
       <div class="recent-time">Yesterday</div>
     </div>
     <div class="recent-item">
       <div class="lang-flags">🇯🇵&nbsp;→&nbsp;🇺🇸</div>
-      <div class="recent-info"><strong>Japanese → English</strong><span>Customer support · 8 min</span></div>
+      <div class="recent-info">
+        <strong>Japanese → English</strong>
+        <span>Customer support · 8 min</span>
+      </div>
       <div class="recent-time">Mon</div>
     </div>
   </div>
@@ -316,8 +351,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="screen" id="call">
   <div class="call-bg">
     <div class="call-header">
-      <button class="back-btn" onclick="showScreen('home')">←</button>
-      <h2>Two-Way Translation</h2>
+      <button class="back-btn" onclick="endCall()">←</button>
+      <h2 id="callTitle">Two-Way Translation</h2>
     </div>
     <div class="lang-selector-row">
       <div class="lang-select-box active-speaker" id="langBoxA" onclick="openLangPicker('A')">
@@ -333,19 +368,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       </div>
     </div>
   </div>
+
   <div class="translation-area">
+    <!-- Speaker A bubble -->
     <div class="speech-bubble speaker-a" id="bubbleA">
       <div class="bubble-label"><span class="flag-sm" id="bFlagA">🇺🇸</span> You · <span id="bLangA">English</span></div>
       <div class="original-text" id="origA">Tap the microphone to start speaking…</div>
       <div class="translated-text" id="transA"></div>
     </div>
+    <!-- Speaker B bubble -->
     <div class="speech-bubble speaker-b" id="bubbleB">
       <div class="bubble-label"><span class="flag-sm" id="bFlagB">🇫🇷</span> Them · <span id="bLangB">French</span></div>
       <div class="original-text" id="origB">En attente de l'autre locuteur…</div>
       <div class="translated-text" id="transB"></div>
     </div>
   </div>
-  <div class="waveform-wrap"><div class="waveform" id="waveform"></div></div>
+
+  <!-- Waveform -->
+  <div class="waveform-wrap">
+    <div class="waveform" id="waveform"></div>
+  </div>
+
+  <!-- Controls -->
   <div class="call-controls">
     <div class="ctrl-btn" onclick="toggleSpeaker()">
       <button class="ctrl-icon ctrl-gray" id="speakerBtn">🔊</button>
@@ -355,11 +399,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
       <span id="micLabel">Tap to speak</span>
     </div>
-    <div class="ctrl-btn" onclick="showScreen('home')">
+    <div class="ctrl-btn" onclick="endCall()">
       <button class="ctrl-icon ctrl-red">📵</button>
       <span>End</span>
     </div>
   </div>
+
+  <!-- Note about speech -->
   <div style="text-align:center;padding:0 24px 24px;font-size:12px;color:var(--muted);">
     🎙️ Powered by Azure AI · Real-time voice translation<br>Open in Chrome and allow microphone access
   </div>
@@ -367,123 +413,93 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- ══════════════════ CONFERENCE ══════════════════ -->
 <div class="screen" id="conference">
+  <div class="conf-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <h2>Conference Mode</h2>
+  </div>
 
-  <!-- ── Setup ────────────────────────────────────── -->
-  <div id="conf-setup">
-    <div class="conf-header">
-      <button class="back-btn" onclick="showScreen('home')">←</button>
-      <div>
-        <h2>Conference</h2>
-        <p style="font-size:12px;color:var(--muted);margin-top:2px;">200+ participants · Any language</p>
-      </div>
+  <div class="participants-grid">
+    <div class="participant-card" id="pl-en" onclick="setConfSpeaker('English','🇺🇸')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">🇺🇸</div>
+      <div class="p-name">English</div>
+      <div class="p-lang">🇺🇸 English</div>
+      <div class="p-status listen">Listening</div>
     </div>
-    <div style="padding:0 24px;margin-top:8px;">
-      <div style="background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:16px;padding:16px;margin-bottom:20px;">
-        <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px;">🌐 How it works</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.8;">You speak → attendees scan the QR code with their phone, choose their language, and hear your voice translated live in real-time — including the original audio.</div>
-      </div>
-      <div style="margin-bottom:20px;">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:600;">Your Speaking Language</div>
-        <div class="lang-select-box active-speaker" style="display:flex;align-items:center;gap:12px;" onclick="openConfLangPicker('host')">
-          <span style="font-size:26px;" id="confHostFlag">🇺🇸</span>
-          <div><div class="lang-name" id="confHostLangName">English</div><div class="lang-sub">Tap to change</div></div>
-          <span style="margin-left:auto;color:var(--muted);font-size:18px;">›</span>
+    <div class="participant-card" id="pl-fr" onclick="setConfSpeaker('French','🇫🇷')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">🇫🇷</div>
+      <div class="p-name">Français</div>
+      <div class="p-lang">🇫🇷 French</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-es" onclick="setConfSpeaker('Spanish','🇪🇸')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">🇪🇸</div>
+      <div class="p-name">Español</div>
+      <div class="p-lang">🇪🇸 Spanish</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ru" onclick="setConfSpeaker('Russian','🇷🇺')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(236,72,153,0.12);">🇷🇺</div>
+      <div class="p-name">Русский</div>
+      <div class="p-lang">🇷🇺 Russian</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-zh" onclick="setConfSpeaker('Chinese','🇨🇳')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(245,158,11,0.12);">🇨🇳</div>
+      <div class="p-name">中文</div>
+      <div class="p-lang">🇨🇳 Chinese</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ar" onclick="setConfSpeaker('Arabic','🇸🇦')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(20,184,166,0.12);">🇸🇦</div>
+      <div class="p-name">العربية</div>
+      <div class="p-lang">🇸🇦 Arabic</div>
+      <div class="p-status listen">Listening</div>
+    </div>
+    <div class="participant-card" id="pl-ht" onclick="explainHtLimit()" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(239,68,68,0.12);">🇭🇹</div>
+      <div class="p-name">Kreyòl</div>
+      <div class="p-lang">🇭🇹 Haitian Creole</div>
+      <div class="p-status listen">Text + audio out</div>
+    </div>
+    <div class="participant-card p-add" onclick="alert('Custom languages — coming in v1.1!')">
+      <div class="p-avatar" style="font-size:28px;">➕</div>
+      <div class="p-name" style="color:var(--muted);">Add</div>
+      <div class="p-lang" style="color:var(--border);">Language</div>
+    </div>
+  </div>
+
+  <div class="conf-transcript">
+    <h4>Live Transcript</h4>
+    <div id="confTranscript">
+      <div class="transcript-line">
+        <span class="t-flag">🇺🇸</span>
+        <div class="t-content">
+          <div class="t-original">Hello everyone, let's begin the meeting.</div>
+          <div class="t-translated">→ FR: Bonjour à tous, commençons la réunion.</div>
+          <div class="t-translated">→ ES: Hola a todos, empecemos la reunión.</div>
         </div>
       </div>
-      <div id="confKeyWarning" style="display:none;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:var(--yellow);">⚠️ Configure your Azure API key in Settings before hosting.</div>
-      <button class="btn btn-primary" onclick="createConference()" id="confCreateBtn">🎙️ Create Conference Room</button>
-      <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:12px;">A unique room code + QR code will be generated instantly</p>
+      <div class="transcript-line">
+        <span class="t-flag">🇫🇷</span>
+        <div class="t-content">
+          <div class="t-original">Oui, je suis prêt. Merci pour l'invitation.</div>
+          <div class="t-translated">→ EN: Yes, I'm ready. Thank you for the invitation.</div>
+          <div class="t-translated">→ ES: Sí, estoy listo. Gracias por la invitación.</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ── QR / Waiting ──────────────────────────────── -->
-  <div id="conf-qr" style="display:none;">
-    <div class="conf-header">
-      <button class="back-btn" onclick="endConference()">←</button>
-      <div style="flex:1;"><h2>Room Open</h2><p style="font-size:12px;color:var(--green);margin-top:2px;" id="confAttCount">● Waiting for participants…</p></div>
-    </div>
-    <div style="padding:0 24px;text-align:center;">
-      <div style="margin-bottom:12px;">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;">Room Code</div>
-        <div style="font-size:44px;font-weight:800;letter-spacing:10px;color:var(--text);font-family:monospace;cursor:pointer;" id="confRoomCode" onclick="copyConfLink()" title="Tap to copy">—</div>
-      </div>
-      <div style="background:#fff;border-radius:16px;padding:14px;display:inline-block;margin-bottom:12px;">
-        <img id="confQRImg" src="" alt="QR Code" style="width:180px;height:180px;display:block;"/>
-      </div>
-      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Attendees scan this → pick their language → hear you live in real-time</p>
-      <button onclick="copyConfLink()" style="background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:8px 18px;font-size:12px;cursor:pointer;margin-bottom:16px;">📋 Copy Join Link</button>
-      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:left;margin-bottom:16px;max-height:150px;overflow-y:auto;">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:600;">Who's In</div>
-        <div id="confAttendeeList"><div style="font-size:13px;color:var(--muted);text-align:center;padding:8px;" data-placeholder>Waiting for attendees…</div></div>
-      </div>
-    </div>
-    <div style="padding:0 24px 24px;display:flex;flex-direction:column;gap:10px;">
-      <button class="btn btn-primary" onclick="confGoLive()">🎙️ Start Speaking</button>
-      <button class="btn btn-outline" onclick="endConference()">End Conference</button>
-    </div>
+  <div class="conf-start-btn">
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
+    <div style="text-align:center;margin-bottom:10px;">
+    <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
+  </div>
+  <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
+    <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
   </div>
 
-  <!-- ── Live (host speaking) ──────────────────────── -->
-  <div id="conf-live" style="display:none;">
-    <div class="conf-header">
-      <button class="back-btn" onclick="confSetState('conf-qr')">← QR</button>
-      <div style="flex:1;"><h2>Conference Live</h2><p style="font-size:12px;color:var(--green);margin-top:2px;" id="confLiveCount">● 0 participants</p></div>
-    </div>
-    <div style="padding:0 24px;margin-bottom:8px;">
-      <div id="confSpeakBadge" class="speak-badge" style="display:none;">
-        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite;flex-shrink:0;"></div>
-        <span style="font-size:12px;color:var(--green);font-weight:500;">Speaking — translating + streaming original voice live</span>
-      </div>
-    </div>
-    <div class="waveform-wrap" id="confWaveWrap" style="display:none;"><div class="waveform" id="confWaveform"></div></div>
-    <div style="padding:0 24px;margin-top:4px;">
-      <div class="conf-transcript" style="height:300px;overflow-y:auto;">
-        <h4>Live Transcript</h4>
-        <div id="confLiveTranscript"><div style="font-size:13px;color:var(--muted);text-align:center;padding:20px;" data-placeholder>Start speaking…</div></div>
-      </div>
-    </div>
-    <div style="padding:16px 24px 24px;display:flex;flex-direction:column;gap:10px;">
-      <button class="btn btn-primary" id="confToggleBtn" onclick="confToggleSpeaking()">🎙️ Start Speaking</button>
-      <button onclick="endConference()" style="text-align:center;font-size:13px;color:var(--red);background:none;border:none;cursor:pointer;padding:8px;">End Conference</button>
-    </div>
-  </div>
-
-  <!-- ── Join (attendee, scanned QR) ──────────────── -->
-  <div id="conf-join" style="display:none;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:40px 24px;">
-    <div style="text-align:center;margin-bottom:28px;">
-      <div style="font-size:60px;margin-bottom:12px;">🌐</div>
-      <h2 style="font-size:22px;font-weight:700;margin-bottom:6px;">Join Conference</h2>
-      <div style="font-size:20px;font-weight:700;letter-spacing:6px;color:var(--accent);font-family:monospace;margin-top:4px;" id="joinRoomDisplay">—</div>
-      <p style="color:var(--muted);font-size:13px;margin-top:6px;">Choose your language — hear the speaker instantly</p>
-    </div>
-    <div style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;">
-      <input id="joinNameInput" type="text" placeholder="Your name (optional)"
-        style="width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;color:var(--text);font-size:16px;outline:none;"/>
-      <div class="lang-select-box active-speaker" style="display:flex;align-items:center;gap:12px;" onclick="openConfLangPicker('join')">
-        <span style="font-size:26px;" id="joinLangFlag">🇺🇸</span>
-        <div><div class="lang-name" id="joinLangName">English</div><div class="lang-sub">I want to hear in this language</div></div>
-        <span style="margin-left:auto;color:var(--muted);font-size:18px;">›</span>
-      </div>
-      <button class="btn btn-primary" onclick="joinConference()" id="joinBtn">Join &amp; Listen →</button>
-    </div>
-  </div>
-
-  <!-- ── Attendee live view ─────────────────────────── -->
-  <div id="conf-attendee-live" style="display:none;flex-direction:column;min-height:100vh;">
-    <div style="background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:40px 24px 16px;display:flex;align-items:center;gap:12px;">
-      <div style="flex:1;"><h2 style="font-size:18px;font-weight:700;">Conference</h2><p style="font-size:12px;color:var(--green);margin-top:2px;">● Live · Room <span id="attRoomCode" style="font-family:monospace;"></span></p></div>
-      <div id="attLangBadge" style="background:rgba(79,142,247,.12);border:1px solid rgba(79,142,247,.2);border-radius:10px;padding:6px 12px;font-size:12px;color:var(--accent);">🇺🇸 English</div>
-    </div>
-    <div style="padding:0 24px;flex:1;">
-      <div class="conf-transcript" style="height:calc(100vh - 200px);overflow-y:auto;">
-        <h4>Live in your language</h4>
-        <div id="attTranscript"><div style="font-size:13px;color:var(--muted);text-align:center;padding:24px;" data-placeholder>Waiting for the speaker…</div></div>
-      </div>
-    </div>
-    <div style="padding:16px 24px 48px;"><button class="btn btn-outline" onclick="leaveConference()">Leave Conference</button></div>
-  </div>
-
-  <div class="bottom-nav" id="confBottomNav">
+  <div class="bottom-nav">
     <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
     <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
     <button class="nav-btn active"><span class="ni">👥</span>Group</button>
@@ -493,19 +509,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
 <!-- ══════════════════ SETTINGS ══════════════════ -->
 <div class="screen" id="settings">
-  <div class="settings-header"><h2>Settings</h2></div>
+  <div class="settings-header">
+    <h2>Settings</h2>
+  </div>
+
   <div class="settings-section">
-    <div class="settings-row" onclick="showScreen('profileSetup')" style="cursor:pointer;">
+    <div class="settings-row">
       <div class="s-icon" style="background:rgba(79,142,247,0.12);">👤</div>
-      <div class="s-info"><strong id="settingsName">User</strong><span id="settingsEmail">Tap to set up your profile</span></div>
+      <div class="s-info"><strong>Christopher Pierre</strong><span>contact@credia.ca</span></div>
       <span class="s-arrow">›</span>
     </div>
   </div>
+
   <div class="settings-section">
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(34,197,94,0.12);">🔴</div>
       <div class="s-info"><strong>Keep Original Voice</strong><span>Coming in v0.3 — voice preservation</span></div>
-      <button class="toggle" onclick="this.classList.toggle('on')"></button>
+      <button class="toggle" style="opacity:.5;pointer-events:none;"></button>
     </div>
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(124,92,252,0.12);">🔕</div>
@@ -518,6 +538,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
   </div>
+
   <div class="settings-section">
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(79,142,247,0.12);">🌐</div>
@@ -530,21 +551,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <span class="s-arrow">›</span>
     </div>
   </div>
-  <div class="settings-section" id="keySection">
-    <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
-      <div style="display:flex;align-items:center;gap:10px;width:100%;">
-        <div class="s-icon" style="background:rgba(245,158,11,0.12);">🔑</div>
-        <div class="s-info"><strong>Azure Speech API Key</strong><span id="keyStatus">Not configured</span></div>
-        <span id="keyIndicator" style="font-size:20px;">⚠️</span>
-      </div>
-      <input type="password" id="apiKeyInput" placeholder="Paste your Azure key here…"
-        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-size:13px;outline:none;"/>
-      <button onclick="saveApiKey()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;">Save Key</button>
-    </div>
-  </div>
+
   <div style="text-align:center;padding:24px;font-size:12px;color:var(--muted);">
-    Equivox · v1.0 Beta — powered by Azure AI<br>© 2026 CREDIA INC.
+    Equivox · v0.2 Beta — powered by CP technology<br>© 2026 CREDIA INC.
   </div>
+
   <div class="bottom-nav">
     <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
     <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
@@ -566,79 +577,142 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- ══════════════════ REMOTE CALL MODAL (NOUVEAU) ══════════════════ -->
+
+<div id="qrPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:#0a0e1a;color:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
+  <div style="font-size:13px;letter-spacing:2px;color:#8b93a7;text-transform:uppercase;margin-bottom:6px;">Equivox · Join the room</div>
+  <div style="font-size:15px;color:#c9d3e6;margin-bottom:20px;">Scan with your phone camera — then pick your language</div>
+  <div id="qrBox" style="background:#fff;padding:18px;border-radius:16px;line-height:0;"></div>
+  <div id="qrCode" style="font-size:52px;font-weight:700;letter-spacing:10px;margin-top:22px;color:#7fb3e8;"></div>
+  <div style="font-size:14px;color:#8b93a7;margin-top:4px;">or enter this code in the app</div>
+  <div id="qrLink" style="font-size:12px;color:#5a6a85;margin-top:14px;word-break:break-all;max-width:90%;"></div>
+  <button onclick="hideQR()" style="margin-top:28px;background:#2b6cb8;color:#fff;border:0;border-radius:999px;padding:12px 32px;font-size:15px;cursor:pointer;">Close</button>
+</div>
+
+<div class="modal-overlay" id="remoteModal" onclick="closeRemoteModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <h3>Remote Call</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+      Create a room and share the code, or join with a code you received.
+      Pick <strong>your</strong> language first (Speaker A on the call screen).
+    </p>
+    <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
+        style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;text-transform:uppercase;"/>
+      <button class="btn btn-outline" style="width:auto;padding:12px 20px;" onclick="joinRemoteRoom()">Join</button>
+    </div>
+    <div id="remoteStatus" style="margin-top:14px;font-size:13px;color:var(--muted);min-height:18px;"></div>
+  </div>
+</div>
+
 <script>
+// ── Language data ─────────────────────────────────────────────
 const LANGUAGES = [
-  {flag:'🇺🇸',name:'English',sub:'United States'},{flag:'🇫🇷',name:'French',sub:'France'},
-  {flag:'🇪🇸',name:'Spanish',sub:'Spain / Latin America'},{flag:'🇩🇪',name:'German',sub:'Germany'},
-  {flag:'🇯🇵',name:'Japanese',sub:'Japan'},{flag:'🇨🇳',name:'Chinese',sub:'Mandarin'},
-  {flag:'🇧🇷',name:'Portuguese',sub:'Brazil'},{flag:'🇸🇦',name:'Arabic',sub:'Modern Standard'},
-  {flag:'🇷🇺',name:'Russian',sub:'Russia'},{flag:'🇮🇳',name:'Hindi',sub:'India'},
-  {flag:'🇰🇷',name:'Korean',sub:'South Korea'},{flag:'🇮🇹',name:'Italian',sub:'Italy'},
-  {flag:'🇳🇱',name:'Dutch',sub:'Netherlands'},{flag:'🇵🇱',name:'Polish',sub:'Poland'},
-  {flag:'🇸🇪',name:'Swedish',sub:'Sweden'},{flag:'🇹🇷',name:'Turkish',sub:'Turkey'},
-  {flag:'🇬🇷',name:'Greek',sub:'Greece'},{flag:'🇻🇳',name:'Vietnamese',sub:'Vietnam'},
-  {flag:'🇭🇹',name:'Haitian Creole',sub:'Haiti'},{flag:'🇰🇪',name:'Swahili',sub:'East Africa'},
+  {flag:'🇺🇸',name:'English',sub:'United States'},
+  {flag:'🇫🇷',name:'French',sub:'France'},
+  {flag:'🇪🇸',name:'Spanish',sub:'Spain / Latin America'},
+  {flag:'🇩🇪',name:'German',sub:'Germany'},
+  {flag:'🇯🇵',name:'Japanese',sub:'Japan'},
+  {flag:'🇨🇳',name:'Chinese',sub:'Mandarin'},
+  {flag:'🇧🇷',name:'Portuguese',sub:'Brazil'},
+  {flag:'🇸🇦',name:'Arabic',sub:'Modern Standard'},
+  {flag:'🇷🇺',name:'Russian',sub:'Russia'},
+  {flag:'🇮🇳',name:'Hindi',sub:'India'},
+  {flag:'🇰🇷',name:'Korean',sub:'South Korea'},
+  {flag:'🇮🇹',name:'Italian',sub:'Italy'},
+  {flag:'🇳🇱',name:'Dutch',sub:'Netherlands'},
+  {flag:'🇵🇱',name:'Polish',sub:'Poland'},
+  {flag:'🇸🇪',name:'Swedish',sub:'Sweden'},
+  {flag:'🇹🇷',name:'Turkish',sub:'Turkey'},
+  {flag:'🇬🇷',name:'Greek',sub:'Greece'},
+  {flag:'🇻🇳',name:'Vietnamese',sub:'Vietnam'},
+  {flag:'🇳🇬',name:'Haitian Creole',sub:'Haiti'},
+  {flag:'🇰🇪',name:'Swahili',sub:'East Africa'},
 ];
 
+// Mock translations per language pair
 const MOCK = {
-  'English→French':[['Hello, how can I help you today?','Bonjour, comment puis-je vous aider ?'],['I need assistance with my order.','J\'ai besoin d\'aide pour ma commande.']],
-  'English→Spanish':[['Good morning, what can I do for you?','Buenos días, ¿en qué puedo ayudarle?'],['Thank you for calling us today.','Gracias por llamarnos hoy.']],
-  'French→English':[['Bonjour, j\'ai un problème.','Hello, I have a problem.'],['Merci de votre aide.','Thank you for your help.']],
+  'English→French':[
+    ['Hello, how can I help you today?','Bonjour, comment puis-je vous aider aujourd\'hui ?'],
+    ['I need assistance with my order.','J\'ai besoin d\'aide pour ma commande.'],
+    ['Let me transfer you to the right department.','Laissez-moi vous transférer au bon service.'],
+  ],
+  'English→Spanish':[
+    ['Good morning, what can I do for you?','Buenos días, ¿en qué puedo ayudarle?'],
+    ['Please hold while I check your account.','Por favor espere mientras verifico su cuenta.'],
+    ['Thank you for calling us today.','Gracias por llamarnos hoy.'],
+  ],
+  'English→German':[
+    ['Welcome, how may I assist you?','Willkommen, wie kann ich Ihnen helfen?'],
+    ['I understand your concern completely.','Ich verstehe Ihr Anliegen vollständig.'],
+    ['We will resolve this right away.','Wir werden das sofort lösen.'],
+  ],
+  'French→English':[
+    ['Bonjour, j\'ai un problème avec ma facture.','Hello, I have a problem with my invoice.'],
+    ['Pouvez-vous m\'expliquer les frais ?','Can you explain the charges to me?'],
+    ['Merci de votre aide précieuse.','Thank you for your valuable help.'],
+  ],
 };
-function getMock(a,b){return MOCK[`${a}→${b}`]||[[`Hello from ${a}!`,`[Translated to ${b}]`]];}
 
-const LANG_SPEECH={English:'en-US',French:'fr-FR',Spanish:'es-ES',German:'de-DE',Japanese:'ja-JP',Chinese:'zh-CN',Portuguese:'pt-BR',Arabic:'ar-SA',Russian:'ru-RU',Hindi:'hi-IN',Korean:'ko-KR',Italian:'it-IT',Dutch:'nl-NL',Polish:'pl-PL',Swedish:'sv-SE',Turkish:'tr-TR',Greek:'el-GR',Vietnamese:'vi-VN','Haitian Creole':'fr-HT',Swahili:'sw-KE'};
-const LANG_TRANS={English:'en',French:'fr',Spanish:'es',German:'de',Japanese:'ja',Chinese:'zh-Hans',Portuguese:'pt',Arabic:'ar',Russian:'ru',Hindi:'hi',Korean:'ko',Italian:'it',Dutch:'nl',Polish:'pl',Swedish:'sv',Turkish:'tr',Greek:'el',Vietnamese:'vi','Haitian Creole':'ht',Swahili:'sw'};
-
-let AZURE_KEY=localStorage.getItem('cp_azure_key')||'';
-let AZURE_REGION=localStorage.getItem('cp_azure_region')||'westus2';
-let currentLangA={flag:'🇺🇸',name:'English'};
-let currentLangB={flag:'🇫🇷',name:'French'};
-let isListening=false,mockIdx=0,waveInterval=null,obStep=0,azureRecognizer=null;
-
-// ── User Profile ──────────────────────────────────────────────
-function loadUserProfile(){
-  const firstName=localStorage.getItem('eq_first_name')||'';
-  const lastName=localStorage.getItem('eq_last_name')||'';
-  const email=localStorage.getItem('eq_email')||'';
-  const fullName=[firstName,lastName].filter(Boolean).join(' ')||'User';
-  const initials=[firstName[0],lastName[0]].filter(Boolean).join('').toUpperCase()||'?';
-  const hour=new Date().getHours();
-  const greeting=hour<12?'Good morning 👋':hour<18?'Good afternoon 👋':'Good evening 👋';
-  const el=(id)=>document.getElementById(id);
-  if(el('homeGreeting'))  el('homeGreeting').textContent=greeting;
-  if(el('homeUserName'))  el('homeUserName').textContent=firstName||'Welcome';
-  if(el('homeAvatar'))    el('homeAvatar').textContent=initials;
-  if(el('confUserName'))  el('confUserName').textContent=firstName||'You';
-  if(el('settingsName'))  el('settingsName').textContent=fullName;
-  if(el('settingsEmail')) el('settingsEmail').textContent=email||'Tap to update profile';
+function getMock(langA, langB){
+  const key = `${langA}→${langB}`;
+  return MOCK[key] || [
+    [`Hello from ${langA}!`, `[Translated to ${langB}]`],
+    [`How are you?`, `[Translated greeting in ${langB}]`],
+    [`Thank you very much.`, `[Polite closing in ${langB}]`],
+  ];
 }
 
-function saveProfile(){
-  const firstName=document.getElementById('setupFirstName').value.trim();
-  const lastName=document.getElementById('setupLastName').value.trim();
-  const email=document.getElementById('setupEmail').value.trim();
-  if(!firstName){alert('Please enter your first name.');return;}
-  localStorage.setItem('eq_first_name',firstName);
-  localStorage.setItem('eq_last_name',lastName);
-  localStorage.setItem('eq_email',email);
-  loadUserProfile();
-  showScreen('home');
+// ── Jetons Azure éphémères fournis par le serveur CP ──────────
+// (la clé Azure reste sur le serveur ; le client ne la voit jamais)
+const CP_TOKEN_URL = 'https://cp-server-kdbg.onrender.com/api/token';
+async function getCpToken(){
+  const r = await fetch(CP_TOKEN_URL);
+  if(!r.ok) throw new Error('Token service unavailable');
+  return r.json(); // {token, region}
 }
 
-function goToHome(){
-  const hasProfile=localStorage.getItem('eq_first_name');
-  if(hasProfile){showScreen('home');}else{showScreen('profileSetup');}
-}
+// Speech recognition language codes
+const LANG_SPEECH = {
+  English:'en-US', French:'fr-FR', Spanish:'es-ES', German:'de-DE',
+  Japanese:'ja-JP', Chinese:'zh-CN', Portuguese:'pt-BR', Arabic:'ar-SA',
+  Russian:'ru-RU', Hindi:'hi-IN', Korean:'ko-KR', Italian:'it-IT',
+  Dutch:'nl-NL', Polish:'pl-PL', Swedish:'sv-SE', Turkish:'tr-TR',
+  Greek:'el-GR', Vietnamese:'vi-VN', 'Haitian Creole':'fr-HT', Swahili:'sw-KE'
+};
 
-// ── Navigation ────────────────────────────────────────────────
+// Translation target language codes (short)
+const LANG_TRANS = {
+  English:'en', French:'fr', Spanish:'es', German:'de',
+  Japanese:'ja', Chinese:'zh-Hans', Portuguese:'pt', Arabic:'ar',
+  Russian:'ru', Hindi:'hi', Korean:'ko', Italian:'it',
+  Dutch:'nl', Polish:'pl', Swedish:'sv', Turkish:'tr',
+  Greek:'el', Vietnamese:'vi', 'Haitian Creole':'ht', Swahili:'sw'
+};
+
+// ── State ─────────────────────────────────────────────────────
+let currentLangA = {flag:'🇺🇸',name:'English'};
+let currentLangB = {flag:'🇫🇷',name:'French'};
+let activeSpeaker = 'A';
+let pickingFor = 'A';
+let isListening = false;
+let demoInterval = null;
+let mockIdx = 0;
+let recognition = null;
+let waveInterval = null;
+let obStep = 0;
+let azureRecognizer = null;
+let remoteMode = false; // NOUVEAU : mode appel à distance
+
+// ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
-  if(id==='conference')initConference();
 }
-function navTo(id,btn){
+function navTo(id, btn){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
@@ -646,16 +720,21 @@ function navTo(id,btn){
 // ── Onboarding ────────────────────────────────────────────────
 function nextOnboard(){
   obStep++;
-  if(obStep>=3){goToHome();return;}
+  if(obStep>=3){showScreen('home');return;}
   ['ob1','ob2','ob3'].forEach((id,i)=>{
     document.getElementById(id).classList.toggle('active',i===obStep);
     document.getElementById('dot'+i).classList.toggle('active',i===obStep);
   });
-  if(obStep===2)document.getElementById('obNext').textContent='Get Started 🚀';
+  if(obStep===2) document.getElementById('obNext').textContent='Get Started 🚀';
 }
 
-// ── Call ──────────────────────────────────────────────────────
-function showCall(){showScreen('call');updateCallUI();buildWaveform();}
+// ── Call screen ───────────────────────────────────────────────
+function showCall(){
+  showScreen('call');
+  updateCallUI();
+  buildWaveform();
+}
+
 function updateCallUI(){
   document.getElementById('flagA').textContent=currentLangA.flag;
   document.getElementById('langNameA').textContent=currentLangA.name;
@@ -666,803 +745,817 @@ function updateCallUI(){
   document.getElementById('bFlagB').textContent=currentLangB.flag;
   document.getElementById('bLangB').textContent=currentLangB.name;
 }
+
 function swapLangs(){
   [currentLangA,currentLangB]=[currentLangB,currentLangA];
-  updateCallUI();mockIdx=0;
+  updateCallUI();
   document.getElementById('origA').textContent='Languages swapped. Tap mic to speak.';
   document.getElementById('transA').textContent='';
+  document.getElementById('origB').textContent='';
+  document.getElementById('transB').textContent='';
+  mockIdx=0;
 }
 
 // ── Waveform ──────────────────────────────────────────────────
 function buildWaveform(){
   const wf=document.getElementById('waveform');
   wf.innerHTML='';
-  for(let i=0;i<28;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height='4px';wf.appendChild(b);}
+  for(let i=0;i<28;i++){
+    const b=document.createElement('div');
+    b.className='wave-bar';
+    b.style.height='4px';
+    wf.appendChild(b);
+  }
 }
+
 function animateWave(on){
   clearInterval(waveInterval);
   const bars=document.querySelectorAll('.wave-bar');
   if(!on){bars.forEach(b=>{b.classList.remove('active');b.style.height='4px';});return;}
-  bars.forEach(b=>{b.style.setProperty('--h',(6+Math.random()*28)+'px');b.style.setProperty('--d',(.15+Math.random()*.35)+'s');b.classList.add('active');});
-  waveInterval=setInterval(()=>{bars.forEach(b=>b.style.setProperty('--h',(6+Math.random()*28)+'px'));},400);
+  bars.forEach((b,i)=>{
+    const h=6+Math.random()*28;
+    const d=(.15+Math.random()*.35)+'s';
+    b.style.setProperty('--h',h+'px');
+    b.style.setProperty('--d',d);
+    b.classList.add('active');
+  });
+  waveInterval=setInterval(()=>{
+    bars.forEach(b=>{
+      const h=6+Math.random()*28;
+      b.style.setProperty('--h',h+'px');
+    });
+  },400);
 }
 
-// ── Mic ───────────────────────────────────────────────────────
-function toggleMic(){if(isListening){stopListening();}else{startListening();}}
-function startListening(){
+
+// ── Vérification préalable du micro (message clair si l'autorisation manque) ──
+async function ensureMic(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    throw new Error("Microphone unavailable. Open this page over https:// in Chrome, Edge or Safari.");
+  }
+  let state = null;
+  try{ state = (await navigator.permissions.query({name:'microphone'})).state; }catch(e){}
+  if(state === 'denied'){
+    throw new Error("Microphone blocked for this site. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+  }
+  try{
+    const stream = await Promise.race([
+      navigator.mediaDevices.getUserMedia({audio:true}),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('__PROMPT_TIMEOUT__')), 12000))
+    ]);
+    stream.getTracks().forEach(t=>t.stop());
+    return true;
+  }catch(err){
+    if(err && err.message === '__PROMPT_TIMEOUT__'){
+      throw new Error("Waiting for microphone permission. Chrome should show a prompt at the top of the window — click Allow. If you see no prompt, click the padlock in the address bar, set Microphone to Allow, then reload.");
+    }
+    if(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')){
+      throw new Error("Microphone permission denied. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+    }
+    if(err && err.name === 'NotFoundError'){
+      throw new Error("No microphone detected. Connect a microphone or headset and reload.");
+    }
+    throw new Error("Microphone error: " + (err && (err.name || err.message) || 'unknown'));
+  }
+}
+
+function showMicError(msg){
+  let bar = document.getElementById('micErrBar');
+  if(!bar){
+    bar = document.createElement('div');
+    bar.id = 'micErrBar';
+    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:84px;z-index:9999;background:#3b1d21;border:1px solid #a33;border-radius:12px;padding:12px 14px;color:#ffd9dc;font-size:13px;line-height:1.5;box-shadow:0 8px 24px rgba(0,0,0,.45);';
+    document.body.appendChild(bar);
+  }
+  bar.innerHTML = '<b>&#9888; ' + msg + '</b><span style="float:right;cursor:pointer;opacity:.7;padding-left:12px" onclick="this.parentNode.remove()">&times;</span>';
+  clearTimeout(window.__micErrT);
+  window.__micErrT = setTimeout(()=>{ const b=document.getElementById('micErrBar'); if(b) b.remove(); }, 15000);
+}
+
+// ── Microphone ────────────────────────────────────────────────
+function toggleMic(){
+  // NOUVEAU : en mode distance, le micro passe par CPRemote
+  if(remoteMode){
+    if(isListening){
+      isListening=false;
+      CPRemote.stopSpeaking();
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micLabel').textContent='Tap to speak';
+      animateWave(false);
+    } else {
+      isListening=true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micLabel').textContent='Listening…';
+      animateWave(true);
+      ensureMic().then(()=>CPRemote.startSpeaking()).catch(err=>{
+        isListening=false;
+        document.getElementById('micBtn').classList.remove('listening');
+        document.getElementById('micLabel').textContent='Tap to speak';
+        animateWave(false);
+        showMicError(err.message);
+      });
+    }
+    return;
+  }
+  if(isListening){stopListening();}else{startListening();}
+}
+
+async function startListening(){
+  try{ await ensureMic(); }
+  catch(e){ showMicError(e.message); return; }
   isListening=true;
-  document.getElementById('micBtn').classList.add('listening');
+  const btn=document.getElementById('micBtn');
+  btn.classList.add('listening');
   document.getElementById('micLabel').textContent='Listening…';
   document.getElementById('origA').textContent='';
   document.getElementById('transA').textContent='';
   animateWave(true);
-  if(typeof SpeechSDK!=='undefined'&&AZURE_KEY){
+
+  // ── Try Azure Speech Translation SDK (jeton via serveur CP) ──
+  if(typeof SpeechSDK !== 'undefined'){
     try{
-      const sc=SpeechSDK.SpeechTranslationConfig.fromSubscription(AZURE_KEY,AZURE_REGION);
-      sc.speechRecognitionLanguage=LANG_SPEECH[currentLangA.name]||'en-US';
-      sc.addTargetLanguage(LANG_TRANS[currentLangB.name]||'fr');
-      const ac=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      azureRecognizer=new SpeechSDK.TranslationRecognizer(sc,ac);
-      azureRecognizer.recognizing=(s,e)=>{if(e.result.text)document.getElementById('origA').innerHTML=e.result.text+'<span class="cursor-blink"></span>';};
-      azureRecognizer.recognized=(s,e)=>{
-        if(e.result.reason===SpeechSDK.ResultReason.TranslatedSpeech){
-          document.getElementById('origA').textContent=e.result.text;
-          const tgt=LANG_TRANS[currentLangB.name]||'fr';
-          typeText('transA',e.result.translations.get(tgt)||'[Translation unavailable]');
+      const tk = await getCpToken();
+      const speechConfig = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+      speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
+      const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
+      speechConfig.addTargetLanguage(targetLang);
+
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
+      // Show interim results as user speaks
+      azureRecognizer.recognizing = (s, e) => {
+        if(e.result.text){
+          document.getElementById('origA').innerHTML = e.result.text + '<span class="cursor-blink"></span>';
+        }
+      };
+
+      // Final result with translation
+      azureRecognizer.recognized = (s, e) => {
+        if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
+          const original = e.result.text;
+          const translated = e.result.translations.get(targetLang);
+          document.getElementById('origA').textContent = original;
+          typeText('transA', translated || '[Translation unavailable]');
           stopListening();
         }
       };
-      azureRecognizer.canceled=()=>{stopListening();runDemoTranslation();};
-      azureRecognizer.startContinuousRecognitionAsync(()=>{},()=>{stopListening();runDemoTranslation();});
-      setTimeout(()=>{if(isListening)stopListening();},10000);
-    }catch(e){stopListening();runDemoTranslation();}
-  }else{runDemoTranslation();}
+
+      azureRecognizer.canceled = () => {
+        stopListening();
+        runDemoTranslation();
+      };
+
+      azureRecognizer.startContinuousRecognitionAsync(
+        ()=>{}, // success
+        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
+      );
+
+      // Auto-stop after 10 seconds of silence
+      setTimeout(()=>{ if(isListening) stopListening(); }, 10000);
+
+    } catch(err){
+      stopListening();
+      runDemoTranslation();
+    }
+  } else {
+    // Fallback demo mode
+    runDemoTranslation();
+  }
 }
+
 function stopListening(){
   isListening=false;
-  if(azureRecognizer){try{azureRecognizer.stopContinuousRecognitionAsync(()=>{azureRecognizer.close();azureRecognizer=null;});}catch(e){azureRecognizer=null;}}
+  if(azureRecognizer){
+    try{ azureRecognizer.stopContinuousRecognitionAsync(()=>{ azureRecognizer.close(); azureRecognizer=null; }); }
+    catch(e){ azureRecognizer=null; }
+  }
+  if(recognition){try{recognition.stop();}catch(e){}}
   document.getElementById('micBtn').classList.remove('listening');
   document.getElementById('micLabel').textContent='Tap to speak';
   animateWave(false);
 }
-function typeText(elId,text){
-  const el=document.getElementById(elId);
-  el.innerHTML='<span class="cursor-blink"></span>';
-  let i=0;const t=setInterval(()=>{el.textContent=text.slice(0,i);i++;if(i>text.length)clearInterval(t);},28);
+
+function typeText(elId, text){
+  const el = document.getElementById(elId);
+  el.innerHTML = '<span class="cursor-blink"></span>';
+  let i=0;
+  const t = setInterval(()=>{
+    el.textContent = text.slice(0,i);
+    i++;
+    if(i>text.length) clearInterval(t);
+  },28);
 }
+
 function runDemoTranslation(){
   const pairs=getMock(currentLangA.name,currentLangB.name);
-  const pair=pairs[mockIdx%pairs.length];mockIdx++;
-  let i=0;document.getElementById('origA').textContent='';document.getElementById('transA').textContent='';
-  const t=setInterval(()=>{
-    document.getElementById('origA').textContent=pair[0].slice(0,i);i++;
-    if(i>pair[0].length){clearInterval(t);stopListening();setTimeout(()=>typeText('transA',pair[1]),600);}
+  const pair=pairs[mockIdx%pairs.length];
+  mockIdx++;
+  let i=0;
+  document.getElementById('origA').textContent='';
+  document.getElementById('transA').textContent='';
+  const typeOrig=setInterval(()=>{
+    document.getElementById('origA').textContent=pair[0].slice(0,i);
+    i++;
+    if(i>pair[0].length){
+      clearInterval(typeOrig);
+      stopListening();
+      setTimeout(()=>typeText('transA', pair[1]),600);
+    }
   },45);
 }
-function toggleSpeaker(){const b=document.getElementById('speakerBtn');b.textContent=b.textContent==='🔊'?'🔇':'🔊';}
+
+function showMockTranslation(original, speaker, preTranslated){
+  const pairs=getMock(currentLangA.name,currentLangB.name);
+  const match=pairs.find(p=>p[0]===original)||[original,preTranslated||`[${currentLangB.name} translation]`];
+  typeText('trans'+speaker, match[1]);
+}
+
+function toggleSpeaker(){
+  const btn=document.getElementById('speakerBtn');
+  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
+}
+
+// ── Fin d'appel (local ou distance) ───────────────────────────
+function endCall(){
+  if(remoteMode){
+    try{ CPRemote.leave(); }catch(e){}
+    remoteMode=false;
+  }
+  stopListening();
+  document.getElementById('callTitle').textContent='Two-Way Translation';
+  showScreen('home');
+}
 
 // ── Language Picker ───────────────────────────────────────────
 function openLangPicker(side){
-  pickingFor=side;document.getElementById('langSearch').value='';
-  renderLangList(LANGUAGES);document.getElementById('langModal').classList.add('open');
-}
-let pickingFor='A';
-function closeLangPicker(e){if(e.target===document.getElementById('langModal'))document.getElementById('langModal').classList.remove('open');}
-function filterLangs(q){renderLangList(LANGUAGES.filter(l=>l.name.toLowerCase().includes(q.toLowerCase())));}
-function renderLangList(langs){
-  const cur=(pickingFor==='__conf__'?'':pickingFor==='A'?currentLangA.name:currentLangB.name);
-  document.getElementById('langList').innerHTML=langs.map(l=>`<div class="lang-option" onclick="selectLang('${l.flag}','${l.name}')"><span class="flag">${l.flag}</span><div class="info"><strong>${l.name}</strong><span>${l.sub}</span></div>${l.name===cur?'<span class="check">✓</span>':''}</div>`).join('');
-}
-function selectLang(flag,name){
-  if(pickingFor==='__conf__'){
-    const code=LANG_TRANS[name]||'en';
-    const speechCode=LANG_SPEECH[name]||'en-US';
-    if(confPickingFor==='host'){
-      confHostLang={flag,name,code,speechCode};
-      document.getElementById('confHostFlag').textContent=flag;
-      document.getElementById('confHostLangName').textContent=name;
-    }else if(confPickingFor==='join'){
-      joinLang={flag,name,code,speechCode};
-      document.getElementById('joinLangFlag').textContent=flag;
-      document.getElementById('joinLangName').textContent=name;
-    }
-    document.getElementById('langModal').classList.remove('open');
-    confPickingFor=null;pickingFor='A';return;
-  }
-  if(pickingFor==='A')currentLangA={flag,name};else currentLangB={flag,name};
-  document.getElementById('langModal').classList.remove('open');
-  updateCallUI();mockIdx=0;
-}
-
-// ── Conference (large-scale · 200+ people · QR join · instant translation) ──
-const LANG_FLAGS_MAP={en:'🇺🇸',fr:'🇫🇷',es:'🇪🇸',de:'🇩🇪',ja:'🇯🇵',zh:'🇨🇳',pt:'🇧🇷',ar:'🇸🇦',ru:'🇷🇺',hi:'🇮🇳',ko:'🇰🇷',it:'🇮🇹',nl:'🇳🇱',pl:'🇵🇱',sv:'🇸🇪',tr:'🇹🇷',el:'🇬🇷',vi:'🇻🇳',ht:'🇭🇹',sw:'🇰🇪'};
-let confHostLang={flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'};
-let joinLang={flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'};
-let joinRoomCode=null,confIsSpeaking=false,confWaveInterval=null,confPickingFor=null,hostPartialEl=null,attPartialEl=null;
-let attAudioEl=null,attMediaSource=null,attSourceBuffer=null,attAudioPending=[],attAudioReady=false;
-
-function initAttendeeAudio(mimeType){
-  attAudioPending=[];attAudioReady=false;
-  if(attAudioEl){attAudioEl.src='';attAudioEl.remove();}
-  attAudioEl=new Audio();attAudioEl.autoplay=true;attAudioEl.volume=0.65;
-  document.body.appendChild(attAudioEl);
-  attMediaSource=new MediaSource();
-  attAudioEl.src=URL.createObjectURL(attMediaSource);
-  attMediaSource.addEventListener('sourceopen',()=>{
-    try{
-      attSourceBuffer=attMediaSource.addSourceBuffer(mimeType);
-      attSourceBuffer.mode='sequence';
-      attSourceBuffer.addEventListener('updateend',flushAttAudio);
-      attAudioReady=true;flushAttAudio();
-    }catch(e){console.warn('[Conf] MSE init error:',e);}
-  });
-}
-function flushAttAudio(){
-  if(attSourceBuffer&&!attSourceBuffer.updating&&attAudioPending.length>0&&attMediaSource?.readyState==='open'){
-    attSourceBuffer.appendBuffer(attAudioPending.shift());
-  }
-}
-function receiveAudioChunk(m){
-  try{
-    const bytes=Uint8Array.from(atob(m.data),c=>c.charCodeAt(0));
-    if(m.isFirst) initAttendeeAudio(m.mimeType);
-    if(attAudioReady&&attSourceBuffer&&!attSourceBuffer.updating&&attMediaSource?.readyState==='open'){
-      attSourceBuffer.appendBuffer(bytes.buffer);
-    }else{
-      attAudioPending.push(bytes.buffer);
-      if(attAudioReady) flushAttAudio();
-    }
-  }catch(e){console.warn('[Conf] Audio receive:',e);}
-}
-function confSetState(id){
-  ['conf-setup','conf-qr','conf-live','conf-join','conf-attendee-live'].forEach(s=>{
-    const el=document.getElementById(s);if(el)el.style.display='none';
-  });
-  const el=document.getElementById(id);
-  if(el)el.style.display=(id==='conf-join'||id==='conf-attendee-live')?'flex':'block';
-  const nav=document.getElementById('confBottomNav');
-  if(nav)nav.style.display=(id==='conf-join'||id==='conf-attendee-live')?'none':'flex';
-}
-function initConference(){
-  const m=location.hash.match(/join=([A-Za-z0-9]{4})/i);
-  if(m){handleJoinInvite(m[1].toUpperCase());return;}
-  if(typeof CPRemote!=='undefined'&&CPRemote.room){confSetState('conf-qr');return;}
-  confSetState('conf-setup');
-  document.getElementById('confKeyWarning').style.display=localStorage.getItem('cp_azure_key')?'none':'block';
-}
-async function createConference(){
-  const btn=document.getElementById('confCreateBtn');
-  btn.disabled=true;btn.textContent='⏳ Creating room…';
-  try{
-    CPRemote.on((type,data)=>{
-      if(type==='joined')         showConfQR(CPRemote.room);
-      else if(type==='roster')    updateConfRoster(data.participants);
-      else if(type==='partial')   showHostPartial(data.text);
-      else if(type==='final')     finalizeHostUtterance(data);
-      else if(type==='utterance') addTranscriptLine('confLiveTranscript',data,confHostLang.code);
-      else if(type==='closed')    {confIsSpeaking=false;confSetState('conf-setup');}
-    });
-    await CPRemote.create({name:localStorage.getItem('eq_first_name')||'Host',lang:confHostLang.code,speechLang:confHostLang.speechCode});
-  }catch(err){
-    btn.disabled=false;btn.textContent='🎙️ Create Conference Room';
-    alert('Could not connect to conference server. Check your internet connection.');
-  }
-}
-function showConfQR(roomCode){
-  document.getElementById('confRoomCode').textContent=roomCode;
-  const url=`https://equivox.app/#join=${roomCode}`;
-  document.getElementById('confQRImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a0e1a&bgcolor=ffffff&data=${encodeURIComponent(url)}`;
-  confSetState('conf-qr');
-  const btn=document.getElementById('confCreateBtn');
-  if(btn){btn.disabled=false;btn.textContent='🎙️ Create Conference Room';}
-}
-function copyConfLink(){
-  const code=document.getElementById('confRoomCode').textContent;
-  if(code==='—')return;
-  navigator.clipboard.writeText(`https://equivox.app/#join=${code}`)
-    .then(()=>alert(`Link copied!\nhttps://equivox.app/#join=${code}`));
-}
-function updateConfRoster(participants){
-  const myName=localStorage.getItem('eq_first_name')||'Host';
-  const others=participants.filter(p=>p.name!==myName);
-  const total=participants.length;
-  const label=`● ${total} participant${total!==1?'s':''} joined`;
-  ['confAttCount','confLiveCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=label;});
-  const list=document.getElementById('confAttendeeList');
-  if(!list)return;
-  if(others.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:8px;">Waiting for attendees…</div>';return;}
-  list.innerHTML=others.slice(0,80).map(p=>`<div class="attendee-item"><span style="font-size:18px;">${LANG_FLAGS_MAP[p.lang]||'🌐'}</span><span style="font-size:13px;font-weight:500;">${p.name}</span><span style="font-size:11px;color:var(--muted);margin-left:auto;">${p.lang}</span></div>`).join('')
-    +(others.length>80?`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px;">+${others.length-80} more</div>`:'');
-}
-function confGoLive(){
-  confSetState('conf-live');
-  const ct=document.getElementById('confAttCount');const cl=document.getElementById('confLiveCount');
-  if(ct&&cl)cl.textContent=ct.textContent;
-  buildConfWaveform();
-}
-function buildConfWaveform(){
-  const wf=document.getElementById('confWaveform');if(!wf)return;
-  wf.innerHTML='';
-  for(let i=0;i<28;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height='4px';wf.appendChild(b);}
-}
-async function confToggleSpeaking(){
-  const btn=document.getElementById('confToggleBtn');
-  if(confIsSpeaking){
-    confIsSpeaking=false;
-    CPRemote.stopSpeaking();CPRemote.stopAudioStream();
-    btn.textContent='🎙️ Start Speaking';
-    document.getElementById('confSpeakBadge').style.display='none';
-    document.getElementById('confWaveWrap').style.display='none';
-    clearInterval(confWaveInterval);
-    document.querySelectorAll('#confWaveform .wave-bar').forEach(b=>{b.classList.remove('active');b.style.height='4px';});
-  }else{
-    confIsSpeaking=true;btn.textContent='⏹ Stop Speaking';
-    document.getElementById('confSpeakBadge').style.display='flex';
-    document.getElementById('confWaveWrap').style.display='block';
-    const bars=document.querySelectorAll('#confWaveform .wave-bar');
-    bars.forEach(b=>{b.style.setProperty('--h',(6+Math.random()*28)+'px');b.style.setProperty('--d',(.15+Math.random()*.35)+'s');b.classList.add('active');});
-    confWaveInterval=setInterval(()=>{bars.forEach(b=>b.style.setProperty('--h',(6+Math.random()*28)+'px'));},400);
-    try{
-      await CPRemote.startAudioStream();
-      await CPRemote.startSpeaking();
-    }catch(err){
-      console.error('[Conf] Speaking error:',err);
-      confIsSpeaking=false;btn.textContent='🎙️ Start Speaking';
-      document.getElementById('confSpeakBadge').style.display='none';
-    }
-  }
-}
-function showHostPartial(text){
-  const tc=document.getElementById('confLiveTranscript');if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  if(hostPartialEl){
-    hostPartialEl.querySelector('.t-original').textContent=text;
-  }else{
-    hostPartialEl=document.createElement('div');
-    hostPartialEl.className='transcript-line partial-line';
-    hostPartialEl.innerHTML=`<span class="t-flag">${confHostLang.flag}</span><div class="t-content"><div class="t-original">${text}</div><div class="t-translated" style="color:var(--muted);font-size:11px;">translating…</div></div>`;
-    tc.appendChild(hostPartialEl);
-  }
-  tc.scrollTop=tc.scrollHeight;
-}
-function finalizeHostUtterance(data){
-  if(!hostPartialEl)return;
-  hostPartialEl.classList.remove('partial-line');
-  hostPartialEl.querySelector('.t-original').textContent=data.original;
-  const langs=Object.keys(data.translations||{});
-  const t=hostPartialEl.querySelector('.t-translated');
-  t.style.color='';t.style.fontSize='';
-  t.textContent=langs.length>0?`→ Broadcasting in ${langs.length} language${langs.length!==1?'s':''}`:' ';
-  hostPartialEl=null;
-}
-function endConference(){
-  if(confIsSpeaking){CPRemote.stopSpeaking();CPRemote.stopAudioStream();}
-  clearInterval(confWaveInterval);
-  if(typeof CPRemote!=='undefined')CPRemote.leave();
-  confIsSpeaking=false;hostPartialEl=null;location.hash='';confSetState('conf-setup');
-}
-function handleJoinInvite(roomCode){
-  joinRoomCode=roomCode;
-  document.getElementById('joinRoomDisplay').textContent=roomCode;
-  document.getElementById('joinNameInput').value=localStorage.getItem('eq_first_name')||'';
-  confSetState('conf-join');
-}
-async function joinConference(){
-  if(!joinRoomCode)return;
-  const btn=document.getElementById('joinBtn');
-  btn.disabled=true;btn.textContent='⏳ Joining…';
-  const name=document.getElementById('joinNameInput').value.trim()||'Guest';
-  CPRemote.on((type,data)=>{
-    if(type==='joined')                 showAttendeeView();
-    else if(type==='partial_utterance') showAttPartial(data);
-    else if(type==='utterance')         finalizeAttUtterance(data);
-    else if(type==='audio_chunk')       receiveAudioChunk(data);
-    else if(type==='closed')            confSetState('conf-join');
-  });
-  try{
-    await CPRemote.join(joinRoomCode,{name,lang:joinLang.code,speechLang:joinLang.speechCode});
-  }catch(err){
-    btn.disabled=false;btn.textContent='Join & Listen →';
-    alert('Could not join. Verify the room code and try again.');
-  }
-}
-function showAttendeeView(){
-  document.getElementById('attRoomCode').textContent=joinRoomCode;
-  document.getElementById('attLangBadge').textContent=(LANG_FLAGS_MAP[joinLang.code]||'🌐')+' '+joinLang.name;
-  confSetState('conf-attendee-live');
-}
-function showAttPartial(data){
-  const tc=document.getElementById('attTranscript');if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  const translation=data.translations?.[joinLang.code]||'';
-  const srcFlag=LANG_FLAGS_MAP[data.srcLang]||'🌐';
-  if(attPartialEl){
-    attPartialEl.querySelector('.t-original').textContent=data.original;
-    if(translation)attPartialEl.querySelector('.t-translated').textContent='→ '+translation;
-  }else{
-    attPartialEl=document.createElement('div');
-    attPartialEl.className='transcript-line partial-line';
-    attPartialEl.innerHTML=`<span class="t-flag">${srcFlag}</span><div class="t-content"><div class="t-original">${data.original}</div><div class="t-translated">${translation?'→ '+translation:''}</div></div>`;
-    tc.appendChild(attPartialEl);
-  }
-  tc.scrollTop=tc.scrollHeight;
-}
-function finalizeAttUtterance(data){
-  const tc=document.getElementById('attTranscript');if(!tc)return;
-  if(attPartialEl){
-    attPartialEl.classList.remove('partial-line');
-    attPartialEl.querySelector('.t-original').textContent=data.original;
-    const t=data.translations?.[joinLang.code]||'';
-    if(t)attPartialEl.querySelector('.t-translated').textContent='→ '+t;
-    attPartialEl=null;
-  }else{ addTranscriptLine('attTranscript',data,joinLang.code); }
-  tc.scrollTop=tc.scrollHeight;
-}
-function leaveConference(){
-  if(typeof CPRemote!=='undefined')CPRemote.leave();
-  if(attAudioEl){attAudioEl.src='';attAudioEl.remove();attAudioEl=null;}
-  attAudioReady=false;attAudioPending=[];
-  location.hash='';confSetState('conf-join');
-}
-function addTranscriptLine(tcId,m,myLang){
-  const tc=document.getElementById(tcId);if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  const translation=m.translations?.[myLang]||'';
-  const srcFlag=LANG_FLAGS_MAP[m.srcLang]||'🌐';
-  const div=document.createElement('div');div.className='transcript-line';
-  div.innerHTML=`<span class="t-flag">${srcFlag}</span><div class="t-content"><div class="t-original">${m.original}</div>${translation?`<div class="t-translated">→ ${translation}</div>`:''}</div>`;
-  tc.appendChild(div);tc.scrollTop=tc.scrollHeight;
-}
-function openConfLangPicker(forWhom){
-  confPickingFor=forWhom;pickingFor='__conf__';
+  pickingFor=side;
   document.getElementById('langSearch').value='';
   renderLangList(LANGUAGES);
   document.getElementById('langModal').classList.add('open');
 }
 
-// ── Azure Key ─────────────────────────────────────────────────
-function updateKeyStatus(){
-  const ok=!!AZURE_KEY;
-  const s=document.getElementById('keyStatus');const ind=document.getElementById('keyIndicator');
-  if(s)s.textContent=ok?'Configured ✓':'Not configured';
-  if(ind)ind.textContent=ok?'✅':'⚠️';
+function closeLangPicker(e){
+  if(e.target===document.getElementById('langModal'))
+    document.getElementById('langModal').classList.remove('open');
 }
-function saveApiKey(){
-  const key=(document.getElementById('apiKeyInput').value||'').trim();
-  if(!key){alert('Please paste your Azure key first.');return;}
-  localStorage.setItem('cp_azure_key',key);AZURE_KEY=key;
-  document.getElementById('apiKeyInput').value='';updateKeyStatus();
-  alert('Key saved! Open a meeting to test translation.');
+
+function filterLangs(q){
+  const filtered=LANGUAGES.filter(l=>l.name.toLowerCase().includes(q.toLowerCase())||l.sub.toLowerCase().includes(q.toLowerCase()));
+  renderLangList(filtered);
+}
+
+function renderLangList(langs){
+  const current=(pickingFor==='A'?currentLangA:currentLangB).name;
+  document.getElementById('langList').innerHTML=langs.map(l=>`
+    <div class="lang-option" onclick="selectLang('${l.flag}','${l.name}')">
+      <span class="flag">${l.flag}</span>
+      <div class="info"><strong>${l.name}</strong><span>${l.sub}</span></div>
+      ${l.name===current?'<span class="check">✓</span>':''}
+    </div>
+  `).join('');
+}
+
+function selectLang(flag,name){
+  if(pickingFor==='A') currentLangA={flag,name};
+  else currentLangB={flag,name};
+  document.getElementById('langModal').classList.remove('open');
+  updateCallUI();
+  mockIdx=0;
+  document.getElementById('origA').textContent='Language updated. Tap mic to speak.';
+  document.getElementById('transA').textContent='';
+  // NOUVEAU : informer la salle du changement de langue
+  if(remoteMode && pickingFor==='A'){
+    CPRemote.setLanguage(LANG_TRANS[name]||'en', LANG_SPEECH[name]||'en-US');
+  }
+}
+
+// ── Conference (LIVE — real Azure multi-target translation) ──
+// Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
+// Azure traduit chaque énoncé vers les langues des participants affichés,
+// en une seule passe (multi-cibles) — la brique du futur mode événement.
+const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
+const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
+let confLang = {name:'English', flag:'🇺🇸'};
+
+function explainHtLimit(){
+  alert("Kreyol ayisyen — available as OUTPUT (live text translation + spoken audio) for every statement.\n\nSpeaking Kreyol INTO the mic is not yet possible: no commercial engine (including Azure) offers Haitian Creole speech recognition today. This is precisely the linguistic inequity CREDIA's research documents.\n\nPlanned: Kreyol speech input via open-source models (v0.4).");
+}
+
+function setConfSpeaker(name, flag){
+  if(name === 'Haitian Creole'){ explainHtLimit(); return; }
+  confLang = {name, flag};
+  const el = document.getElementById('confSrcLang');
+  if(el) el.textContent = name;
+  highlightConfSpeaker(name);
+  if(confActive){
+    stopConference('⏳ Switching speaker…');
+    setTimeout(()=>startConference(), 700);
+  }
+}
+
+function speakConf(text, code){
+  try{
+    if(!window.__confTk || !text) return;
+    const c = SpeechSDK.SpeechConfig.fromAuthorizationToken(window.__confTk.token, window.__confTk.region);
+    c.speechSynthesisVoiceName = CONF_VOICES[code] || 'en-US-GuyNeural';
+    const s = new SpeechSDK.SpeechSynthesizer(c);
+    s.speakTextAsync(text, ()=>s.close(), ()=>s.close());
+  }catch(e){}
+}
+let confRecognizer = null;
+let confActive = false;
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toggleConference(){
+  if(confActive){ stopConference(); } else { startConference(); }
+}
+
+async function startConference(){
+  const btn = document.getElementById('confBtn');
+  if(typeof SpeechSDK === 'undefined'){
+    alert('Speech engine unavailable — check your connection and reload.');
+    return;
+  }
+  document.getElementById('confSrcLang').textContent = confLang.name;
+  try{ await ensureMic(); }
+  catch(e){ showMicError(e.message); btn.textContent = '▶ Start live session'; return; }
+  btn.textContent = '⏳ Connecting…';
+  try{
+    const tk = await getCpToken();
+    const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+    window.__confTk = tk;
+    cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
+    const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
+    targets.forEach(t => cfg.addTargetLanguage(t));
+
+    const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
+
+    document.getElementById('confTranscript').innerHTML = '';
+    highlightConfSpeaker(confLang.name);
+
+    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
+    confRecognizer.recognized = (s, e) => {
+      if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech && e.result.text){
+        addLiveConfLine(e.result.text, e.result.translations, targets);
+      }
+    };
+    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
+
+    confRecognizer.startContinuousRecognitionAsync(
+      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
+      (err) => { stopConference(); alert('Could not start the session: ' + err); }
+    );
+  } catch(err){
+    btn.textContent = '▶ Start live session';
+    alert('Speech service unavailable: ' + err.message);
+  }
+}
+
+function stopConference(label){
+  confActive = false;
+  const btn = document.getElementById('confBtn');
+  if(btn) btn.textContent = label || '▶ Start live session';
+  clearConfInterim();
+  if(confRecognizer){
+    try{ confRecognizer.stopContinuousRecognitionAsync(() => { confRecognizer.close(); confRecognizer = null; }); }
+    catch(e){ confRecognizer = null; }
+  }
+  document.querySelectorAll('.participant-card').forEach(c => {
+    c.classList.remove('speaking');
+    const st = c.querySelector('.p-status');
+    if(st){ st.className = 'p-status listen'; st.textContent = 'Listening'; }
+  });
+}
+
+function highlightConfSpeaker(langName){
+  document.querySelectorAll('.participant-card').forEach(c => {
+    c.classList.remove('speaking');
+    const st = c.querySelector('.p-status');
+    if(st){ st.className = 'p-status listen'; st.textContent = 'Listening'; }
+    const pl = c.querySelector('.p-lang');
+    if(pl && pl.textContent.includes(langName)){
+      c.classList.add('speaking');
+      if(st){ st.className = 'p-status speak'; st.textContent = '● Speaking'; }
+    }
+  });
+}
+
+function showConfInterim(text){
+  let el = document.getElementById('confInterim');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'confInterim';
+    el.className = 'transcript-line';
+    document.getElementById('confTranscript').appendChild(el);
+  }
+  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
+  const tc = document.getElementById('confTranscript');
+  tc.scrollTop = tc.scrollHeight;
+  // Broadcast partial to remote attendees
+  if(currentRoomCode && CPRemote.room){
+    try { CPRemote.sendRaw({type:'partial_utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: text, translations: {}}); } catch(e){}
+  }
+}
+
+function clearConfInterim(){
+  const el = document.getElementById('confInterim');
+  if(el) el.remove();
+}
+
+function addLiveConfLine(orig, translations, targets){
+  clearConfInterim();
+  let trans = '';
+  targets.forEach(t => {
+    let txt = null;
+    try{ txt = translations && translations.get(t); }catch(e){}
+    if(txt) trans += `<div class="t-translated" dir="auto">→ ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
+  });
+  const div = document.createElement('div');
+  div.className = 'transcript-line';
+  div.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(orig)}</div>${trans}</div>`;
+  const tc = document.getElementById('confTranscript');
+  tc.appendChild(div);
+  tc.scrollTop = tc.scrollHeight;
+  const v = document.getElementById('confVoiceSel')?.value;
+  if(v){
+    const srcCode = LANG_TRANS[confLang.name];
+    let toSpeak = null;
+    if(v === srcCode) toSpeak = orig;
+    else { try{ toSpeak = translations && translations.get(v); }catch(e){} }
+    if(toSpeak) speakConf(toSpeak, v);
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────
 buildWaveform();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-window.addEventListener('load',()=>{
-  updateKeyStatus();loadUserProfile();
-  const m=location.hash.match(/join=([A-Za-z0-9]{4})/i);
-  if(m){showScreen('conference');handleJoinInvite(m[1].toUpperCase());}
+
+// ── PWA Install prompt (Android Chrome) ──────────────────────
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('installBanner').style.display = 'flex';
 });
+
+function installApp() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then(() => {
+      deferredInstallPrompt = null;
+      document.getElementById('installBanner').style.display = 'none';
+    });
+  } else {
+    // iOS fallback instructions
+    document.getElementById('iosGuide').style.display = 'flex';
+  }
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+}
+
+function dismissIos() {
+  document.getElementById('iosGuide').style.display = 'none';
+}
+
+// ── Service Worker registration ───────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── Init ─────────────────────────────────────────────────────
 </script>
 
-<!-- ── Install Banner ── -->
-<div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;">
+<!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
+<script src="cp-remote.js"></script>
+<script>
+function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
+function closeRemoteModal(e){
+  if(e.target===document.getElementById('remoteModal'))
+    document.getElementById('remoteModal').classList.remove('open');
+}
+function setRemoteStatus(t){ document.getElementById('remoteStatus').textContent=t; }
+
+
+// ── Code QR pour rejoindre la salle ──────────────────────────
+let currentRoomCode = null;
+
+function roomLink(room){
+  return location.origin + location.pathname + '#join=' + room;
+}
+
+function showQR(room){
+  if(!room) return;
+  const link = roomLink(room);
+  const box = document.getElementById('qrBox');
+  box.innerHTML = '';
+  try{
+    new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  }catch(e){
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
+  }
+  document.getElementById('qrCode').textContent = room;
+  document.getElementById('qrLink').textContent = link;
+  const p = document.getElementById('qrPanel');
+  p.style.display = 'flex';
+}
+
+function hideQR(){ document.getElementById('qrPanel').style.display = 'none'; }
+
+function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
+
+function myRemoteOpts(){
+  return {
+    name: 'Guest-'+Math.floor(1000+Math.random()*9000),
+    lang: LANG_TRANS[currentLangA.name] || 'en',
+    speechLang: LANG_SPEECH[currentLangA.name] || 'en-US',
+  };
+}
+
+function createRemoteRoom(){
+  setRemoteStatus('Creating room…');
+  CPRemote.create(myRemoteOpts())
+    .then(({room}) => enterRemoteCall(room, true))
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
+}
+
+function joinRemoteRoom(){
+  const code = (document.getElementById('joinCodeInput').value || '').trim().toUpperCase();
+  if(code.length !== 4){ setRemoteStatus('Enter the 4-character room code.'); return; }
+  setRemoteStatus('Joining ' + code + '…');
+  CPRemote.join(code, myRemoteOpts())
+    .then(({room}) => enterRemoteCall(room, false))
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
+}
+
+function enterRemoteCall(room, isHost){
+  remoteMode = true;
+  document.getElementById('remoteModal').classList.remove('open');
+  showCall();
+  document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
+  document.getElementById('transA').textContent = '';
+  document.getElementById('transB').textContent = '';
+  document.getElementById('origB').textContent = 'Waiting for the other participant…';
+  currentRoomCode = room;
+  if(isHost){
+    document.getElementById('origA').innerHTML =
+      'Room <b>' + room + '</b> is open. <a href="#" onclick="showQRAgain();return false;" style="color:#7fb3e8">Show QR code</a> so others can join.';
+    showQR(room);
+  } else {
+    document.getElementById('origA').textContent = 'Connected! Tap the mic to speak.';
+  }
+}
+
+// CPRemote events handled below
+
+
+// ── Conference attendee QR & join ─────────────────────────────
+let confJoinCode = null;
+let confJoinLang = {name:'English', flag:'🇺🇸', code:'en', speechCode:'en-US'};
+let confAttendeeActive = false;
+
+const CONF_JOIN_LANGS = [
+  {flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'},
+  {flag:'🇫🇷',name:'Français',code:'fr',speechCode:'fr-FR'},
+  {flag:'🇪🇸',name:'Español',code:'es',speechCode:'es-ES'},
+  {flag:'🇷🇺',name:'Русский',code:'ru',speechCode:'ru-RU'},
+  {flag:'🇨🇳',name:'中文',code:'zh-Hans',speechCode:'zh-CN'},
+  {flag:'🇸🇦',name:'العربية',code:'ar',speechCode:'ar-SA'},
+  {flag:'🇭🇹',name:'Kreyòl',code:'ht',speechCode:'fr-HT'},
+  {flag:'🇧🇷',name:'Português',code:'pt',speechCode:'pt-BR'},
+  {flag:'🇩🇪',name:'Deutsch',code:'de',speechCode:'de-DE'},
+];
+
+
+function roomConfLink(room){
+  return location.origin + location.pathname + '#conf=' + room;
+}
+function showConfRoomQR(room){
+  if(!room) return;
+  const link = roomConfLink(room);
+  const box = document.getElementById('qrBox');
+  box.innerHTML = '';
+  try{
+    new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  }catch(e){
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
+  }
+  document.getElementById('qrCode').textContent = room;
+  document.getElementById('qrLink').textContent = link;
+  const p = document.getElementById('qrPanel');
+  p.style.display = 'flex';
+}
+
+function showConfQR(){
+  if(!confActive){
+    alert('Start the live session first, then share the QR.');
+    return;
+  }
+  // Create a CPRemote room for attendees if not already done
+  if(!currentRoomCode){
+    CPRemote.create({name:'Host', lang: LANG_TRANS[confLang.name]||'en', speechLang: LANG_SPEECH[confLang.name]||'en-US'})
+      .then(({room}) => { currentRoomCode = room; showConfRoomQR(room); })
+      .catch(e => alert('Could not create attendee room: ' + e.message));
+  } else {
+    showConfRoomQR(currentRoomCode);
+  }
+}
+
+function openConfJoin(code){
+  confJoinCode = code;
+  document.getElementById('confJoinRoomLabel').textContent = 'Room ' + code + ' — pick your language';
+  // Build language grid
+  const grid = document.getElementById('confJoinLangGrid');
+  grid.innerHTML = CONF_JOIN_LANGS.map((l,i) => `
+    <div onclick="selectAttLang(${i})" id="attlang${i}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'rgba(79,142,247,0.15)':'rgba(255,255,255,0.04)'};border:1.5px solid ${i===0?'#4f8ef7':'#1e2d4a'};border-radius:14px;cursor:pointer;">
+      <span style="font-size:24px;">${l.flag}</span>
+      <span style="font-size:15px;font-weight:600;color:#e8edf5;">${l.name}</span>
+      ${i===0?'<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">✓</span>':''}
+    </div>
+  `).join('');
+  confJoinLang = CONF_JOIN_LANGS[0];
+  document.getElementById('confJoinPanel').style.display = 'flex';
+}
+
+function selectAttLang(idx){
+  confJoinLang = CONF_JOIN_LANGS[idx];
+  document.querySelectorAll('[id^=attlang]').forEach((el, i) => {
+    const active = i === idx;
+    el.style.background = active ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.04)';
+    el.style.border = '1.5px solid ' + (active ? '#4f8ef7' : '#1e2d4a');
+    el.innerHTML = el.innerHTML.replace(/<span style="margin-left:auto.*?<\/span>/g, '');
+    if(active) el.innerHTML += '<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">✓</span>';
+  });
+}
+
+async function doJoinConference(){
+  if(!confJoinCode) return;
+  document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + '…';
+  try {
+    await CPRemote.join(confJoinCode, {
+      name: 'Attendee-' + Math.floor(1000+Math.random()*9000),
+      lang: confJoinLang.code,
+      speechLang: confJoinLang.speechCode,
+    });
+    document.getElementById('confJoinPanel').style.display = 'none';
+    showAttendeeView();
+  } catch(e) {
+    document.getElementById('confJoinStatus').textContent = '⚠️ ' + e.message;
+  }
+}
+
+function showAttendeeView(){
+  confAttendeeActive = true;
+  document.getElementById('attRoomLabel').textContent = 'Room ' + confJoinCode;
+  document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' · TTS on';
+  document.getElementById('attFinalText').textContent = '';
+  document.getElementById('attPartialText').textContent = '';
+  const v = document.getElementById('confAttendeeView');
+  v.style.display = 'flex';
+  v.style.flexDirection = 'column';
+}
+
+function leaveAttendeeView(){
+  confAttendeeActive = false;
+  try { CPRemote.leave(); } catch(e){}
+  document.getElementById('confAttendeeView').style.display = 'none';
+  document.getElementById('attPartialText').textContent = '';
+  document.getElementById('attFinalText').textContent = '';
+}
+
+// Wire up CPRemote events for conference attendees
+CPRemote.on((type, data) => {
+  if(confAttendeeActive){
+    if(type === 'partial_utterance'){
+      const txt = data.translations?.[confJoinLang.code] || data.original || '';
+      document.getElementById('attPartialText').innerHTML = txt + '<span style="display:inline-block;width:2px;height:14px;background:#4f8ef7;animation:blink .7s infinite;vertical-align:middle;margin-left:2px;"></span>';
+      document.getElementById('attFinalText').textContent = '';
+    }
+    if(type === 'utterance'){
+      const txt = data.translations?.[confJoinLang.code] || data.original || '';
+      document.getElementById('attPartialText').textContent = '';
+      document.getElementById('attFinalText').textContent = txt;
+    }
+    return;
+  }
+  // Existing Remote Call events
+  if(type === 'partial'){
+    document.getElementById('origA').innerHTML = data.text + '<span class="cursor-blink"></span>';
+  }
+  if(type === 'final'){
+    document.getElementById('origA').textContent = data.original;
+    document.getElementById('transA').textContent = Object.values(data.translations)[0] || '';
+  }
+  if(type === 'utterance'){
+    const myLang = LANG_TRANS[currentLangA.name] || 'en';
+    document.getElementById('origB').textContent = data.original;
+    document.getElementById('transB').textContent = data.translations[myLang] || Object.values(data.translations)[0] || '';
+  }
+  if(type === 'roster'){
+    const other = (data.participants || [])[0];
+    if(other && remoteMode){
+      document.getElementById('bLangB').textContent = (other.lang || '').toUpperCase();
+      if(document.getElementById('origB').textContent.startsWith('Waiting'))
+        document.getElementById('origB').textContent = other.name + ' joined the room.';
+    }
+  }
+  if(type === 'invite'){
+    openRemoteModal();
+    document.getElementById('joinCodeInput').value = data.room;
+    setRemoteStatus('Invitation detected — tap Join.');
+  }
+  if(type === 'closed' && remoteMode){
+    document.getElementById('origB').textContent = 'Connection closed.';
+  }
+});
+
+// Detect #conf=XXXX hash for conference attendee join
+window.addEventListener('load', () => {
+  const match = location.hash.match(/conf=([A-Za-z0-9]{4})/i);
+  if(match) openConfJoin(match[1].toUpperCase());
+});
+
+// Broadcast conf utterances to remote attendees
+const _origAddLiveConfLine = addLiveConfLine;
+function addLiveConfLine(orig, translations, targets){
+  _origAddLiveConfLine(orig, translations, targets);
+  if(currentRoomCode && CPRemote.room){
+    const t = {};
+    targets.forEach(code => { try { const v = translations.get(code); if(v) t[code]=v; } catch(e){} });
+    // The server broadcast is handled by cp-remote's ws — send directly
+    try { CPRemote.sendRaw({type:'utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: orig, translations: t}); } catch(e){}
+  }
+}
+
+</script>
+
+<!-- ── Install Banner (Android) ── -->
+<div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
   <span style="font-size:28px;">📲</span>
-  <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#e8edf5;">Install Equivox</div><div style="font-size:12px;color:#64748b;margin-top:2px;">Add to your home screen for instant access</div></div>
+  <div style="flex:1;">
+    <div style="font-size:14px;font-weight:600;color:#e8edf5;">Install Equivox</div>
+    <div style="font-size:12px;color:#64748b;margin-top:2px;">Add to your home screen for instant access</div>
+  </div>
   <button onclick="installApp()" style="background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Install</button>
-  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;">×</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
 </div>
 
-<!-- ── iOS Guide ── -->
+<!-- ── iOS Install Guide ── -->
 <div id="iosGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:flex-end;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
     <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Install on iPhone</h3>
     <p style="font-size:14px;color:#64748b;margin-bottom:20px;">Follow these steps to add Equivox to your home screen:</p>
     <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">1</div><div>Open this page in <strong>Safari</strong> (not Chrome)</div></div>
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">2</div><div>Tap the <strong>Share</strong> button ⎙ at the bottom</div></div>
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">3</div><div>Tap <strong>"Add to Home Screen"</strong> and confirm</div></div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">1</div>
+        <div style="font-size:14px;color:#e8edf5;">Open this page in <strong>Safari</strong> (not Chrome)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">2</div>
+        <div style="font-size:14px;color:#e8edf5;">Tap the <strong>Share</strong> button <span style="font-size:18px;">⎙</span> at the bottom</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">3</div>
+        <div style="font-size:14px;color:#e8edf5;">Tap <strong>"Add to Home Screen"</strong> and confirm</div>
+      </div>
     </div>
     <button onclick="dismissIos()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Got it!</button>
   </div>
 </div>
 
-<script src="cp-remote.js"></script>
-<script>
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;document.getElementById('installBanner').style.display='flex';});
-function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();deferredInstallPrompt.userChoice.then(()=>{deferredInstallPrompt=null;document.getElementById('installBanner').style.display='none';});}else{document.getElementById('iosGuide').style.display='flex';}}
-function dismissInstall(){document.getElementById('installBanner').style.display='none';}
-function dismissIos(){document.getElementById('iosGuide').style.display='none';}
-</script>
-</body>
-</html>
-;}}
-function dismissInstall(){document.getElementById('installBanner').style.display='none';}
-function dismissIos(){document.getElementById('iosGuide').style.display='none';}
-</script>
-</body>
-</html>nterval(t);stopListening();setTimeout(()=>typeText('transA',pair[1]),600);}
-  },45);
-}
-function toggleSpeaker(){const b=document.getElementById('speakerBtn');b.textContent=b.textContent==='🔊'?'🔇':'🔊';}
 
-// ── Language Picker ───────────────────────────────────────────
-function openLangPicker(side){
-  pickingFor=side;document.getElementById('langSearch').value='';
-  renderLangList(LANGUAGES);document.getElementById('langModal').classList.add('open');
-}
-let pickingFor='A';
-function closeLangPicker(e){if(e.target===document.getElementById('langModal'))document.getElementById('langModal').classList.remove('open');}
-function filterLangs(q){renderLangList(LANGUAGES.filter(l=>l.name.toLowerCase().includes(q.toLowerCase())));}
-function renderLangList(langs){
-  const cur=(pickingFor==='A'?currentLangA:currentLangB).name;
-  document.getElementById('langList').innerHTML=langs.map(l=>`<div class="lang-option" onclick="selectLang('${l.flag}','${l.name}')"><span class="flag">${l.flag}</span><div class="info"><strong>${l.name}</strong><span>${l.sub}</span></div>${l.name===cur?'<span class="check">✓</span>':''}</div>`).join('');
-}
-function selectLang(flag,name){
-  if(pickingFor==='__conf__'){
-    const code=LANG_TRANS[name]||'en';
-    const speechCode=LANG_SPEECH[name]||'en-US';
-    if(confPickingFor==='host'){
-      confHostLang={flag,name,code,speechCode};
-      document.getElementById('confHostFlag').textContent=flag;
-      document.getElementById('confHostLangName').textContent=name;
-    }else if(confPickingFor==='join'){
-      joinLang={flag,name,code,speechCode};
-      document.getElementById('joinLangFlag').textContent=flag;
-      document.getElementById('joinLangName').textContent=name;
-    }
-    document.getElementById('langModal').classList.remove('open');
-    confPickingFor=null;pickingFor='A';return;
-  }
-  if(pickingFor==='A')currentLangA={flag,name};else currentLangB={flag,name};
-  document.getElementById('langModal').classList.remove('open');
-  updateCallUI();mockIdx=0;
-}
-
-// ── Conference (UN-style · 200+ people · QR join · instant translation) ──
-const LANG_FLAGS_MAP={en:'🇺🇸',fr:'🇫🇷',es:'🇪🇸',de:'🇩🇪',ja:'🇯🇵',zh:'🇨🇳',pt:'🇧🇷',ar:'🇸🇦',ru:'🇷🇺',hi:'🇮🇳',ko:'🇰🇷',it:'🇮🇹',nl:'🇳🇱',pl:'🇵🇱',sv:'🇸🇪',tr:'🇹🇷',el:'🇬🇷',vi:'🇻🇳',ht:'🇭🇹',sw:'🇰🇪'};
-
-let confHostLang={flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'};
-let joinLang={flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'};
-let joinRoomCode=null;
-let confIsSpeaking=false;
-let confWaveInterval=null;
-let confPickingFor=null;
-let hostPartialEl=null;
-let attPartialEl=null;
-
-// ── Attendee audio (MSE pipeline for original voice) ──────────────
-let attAudioEl=null,attMediaSource=null,attSourceBuffer=null,attAudioPending=[],attAudioReady=false;
-
-function initAttendeeAudio(mimeType){
-  attAudioPending=[];attAudioReady=false;
-  if(attAudioEl){attAudioEl.src='';attAudioEl.remove();}
-  attAudioEl=new Audio();attAudioEl.autoplay=true;attAudioEl.volume=0.65;
-  document.body.appendChild(attAudioEl);
-  attMediaSource=new MediaSource();
-  attAudioEl.src=URL.createObjectURL(attMediaSource);
-  attMediaSource.addEventListener('sourceopen',()=>{
-    try{
-      attSourceBuffer=attMediaSource.addSourceBuffer(mimeType);
-      attSourceBuffer.mode='sequence';
-      attSourceBuffer.addEventListener('updateend',flushAttAudio);
-      attAudioReady=true;flushAttAudio();
-    }catch(e){console.warn('[Conf] MSE init error:',e);}
-  });
-}
-
-function flushAttAudio(){
-  if(attSourceBuffer&&!attSourceBuffer.updating&&attAudioPending.length>0&&attMediaSource?.readyState==='open'){
-    attSourceBuffer.appendBuffer(attAudioPending.shift());
-  }
-}
-
-function receiveAudioChunk(m){
-  try{
-    const bytes=Uint8Array.from(atob(m.data),c=>c.charCodeAt(0));
-    if(m.isFirst) initAttendeeAudio(m.mimeType);
-    if(attAudioReady&&attSourceBuffer&&!attSourceBuffer.updating&&attMediaSource?.readyState==='open'){
-      attSourceBuffer.appendBuffer(bytes.buffer);
-    } else {
-      attAudioPending.push(bytes.buffer);
-      if(attAudioReady) flushAttAudio();
-    }
-  }catch(e){console.warn('[Conf] Audio receive error:',e);}
-}
-
-// ── State management ──────────────────────────────────────────────
-function confSetState(id){
-  ['conf-setup','conf-qr','conf-live','conf-join','conf-attendee-live'].forEach(s=>{
-    const el=document.getElementById(s);if(el)el.style.display='none';
-  });
-  const el=document.getElementById(id);
-  if(el)el.style.display=(id==='conf-join'||id==='conf-attendee-live')?'flex':'block';
-  const nav=document.getElementById('confBottomNav');
-  if(nav)nav.style.display=(id==='conf-join'||id==='conf-attendee-live')?'none':'flex';
-}
-
-function initConference(){
-  const m=location.hash.match(/join=([A-Za-z0-9]{4})/i);
-  if(m){handleJoinInvite(m[1].toUpperCase());return;}
-  if(typeof CPRemote!=='undefined'&&CPRemote.room){confSetState('conf-qr');return;}
-  confSetState('conf-setup');
-  document.getElementById('confKeyWarning').style.display=localStorage.getItem('cp_azure_key')?'none':'block';
-}
-
-// ── Host: create room ─────────────────────────────────────────────
-async function createConference(){
-  const btn=document.getElementById('confCreateBtn');
-  btn.disabled=true;btn.textContent='⏳ Creating room…';
-  try{
-    CPRemote.on((type,data)=>{
-      if(type==='joined')          showConfQR(CPRemote.room);
-      else if(type==='roster')     updateConfRoster(data.participants);
-      else if(type==='partial')    showHostPartial(data.text);
-      else if(type==='final')      finalizeHostUtterance(data);
-      else if(type==='utterance')  addTranscriptLine('confLiveTranscript',data,confHostLang.code);
-      else if(type==='closed')     {confIsSpeaking=false;confSetState('conf-setup');}
-    });
-    await CPRemote.create({name:localStorage.getItem('eq_first_name')||'Host',lang:confHostLang.code,speechLang:confHostLang.speechCode});
-  }catch(err){
-    btn.disabled=false;btn.textContent='🎙️ Create Conference Room';
-    alert('Could not connect to conference server. Check your internet connection.');
-  }
-}
-
-function showConfQR(roomCode){
-  document.getElementById('confRoomCode').textContent=roomCode;
-  const url=`https://equivox.app/#join=${roomCode}`;
-  document.getElementById('confQRImg').src=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=0a0e1a&bgcolor=ffffff&data=${encodeURIComponent(url)}`;
-  confSetState('conf-qr');
-  const btn=document.getElementById('confCreateBtn');
-  if(btn){btn.disabled=false;btn.textContent='🎙️ Create Conference Room';}
-}
-
-function copyConfLink(){
-  const code=document.getElementById('confRoomCode').textContent;
-  if(code==='—')return;
-  navigator.clipboard.writeText(`https://equivox.app/#join=${code}`)
-    .then(()=>alert(`Link copied!\nhttps://equivox.app/#join=${code}`));
-}
-
-function updateConfRoster(participants){
-  const myName=localStorage.getItem('eq_first_name')||'Host';
-  const others=participants.filter(p=>p.name!==myName);
-  const total=participants.length;
-  const label=`● ${total} participant${total!==1?'s':''} joined`;
-  ['confAttCount','confLiveCount'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=label;});
-  const list=document.getElementById('confAttendeeList');
-  if(!list)return;
-  if(others.length===0){list.innerHTML='<div style="font-size:13px;color:var(--muted);text-align:center;padding:8px;" data-placeholder>Waiting for attendees…</div>';return;}
-  list.innerHTML=others.slice(0,80).map(p=>`<div class="attendee-item"><span style="font-size:18px;">${LANG_FLAGS_MAP[p.lang]||'🌐'}</span><span style="font-size:13px;font-weight:500;">${p.name}</span><span style="font-size:11px;color:var(--muted);margin-left:auto;">${p.lang}</span></div>`).join('')
-    +(others.length>80?`<div style="font-size:11px;color:var(--muted);text-align:center;padding:4px;">+${others.length-80} more</div>`:'');
-}
-
-function confGoLive(){
-  confSetState('conf-live');
-  const ct=document.getElementById('confAttCount');
-  const cl=document.getElementById('confLiveCount');
-  if(ct&&cl)cl.textContent=ct.textContent;
-  buildConfWaveform();
-}
-
-function buildConfWaveform(){
-  const wf=document.getElementById('confWaveform');if(!wf)return;
-  wf.innerHTML='';
-  for(let i=0;i<28;i++){const b=document.createElement('div');b.className='wave-bar';b.style.height='4px';wf.appendChild(b);}
-}
-
-async function confToggleSpeaking(){
-  const btn=document.getElementById('confToggleBtn');
-  if(confIsSpeaking){
-    confIsSpeaking=false;
-    CPRemote.stopSpeaking();CPRemote.stopAudioStream();
-    btn.textContent='🎙️ Start Speaking';
-    document.getElementById('confSpeakBadge').style.display='none';
-    document.getElementById('confWaveWrap').style.display='none';
-    clearInterval(confWaveInterval);
-    document.querySelectorAll('#confWaveform .wave-bar').forEach(b=>{b.classList.remove('active');b.style.height='4px';});
-  }else{
-    confIsSpeaking=true;
-    btn.textContent='⏹ Stop Speaking';
-    document.getElementById('confSpeakBadge').style.display='flex';
-    document.getElementById('confWaveWrap').style.display='block';
-    const bars=document.querySelectorAll('#confWaveform .wave-bar');
-    bars.forEach(b=>{b.style.setProperty('--h',(6+Math.random()*28)+'px');b.style.setProperty('--d',(.15+Math.random()*.35)+'s');b.classList.add('active');});
-    confWaveInterval=setInterval(()=>{bars.forEach(b=>b.style.setProperty('--h',(6+Math.random()*28)+'px'));},400);
-    try{
-      await CPRemote.startAudioStream(); // stream original voice to attendees
-      await CPRemote.startSpeaking();    // STT + instant translation broadcast
-    }catch(err){
-      console.error('[Conf] Speaking error:',err);
-      confIsSpeaking=false;btn.textContent='🎙️ Start Speaking';
-      document.getElementById('confSpeakBadge').style.display='none';
-    }
-  }
-}
-
-function showHostPartial(text){
-  const tc=document.getElementById('confLiveTranscript');if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  if(hostPartialEl){
-    hostPartialEl.querySelector('.t-original').textContent=text;
-  }else{
-    hostPartialEl=document.createElement('div');
-    hostPartialEl.className='transcript-line partial-line';
-    hostPartialEl.innerHTML=`<span class="t-flag">${confHostLang.flag}</span><div class="t-content"><div class="t-original">${text}</div><div class="t-translated" style="color:var(--muted);font-size:11px;">translating…</div></div>`;
-    tc.appendChild(hostPartialEl);
-  }
-  tc.scrollTop=tc.scrollHeight;
-}
-
-function finalizeHostUtterance(data){
-  if(!hostPartialEl)return;
-  hostPartialEl.classList.remove('partial-line');
-  hostPartialEl.querySelector('.t-original').textContent=data.original;
-  const langs=Object.keys(data.translations||{});
-  const t=hostPartialEl.querySelector('.t-translated');
-  t.style.color='';t.style.fontSize='';
-  t.textContent=langs.length>0?`→ Broadcasting in ${langs.length} language${langs.length!==1?'s':''}`:' ';
-  hostPartialEl=null;
-}
-
-function endConference(){
-  if(confIsSpeaking){CPRemote.stopSpeaking();CPRemote.stopAudioStream();}
-  clearInterval(confWaveInterval);
-  if(typeof CPRemote!=='undefined')CPRemote.leave();
-  confIsSpeaking=false;hostPartialEl=null;
-  location.hash='';confSetState('conf-setup');
-}
-
-// ── Attendee: join via QR ─────────────────────────────────────────
-function handleJoinInvite(roomCode){
-  joinRoomCode=roomCode;
-  document.getElementById('joinRoomDisplay').textContent=roomCode;
-  document.getElementById('joinNameInput').value=localStorage.getItem('eq_first_name')||'';
-  confSetState('conf-join');
-}
-
-async function joinConference(){
-  if(!joinRoomCode)return;
-  const btn=document.getElementById('joinBtn');
-  btn.disabled=true;btn.textContent='⏳ Joining…';
-  const name=document.getElementById('joinNameInput').value.trim()||'Guest';
-  CPRemote.on((type,data)=>{
-    if(type==='joined')              showAttendeeView();
-    else if(type==='partial_utterance') showAttPartial(data);
-    else if(type==='utterance')      finalizeAttUtterance(data);
-    else if(type==='audio_chunk')    receiveAudioChunk(data);
-    else if(type==='closed')         confSetState('conf-join');
-  });
-  try{
-    await CPRemote.join(joinRoomCode,{name,lang:joinLang.code,speechLang:joinLang.speechCode});
-  }catch(err){
-    btn.disabled=false;btn.textContent='Join & Listen →';
-    alert('Could not join. Verify the room code and try again.');
-  }
-}
-
-function showAttendeeView(){
-  document.getElementById('attRoomCode').textContent=joinRoomCode;
-  document.getElementById('attLangBadge').textContent=(LANG_FLAGS_MAP[joinLang.code]||'🌐')+' '+joinLang.name;
-  confSetState('conf-attendee-live');
-}
-
-function showAttPartial(data){
-  const tc=document.getElementById('attTranscript');if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  const translation=data.translations?.[joinLang.code]||'';
-  const srcFlag=LANG_FLAGS_MAP[data.srcLang]||'🌐';
-  if(attPartialEl){
-    attPartialEl.querySelector('.t-original').textContent=data.original;
-    if(translation)attPartialEl.querySelector('.t-translated').textContent='→ '+translation;
-  }else{
-    attPartialEl=document.createElement('div');
-    attPartialEl.className='transcript-line partial-line';
-    attPartialEl.innerHTML=`<span class="t-flag">${srcFlag}</span><div class="t-content"><div class="t-original">${data.original}</div><div class="t-translated">${translation?'→ '+translation:''}</div></div>`;
-    tc.appendChild(attPartialEl);
-  }
-  tc.scrollTop=tc.scrollHeight;
-}
-
-function finalizeAttUtterance(data){
-  const tc=document.getElementById('attTranscript');if(!tc)return;
-  if(attPartialEl){
-    attPartialEl.classList.remove('partial-line');
-    attPartialEl.querySelector('.t-original').textContent=data.original;
-    const t=data.translations?.[joinLang.code]||'';
-    if(t)attPartialEl.querySelector('.t-translated').textContent='→ '+t;
-    attPartialEl=null;
-  }else{
-    addTranscriptLine('attTranscript',data,joinLang.code);
-  }
-  tc.scrollTop=tc.scrollHeight;
-}
-
-function leaveConference(){
-  if(typeof CPRemote!=='undefined')CPRemote.leave();
-  if(attAudioEl){attAudioEl.src='';attAudioEl.remove();attAudioEl=null;}
-  attAudioReady=false;attAudioPending=[];
-  location.hash='';confSetState('conf-join');
-}
-
-// ── Shared transcript helper ──────────────────────────────────────
-function addTranscriptLine(tcId,m,myLang){
-  const tc=document.getElementById(tcId);if(!tc)return;
-  const ph=tc.querySelector('[data-placeholder]');if(ph)tc.innerHTML='';
-  const translation=m.translations?.[myLang]||'';
-  const srcFlag=LANG_FLAGS_MAP[m.srcLang]||'🌐';
-  const div=document.createElement('div');div.className='transcript-line';
-  div.innerHTML=`<span class="t-flag">${srcFlag}</span><div class="t-content"><div class="t-original">${m.original}</div>${translation?`<div class="t-translated">→ ${translation}</div>`:''}</div>`;
-  tc.appendChild(div);tc.scrollTop=tc.scrollHeight;
-}
-
-// ── Conference language picker ────────────────────────────────────
-function openConfLangPicker(forWhom){
-  confPickingFor=forWhom;pickingFor='__conf__';
-  document.getElementById('langSearch').value='';
-  renderLangList(LANGUAGES);
-  document.getElementById('langModal').classList.add('open');
-}
-
-// ── Azure Key ─────────────────────────────────────────────────
-function updateKeyStatus(){
-  const ok=!!AZURE_KEY;
-  const s=document.getElementById('keyStatus');const ind=document.getElementById('keyIndicator');
-  if(s)s.textContent=ok?'Configured ✓':'Not configured';
-  if(ind)ind.textContent=ok?'✅':'⚠️';
-}
-function saveApiKey(){
-  const key=(document.getElementById('apiKeyInput').value||'').trim();
-  if(!key){alert('Please paste your Azure key first.');return;}
-  localStorage.setItem('cp_azure_key',key);AZURE_KEY=key;
-  document.getElementById('apiKeyInput').value='';updateKeyStatus();
-  alert('Key saved! Open a meeting to test translation.');
-}
-
-// ── Init ──────────────────────────────────────────────────────
-buildWaveform();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
-window.addEventListener('load',()=>{
-  updateKeyStatus();loadUserProfile();
-  // Handle QR join link: equivox.app/#join=K7Q2
-  const m=location.hash.match(/join=([A-Za-z0-9]{4})/i);
-  if(m){showScreen('conference');handleJoinInvite(m[1].toUpperCase());}
-});
-</script>
-
-<!-- ── Install Banner ── -->
-<div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;">
-  <span style="font-size:28px;">📲</span>
-  <div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#e8edf5;">Install Equivox</div><div style="font-size:12px;color:#64748b;margin-top:2px;">Add to your home screen for instant access</div></div>
-  <button onclick="installApp()" style="background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Install</button>
-  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;">×</button>
-</div>
-
-<!-- ── iOS Guide ── -->
-<div id="iosGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:flex-end;">
+<!-- ══════════════════ CONFERENCE ATTENDEE JOIN ══════════════════ -->
+<div id="confJoinPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10001;align-items:flex-end;justify-content:center;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
-    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Install on iPhone</h3>
-    <p style="font-size:14px;color:#64748b;margin-bottom:20px;">Follow these steps to add Equivox to your home screen:</p>
-    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;">
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">1</div><div>Open this page in <strong>Safari</strong> (not Chrome)</div></div>
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">2</div><div>Tap the <strong>Share</strong> button ⎙ at the bottom</div></div>
-      <div style="display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;">3</div><div>Tap <strong>"Add to Home Screen"</strong> and confirm</div></div>
-    </div>
-    <button onclick="dismissIos()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Got it!</button>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:6px;">Join Conference</h3>
+    <p id="confJoinRoomLabel" style="font-size:13px;color:#64748b;margin-bottom:20px;">Room — pick your language to receive live translation</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;" id="confJoinLangGrid"></div>
+    <div id="confJoinStatus" style="font-size:13px;color:#64748b;text-align:center;min-height:18px;margin-bottom:12px;"></div>
+    <button onclick="doJoinConference()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Join in my language</button>
+    <button onclick="document.getElementById('confJoinPanel').style.display='none'" style="width:100%;padding:14px;background:none;border:none;color:#64748b;font-size:14px;cursor:pointer;margin-top:8px;">Cancel</button>
   </div>
 </div>
 
-<script src="cp-remote.js"></script>
-<script>
-let deferredInstallPrompt=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;document.getElementById('installBanner').style.display='flex';});
-function installApp(){if(deferredInstallPrompt){deferredInstallPrompt.prompt();deferredInstallPrompt.userChoice.then(()=>{deferredInstallPrompt=null;document.getElementById('installBanner').style.display='none';});}else{document.getElementById('iosGuide').style.display='flex';}}
-function dismissInstall(){document.getElementById('installBanner').style.display='none';}
-function dismissIos(){document.getElementById('iosGuide').style.display='none';}
-</script>
+<!-- ══════════════════ ATTENDEE LIVE VIEW ══════════════════ -->
+<div id="confAttendeeView" style="display:none;position:fixed;inset:0;background:#0a0e1a;z-index:10002;flex-direction:column;align-items:center;padding:40px 24px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Equivox · Live Conference</div>
+  <div id="attRoomLabel" style="font-size:16px;color:#7c5cfc;margin-bottom:28px;font-weight:600;"></div>
+  <div style="width:100%;max-width:480px;background:#131929;border:1px solid #1e2d4a;border-radius:20px;padding:20px;min-height:140px;margin-bottom:16px;">
+    <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Live Translation</div>
+    <div id="attPartialText" style="font-size:16px;color:#9ca3af;font-style:italic;min-height:24px;"></div>
+    <div id="attFinalText" style="font-size:17px;color:#e8edf5;margin-top:8px;line-height:1.6;"></div>
+  </div>
+  <div style="font-size:12px;color:#64748b;text-align:center;margin-bottom:20px;" id="attLangLabel"></div>
+  <button onclick="leaveAttendeeView()" style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#ef4444;border-radius:20px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;">Leave</button>
+</div>
+
 </body>
 </html>
