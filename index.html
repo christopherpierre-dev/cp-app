@@ -1042,7 +1042,9 @@ function selectLang(flag,name){
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
 const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
-const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural',
+  pt:'pt-BR-AntonioNeural', de:'de-DE-ConradNeural', ja:'ja-JP-KeitaNeural', ko:'ko-KR-InJoonNeural', it:'it-IT-DiegoNeural', hi:'hi-IN-MadhurNeural',
+  nl:'nl-NL-MaartenNeural', pl:'pl-PL-MarekNeural', sv:'sv-SE-MattiasNeural', tr:'tr-TR-AhmetNeural', el:'el-GR-NestorasNeural', vi:'vi-VN-NamMinhNeural', sw:'sw-KE-RafikiNeural'};
 let confLang = {name:'English', flag:'🇺🇸'};
 
 function explainHtLimit(){
@@ -1059,9 +1061,14 @@ function setConfSpeaker(name, flag){
   if(confSession) startCapture(true);
 }
 
-function speakConf(text, code){
+async function speakConf(text, code){
   try{
-    if(!window.__confTk || !text) return;
+    if(!text || typeof SpeechSDK === 'undefined') return;
+    // Un auditeur qui n'a jamais parlé n'a pas de jeton, et un jeton Azure
+    // expire après ~10 min : on récupère/rafraîchit au besoin.
+    if(!window.__confTk || Date.now() - (window.__confTkAt || 0) > 8*60*1000){
+      try{ window.__confTk = await getCpToken(); window.__confTkAt = Date.now(); }catch(e){ return; }
+    }
     const c = SpeechSDK.SpeechConfig.fromAuthorizationToken(window.__confTk.token, window.__confTk.region);
     c.speechSynthesisVoiceName = CONF_VOICES[code] || 'en-US-GuyNeural';
     const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
@@ -1123,7 +1130,7 @@ async function startCapture(isSwitch){
   try{
     const tk = await getCpToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-    window.__confTk = tk;
+    window.__confTk = tk; window.__confTkAt = Date.now();
     cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
     const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
     targets.forEach(t => cfg.addTargetLanguage(t));
@@ -1554,7 +1561,7 @@ async function showAttendeeView(name){
   v.style.display = 'flex';
   v.style.flexDirection = 'column';
   // Pre-fetch Azure token so TTS works for attendees
-  try { if(!window.__confTk) window.__confTk = await getCpToken(); } catch(e){}
+  try { if(!window.__confTk){ window.__confTk = await getCpToken(); window.__confTkAt = Date.now(); } } catch(e){}
 }
 
 function leaveAttendeeView(){
@@ -1591,8 +1598,12 @@ CPRemote.on((type, data) => {
   }
   if(type === 'utterance'){
     const myLang = LANG_TRANS[currentLangA.name] || 'en';
+    const heard = data.translations[myLang] || Object.values(data.translations)[0] || '';
     document.getElementById('origB').textContent = data.original;
-    document.getElementById('transB').textContent = data.translations[myLang] || Object.values(data.translations)[0] || '';
+    document.getElementById('transB').textContent = heard;
+    // Voix : lire l'énoncé reçu dans ma langue, sauf si le haut-parleur (🔇) est coupé
+    const spk = document.getElementById('speakerBtn');
+    if(heard && remoteMode && (!spk || spk.textContent !== '🔇')) speakConf(heard, myLang);
   }
   if(type === 'roster'){
     const other = (data.participants || [])[0];
