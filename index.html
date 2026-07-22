@@ -518,7 +518,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <div class="s-icon" style="background:rgba(79,142,247,0.12);">👤</div>
       <div class="s-info" id="profileNameRow">
         <strong id="profileNameDisplay">Your Name</strong>
-        <span style="color:var(--accent);font-size:12px;cursor:pointer;" onclick="openNameEditor()">✏️ Change name</span>
+        <span id="profileEmailDisplay" style="font-size:12px;color:var(--muted);margin-top:2px;display:block;"></span>
+        <span style="color:var(--accent);font-size:12px;cursor:pointer;margin-top:4px;display:inline-block;" onclick="openNameEditor(false)">✏️ Edit profile</span>
       </div>
     </div>
   </div>
@@ -1232,29 +1233,33 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// ── User name (localStorage) ─────────────────────────────────
-function getMyName(){
-  return localStorage.getItem('equivox_name') || '';
-}
+// ── User profile (localStorage) ──────────────────────────────
+function getMyName(){  return localStorage.getItem('equivox_name') || ''; }
+function getMyEmail(){ return localStorage.getItem('equivox_email') || ''; }
 
 function applyMyName(){
   const name = getMyName();
-  const display = name || 'there';
+  const email = getMyEmail();
   const el = document.getElementById('homeUserName');
-  if(el) el.textContent = display;
+  if(el) el.textContent = name || 'there';
   const pd = document.getElementById('profileNameDisplay');
   if(pd) pd.textContent = name || 'Set your name';
-  // Pre-fill attendee join name field if open
+  const pe = document.getElementById('profileEmailDisplay');
+  if(pe) pe.textContent = email || (name ? '—' : 'Tap to sign in');
+  // Pre-fill attendee join name field
   const ni = document.getElementById('confJoinNameInput');
   if(ni && !ni.value) ni.value = name;
 }
 
-function openNameEditor(){
+function openNameEditor(isFirstVisit){
   const overlay = document.getElementById('nameEditorOverlay');
-  const input = document.getElementById('nameEditorInput');
-  input.value = getMyName();
+  const cancelBtn = document.getElementById('nameEditorCancelBtn');
+  document.getElementById('nameEditorInput').value = getMyName();
+  document.getElementById('emailEditorInput').value = getMyEmail();
+  // Show cancel only if user already has a name (editing, not first sign-in)
+  if(cancelBtn) cancelBtn.style.display = (!isFirstVisit && getMyName()) ? 'block' : 'none';
   overlay.style.display = 'flex';
-  setTimeout(() => input.focus(), 100);
+  setTimeout(() => document.getElementById('nameEditorInput').focus(), 100);
 }
 
 function closeNameEditor(){
@@ -1262,19 +1267,23 @@ function closeNameEditor(){
 }
 
 function saveNameEditor(){
-  const val = document.getElementById('nameEditorInput').value.trim();
-  if(!val){ document.getElementById('nameEditorInput').style.borderColor='#ef4444'; return; }
-  localStorage.setItem('equivox_name', val);
+  const name = document.getElementById('nameEditorInput').value.trim();
+  const email = document.getElementById('emailEditorInput').value.trim();
+  if(!name){
+    const ni = document.getElementById('nameEditorInput');
+    ni.style.borderColor = '#ef4444';
+    ni.focus();
+    return;
+  }
+  localStorage.setItem('equivox_name', name);
+  if(email) localStorage.setItem('equivox_email', email);
   applyMyName();
   closeNameEditor();
 }
 
 // On first visit — prompt for name after onboarding
 function checkFirstVisit(){
-  if(!getMyName()){
-    // Show name editor after a short delay so the app has loaded
-    setTimeout(() => openNameEditor(), 800);
-  }
+  if(!getMyName()) setTimeout(() => openNameEditor(true), 600);
 }
 
 // Apply name immediately on load
@@ -1558,18 +1567,25 @@ function addLiveConfLine(orig, translations, targets){
 
 </script>
 
-<!-- ══════════════════ NAME EDITOR MODAL ══════════════════ -->
-<div id="nameEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:20000;align-items:flex-end;">
-  <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
-    <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
-    <h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">Your name</h3>
-    <p style="font-size:13px;color:#64748b;margin-bottom:18px;">This is how you appear to others in calls and conferences.</p>
-    <input id="nameEditorInput" type="text" placeholder="Enter your name" maxlength="30"
-      style="width:100%;background:rgba(255,255,255,0.06);border:1.5px solid #1e2d4a;border-radius:14px;padding:14px 16px;color:#e8edf5;font-size:16px;outline:none;margin-bottom:16px;"
+<!-- ══════════════════ SIGN-IN MODAL ══════════════════ -->
+<div id="nameEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:20000;align-items:flex-end;">
+  <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 44px;">
+    <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 22px;"></div>
+    <div style="font-size:32px;text-align:center;margin-bottom:12px;">🌐</div>
+    <h3 style="font-size:20px;font-weight:700;margin-bottom:6px;text-align:center;">Welcome to Equivox</h3>
+    <p style="font-size:13px;color:#64748b;margin-bottom:22px;text-align:center;line-height:1.5;">Sign in so others can see who's speaking.<br>Your info stays on your device.</p>
+    <label style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;">Your name <span style="color:#ef4444;">*</span></label>
+    <input id="nameEditorInput" type="text" placeholder="e.g. Marie Dupont" maxlength="40"
+      style="width:100%;background:rgba(255,255,255,0.06);border:1.5px solid #1e2d4a;border-radius:14px;padding:14px 16px;color:#e8edf5;font-size:15px;outline:none;margin-bottom:14px;"
+      oninput="this.style.borderColor=this.value.trim()?'#4f8ef7':'#1e2d4a'"
+      onkeydown="if(event.key==='Enter') document.getElementById('emailEditorInput').focus()"/>
+    <label style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;">Email <span style="color:#64748b;font-weight:400;text-transform:none;">(optional)</span></label>
+    <input id="emailEditorInput" type="email" placeholder="e.g. marie@example.com"
+      style="width:100%;background:rgba(255,255,255,0.06);border:1.5px solid #1e2d4a;border-radius:14px;padding:14px 16px;color:#e8edf5;font-size:15px;outline:none;margin-bottom:22px;"
       oninput="this.style.borderColor=this.value.trim()?'#4f8ef7':'#1e2d4a'"
       onkeydown="if(event.key==='Enter') saveNameEditor()"/>
-    <button onclick="saveNameEditor()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px;">Save</button>
-    <button onclick="closeNameEditor()" style="width:100%;padding:13px;background:none;border:none;color:#64748b;font-size:14px;cursor:pointer;">Cancel</button>
+    <button onclick="saveNameEditor()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:10px;">Save & continue</button>
+    <button onclick="closeNameEditor()" id="nameEditorCancelBtn" style="width:100%;padding:13px;background:none;border:none;color:#64748b;font-size:14px;cursor:pointer;display:none;">Skip for now</button>
   </div>
 </div>
 
