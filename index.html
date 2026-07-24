@@ -1204,7 +1204,7 @@ async function startCapture(isSwitch){
     confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
     highlightConfSpeaker(confLang.name);
 
-    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
+    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text, e.result.translations, targets); };
     confRecognizer.recognized = (s, e) => {
       if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech && e.result.text){
         addLiveConfLine(e.result.text, e.result.translations, targets);
@@ -1278,7 +1278,7 @@ function highlightConfSpeaker(langName){
   });
 }
 
-function showConfInterim(text){
+function showConfInterim(text, translations, targets){
   let el = document.getElementById('confInterim');
   if(!el){
     el = document.createElement('div');
@@ -1286,12 +1286,26 @@ function showConfInterim(text){
     el.className = 'transcript-line';
     document.getElementById('confTranscript').appendChild(el);
   }
-  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
+  // Traduction simultanée : les versions provisoires s'affichent pendant
+  // que l'orateur parle, puis se figent à la fin de la phrase.
+  let trans = '';
+  if(translations && targets){
+    targets.forEach(t => {
+      let txt = null;
+      try{ txt = translations.get(t); }catch(e){}
+      if(txt) trans += `<div class="t-translated" dir="auto" style="opacity:.75">→ ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
+    });
+  }
+  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div>${trans}</div>`;
   const tc = document.getElementById('confTranscript');
   tc.scrollTop = tc.scrollHeight;
-  // Broadcast partial to remote attendees
+  // Broadcast partial to remote attendees (avec les traductions provisoires)
   if(currentRoomCode && CPRemote.room){
-    try { CPRemote.sendRaw({type:'partial_utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: text, translations: {}}); } catch(e){}
+    const pt = {};
+    if(translations && targets){
+      targets.forEach(t => { try{ const x = translations.get(t); if(x) pt[t] = x; }catch(e){} });
+    }
+    try { CPRemote.sendRaw({type:'partial_utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: text, translations: pt}); } catch(e){}
   }
 }
 
