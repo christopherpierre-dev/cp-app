@@ -248,11 +248,13 @@
     }
     return ttsAudio;
   }
+  let audioUnlocked = false;
   function unlockAudio() {
+    if (audioUnlocked) return; // déjà autorisé — ne pas écraser une voix en cours
     try {
       const a = ensureTtsAudio();
       a.src = SILENT_WAV;
-      a.play().catch(() => {});
+      a.play().then(() => { audioUnlocked = true; }).catch(() => {});
     } catch (_) {}
   }
 

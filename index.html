@@ -1008,8 +1008,10 @@ let rcAudio=null, rcMS=null, rcSB=null, rcQueue=[], rcMime=null;
 
 // Déverrouillage audio iOS : à appeler depuis un GESTE utilisateur (toucher).
 // Sans cela, Safari iPhone bloque silencieusement toute lecture de son.
+let __rcUnlocked = false;
 function unlockPlayback(){
   try{ CPRemote.unlockAudio(); }catch(e){}
+  if(__rcUnlocked) return; // déjà autorisé — ne pas interrompre la voix en cours
   try{
     if(!rcAudio){
       rcAudio = document.createElement('audio');
@@ -1018,7 +1020,7 @@ function unlockPlayback(){
       document.body.appendChild(rcAudio);
     }
     rcAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
-    rcAudio.play().catch(()=>{});
+    rcAudio.play().then(()=>{ __rcUnlocked = true; }).catch(()=>{});
   }catch(e){}
 }
 
