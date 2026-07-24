@@ -167,6 +167,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .p-add{border:2px dashed var(--border);cursor:pointer;}
 .p-add .p-avatar{background:rgba(255,255,255,0.03);}
 .conf-transcript{margin:16px 24px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+/* La transcription défile à l'intérieur de sa boîte : les cartes de langue
+   et les boutons de séance restent toujours visibles, même en longue réunion. */
+#confTranscript{max-height:38vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .conf-transcript h4{font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
 .transcript-line{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start;}
 .t-flag{font-size:18px;flex-shrink:0;margin-top:2px;}
