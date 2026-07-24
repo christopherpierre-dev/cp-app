@@ -856,6 +856,7 @@ function toggleMic(){
       animateWave(false);
     } else {
       isListening=true;
+      unlockPlayback(); // geste utilisateur : autorise le son (iOS)
       document.getElementById('micBtn').classList.add('listening');
       document.getElementById('micLabel').textContent='Listening…';
       animateWave(true);
@@ -1004,6 +1005,22 @@ function toggleSpeaker(){
 // une cabine d'interprétation), plein volume si la TTS est coupée (🔇).
 const RC_DUCK_VOL = 0.35;
 let rcAudio=null, rcMS=null, rcSB=null, rcQueue=[], rcMime=null;
+
+// Déverrouillage audio iOS : à appeler depuis un GESTE utilisateur (toucher).
+// Sans cela, Safari iPhone bloque silencieusement toute lecture de son.
+function unlockPlayback(){
+  try{ CPRemote.unlockAudio(); }catch(e){}
+  try{
+    if(!rcAudio){
+      rcAudio = document.createElement('audio');
+      rcAudio.autoplay = true;
+      rcAudio.setAttribute('playsinline','');
+      document.body.appendChild(rcAudio);
+    }
+    rcAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+    rcAudio.play().catch(()=>{});
+  }catch(e){}
+}
 
 function rcResetVoice(){
   try{ if(rcAudio){ rcAudio.pause(); rcAudio.removeAttribute('src'); rcAudio.load(); } }catch(e){}
@@ -1487,6 +1504,7 @@ function myRemoteOpts(){
 }
 
 function createRemoteRoom(){
+  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   setRemoteStatus('Creating room…');
   CPRemote.create(myRemoteOpts())
     .then(({room}) => enterRemoteCall(room, true))
@@ -1494,6 +1512,7 @@ function createRemoteRoom(){
 }
 
 function joinRemoteRoom(){
+  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   const code = (document.getElementById('joinCodeInput').value || '').trim().toUpperCase();
   if(code.length !== 4){ setRemoteStatus('Enter the 4-character room code.'); return; }
   setRemoteStatus('Joining ' + code + '…');
@@ -1606,6 +1625,7 @@ function selectAttLang(idx){
 }
 
 async function doJoinConference(){
+  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   if(!confJoinCode) return;
   const nameInput = document.getElementById('confJoinNameInput');
   const attendeeName = (nameInput && nameInput.value.trim()) || '';
