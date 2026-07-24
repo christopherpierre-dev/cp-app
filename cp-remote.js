@@ -1,35 +1,36 @@
 /**
- * cp-remote.js â Appel traduit Ã  distance pour Equivox
- * Ã inclure dans index.html : <script src="cp-remote.js"></script>
+ * cp-remote.js — Appel traduit à distance pour Equivox
+ * À inclure dans index.html : <script src="cp-remote.js"></script>
  *
- * DÃ©pend du SDK Azure Speech dÃ©jÃ  chargÃ© par l'app (SpeechSDK).
+ * Dépend du SDK Azure Speech déjà chargé par l'app (SpeechSDK).
  *
  * Public API:
- *   CPRemote.create(opts)          â create a room, returns Promise<{room}>
- *   CPRemote.join(code, opts)      â join a room, returns Promise<{room}>
- *   CPRemote.startSpeaking()       â begin STT + translation broadcast
- *   CPRemote.stopSpeaking()        â stop STT
- *   CPRemote.startAudioStream()    â stream raw microphone audio to room (original voice)
- *   CPRemote.stopAudioStream()     â stop audio streaming
+ *   CPRemote.create(opts)          — create a room, returns Promise<{room}>
+ *   CPRemote.join(code, opts)      — join a room, returns Promise<{room}>
+ *   CPRemote.startSpeaking()       — begin STT + translation broadcast
+ *   CPRemote.stopSpeaking()        — stop STT
+ *   CPRemote.startAudioStream()    — stream raw microphone audio to room (original voice)
+ *   CPRemote.stopAudioStream()     — stop audio streaming
+ *   CPRemote.setTtsMuted(bool)     — mute/unmute spoken translations (text stays)
  *   CPRemote.setLanguage(code, speechCode)
- *   CPRemote.leave()               â disconnect
- *   CPRemote.on(cb)                â event callback: (type, data) => {}
- *   CPRemote.room                  â current room code
- *   CPRemote.peers                 â current participants array
+ *   CPRemote.leave()               — disconnect
+ *   CPRemote.on(cb)                — event callback: (type, data) => {}
+ *   CPRemote.room                  — current room code
+ *   CPRemote.peers                 — current participants array
  *
  * Events emitted via on(cb):
- *   joined          â {room, participants}
- *   roster          â {participants}
- *   partial         â {text}  (your own interim speech, local only)
- *   final           â {original, translations}  (your own final speech, local only)
- *   utterance       â {srcLang, original, translations}  (from server)
- *   partial_utterance â {srcLang, original, translations}  (interim, from server)
- *   audio_chunk     â {data, mimeType, isFirst, seq}  (raw audio from speaker)
- *   audio_started   â {mimeType}
- *   audio_error     â {error}
- *   invite          â {room}  (auto-detected join from URL hash)
- *   closed          â {}
- *   error           â {error}
+ *   joined          — {room, participants}
+ *   roster          — {participants}
+ *   partial         — {text}  (your own interim speech, local only)
+ *   final           — {original, translations}  (your own final speech, local only)
+ *   utterance       — {srcLang, original, translations}  (from server)
+ *   partial_utterance — {srcLang, original, translations}  (interim, from server)
+ *   audio_chunk     — {data, mimeType, isFirst, seq}  (raw audio from speaker)
+ *   audio_started   — {mimeType}
+ *   audio_error     — {error}
+ *   invite          — {room}  (auto-detected join from URL hash)
+ *   closed          — {}
+ *   error           — {error}
  */
 (function () {
   const CP_SERVER_URL = 'https://cp-server-kdbg.onrender.com';
@@ -44,17 +45,18 @@
     peers: [],
     recognizer: null,
     ttsQueue: Promise.resolve(),
+    ttsMuted: false,
     onEvent: () => {},
   };
 
-  // ââ Azure token ââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Azure token ──────────────────────────────────────────────────
   async function getAzureToken() {
     const r = await fetch(CP_SERVER_URL + '/api/token');
     if (!r.ok) throw new Error('Azure token unavailable');
     return r.json(); // {token, region}
   }
 
-  // ââ WebSocket connection âââââââââââââââââââââââââââââââââââââââââ
+  // ── WebSocket connection ─────────────────────────────────────────
   function connect(action, opts = {}) {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(WS_URL);
@@ -102,7 +104,7 @@
     });
   }
 
-  // ââ STT + translation â broadcast to room âââââââââââââââââââââââ
+  // ── STT + translation → broadcast to room ───────────────────────
   async function startSpeaking() {
     const { token, region } = await getAzureToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, region);
@@ -116,7 +118,7 @@
     const rec = new SpeechSDK.TranslationRecognizer(cfg, audio);
     state.recognizer = rec;
 
-    // Interim results â instant preview for attendees
+    // Interim results → instant preview for attendees
     rec.recognizing = (_s, e) => {
       const text = e.result.text;
       state.onEvent('partial', { text });
@@ -139,7 +141,7 @@
       }
     };
 
-    // Final recognized sentence â broadcast with full translations
+    // Final recognized sentence → broadcast with full translations
     rec.recognized = (_s, e) => {
       if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech || !e.result.text) return;
       const translations = {};
@@ -163,7 +165,7 @@
     });
   }
 
-  // ââ Original voice streaming âââââââââââââââââââââââââââââââââââââ
+  // ── Original voice streaming ─────────────────────────────────────
   let mediaRecorder = null;
   let audioStream = null;
 
@@ -173,7 +175,7 @@
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 24000 }
       });
 
-      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
         .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
       let chunkIndex = 0;
@@ -198,7 +200,7 @@
         chunkIndex++;
       };
 
-      mediaRecorder.start(200); // 200ms chunks â ~4 per second, low latency
+      mediaRecorder.start(200); // 200ms chunks → ~5 per second, low latency
       state.onEvent('audio_started', { mimeType });
     } catch (err) {
       console.warn('[CPRemote] Audio stream error:', err);
@@ -217,7 +219,7 @@
     }
   }
 
-  // ââ TTS: play received translation through speakers ââââââââââââââ
+  // ── TTS: play received translation through speakers ──────────────
   const TTS_VOICES = {
     fr: 'fr-CA-JeanNeural',     en: 'en-US-GuyNeural',
     es: 'es-MX-JorgeNeural',   de: 'de-DE-ConradNeural',
@@ -229,10 +231,44 @@
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
     ht: 'fr-CA-JeanNeural',     sw: 'sw-KE-RafikiNeural',
     el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
+    'zh-Hans': 'zh-CN-YunxiNeural',
   };
 
+  // ── Déverrouillage audio (obligatoire sur iPhone/iPad) ───────────
+  // Safari iOS n'autorise le son que s'il part d'un geste de l'utilisateur.
+  // On joue un silence dans UN élément <audio> au moment du toucher (Join,
+  // micro…) ; ce même élément, désormais autorisé, jouera toutes les voix.
+  let ttsAudio = null;
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+  function ensureTtsAudio() {
+    if (!ttsAudio) {
+      ttsAudio = new Audio();
+      ttsAudio.setAttribute('playsinline', '');
+      ttsAudio.autoplay = false;
+    }
+    return ttsAudio;
+  }
+  let audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return; // déjà autorisé — ne pas écraser une voix en cours
+    try {
+      const a = ensureTtsAudio();
+      a.src = SILENT_WAV;
+      a.play().then(() => { audioUnlocked = true; }).catch(() => {});
+    } catch (_) {}
+  }
+
   function speakTranslation(m) {
+    if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
     const text = m.translations?.[state.myLang];
+    if (!text) return;
+    speakText(text, state.myLang);
+  }
+
+  /** Lecture vocale d'un texte dans une langue donnée, via le canal
+   *  audio déverrouillé (fiable sur iPhone). Utilisée par le Remote Call,
+   *  les participants de conférence et le Two-Way Call. */
+  function speakText(text, langCode) {
     if (!text) return;
 
     // Queue TTS so overlapping utterances play in order
@@ -240,15 +276,26 @@
       try {
         const { token, region } = await getAzureToken();
         const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-        cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
+        cfg.speechSynthesisVoiceName = TTS_VOICES[langCode] || 'en-US-GuyNeural';
+        cfg.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
 
-        // â Route audio to the default speaker
-        const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-        const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
-
+        // Pas de sortie haut-parleur directe (bloquée par iOS hors geste) :
+        // on récupère l'audio et on le joue via l'élément déverrouillé.
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
         synth.speakTextAsync(
           text,
-          () => { synth.close(); resolve(); },
+          (r) => {
+            synth.close();
+            try {
+              if (!r.audioData || r.audioData.byteLength === 0) return resolve();
+              const a = ensureTtsAudio();
+              const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+              a.src = url;
+              a.onended = () => { URL.revokeObjectURL(url); resolve(); };
+              a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); resolve(); });
+            } catch (_) { resolve(); }
+          },
           (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
         );
       } catch (err) {
@@ -258,14 +305,14 @@
     }));
   }
 
-  // ââ Change language mid-call âââââââââââââââââââââââââââââââââââââ
+  // ── Change language mid-call ─────────────────────────────────────
   function setLanguage(shortCode, speechCode) {
     state.myLang = shortCode;
     state.mySpeechLang = speechCode;
     state.ws?.send(JSON.stringify({ type: 'lang', lang: shortCode }));
   }
 
-  // ââ Public API âââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // ── Public API ───────────────────────────────────────────────────
   window.CPRemote = {
     create:          (o) => { Object.assign(state, mapOpts(o)); return connect('create'); },
     join:            (code, o) => { Object.assign(state, mapOpts(o)); return connect('join', { room: code }); },
@@ -274,6 +321,9 @@
     startAudioStream,
     stopAudioStream,
     setLanguage,
+    unlockAudio,
+    speakText,
+    setTtsMuted:     (b) => { state.ttsMuted = !!b; },
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
     sendRaw:         (obj) => state.ws?.send(JSON.stringify(obj)),
@@ -289,7 +339,7 @@
     };
   }
 
-  // Auto-join via shared link â¦/#join=K7Q2
+  // Auto-join via shared link …/#join=K7Q2
   window.addEventListener('load', () => {
     const match = location.hash.match(/join=([A-Za-z0-9]{4})/i);
     if (match) state.onEvent('invite', { room: match[1].toUpperCase() });

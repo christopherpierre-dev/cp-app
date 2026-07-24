@@ -879,6 +879,7 @@ function toggleMic(){
 }
 
 async function startListening(){
+  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   try{ await ensureMic(); }
   catch(e){ showMicError(e.message); return; }
   isListening=true;
@@ -915,18 +916,24 @@ async function startListening(){
           const translated = e.result.translations.get(targetLang);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
+          // Voix : prononcer la traduction dans la langue de l'interlocuteur
+          const spk = document.getElementById('speakerBtn');
+          if(translated && (!spk || spk.textContent !== '🔇')){
+            try{ CPRemote.speakText(translated, targetLang); }catch(e2){}
+          }
           stopListening();
         }
       };
 
+      // Pas de repli fictif : en cas d'échec, on le dit honnêtement.
       azureRecognizer.canceled = () => {
         stopListening();
-        runDemoTranslation();
+        showMicError('Translation service unavailable — check your connection and try again.');
       };
 
       azureRecognizer.startContinuousRecognitionAsync(
         ()=>{}, // success
-        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
+        ()=>{ stopListening(); showMicError('Could not start recognition — check your connection and try again.'); }
       );
 
       // Auto-stop after 10 seconds of silence
@@ -934,11 +941,11 @@ async function startListening(){
 
     } catch(err){
       stopListening();
-      runDemoTranslation();
+      showMicError('Translation service unavailable — check your connection and try again.');
     }
   } else {
-    // Fallback demo mode
-    runDemoTranslation();
+    stopListening();
+    showMicError('Speech engine not loaded — check your connection and reload the page.');
   }
 }
 
