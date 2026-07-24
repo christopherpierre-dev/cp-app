@@ -234,6 +234,28 @@
     'zh-Hans': 'zh-CN-YunxiNeural',
   };
 
+  // ── Déverrouillage audio (obligatoire sur iPhone/iPad) ───────────
+  // Safari iOS n'autorise le son que s'il part d'un geste de l'utilisateur.
+  // On joue un silence dans UN élément <audio> au moment du toucher (Join,
+  // micro…) ; ce même élément, désormais autorisé, jouera toutes les voix.
+  let ttsAudio = null;
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+  function ensureTtsAudio() {
+    if (!ttsAudio) {
+      ttsAudio = new Audio();
+      ttsAudio.setAttribute('playsinline', '');
+      ttsAudio.autoplay = false;
+    }
+    return ttsAudio;
+  }
+  function unlockAudio() {
+    try {
+      const a = ensureTtsAudio();
+      a.src = SILENT_WAV;
+      a.play().catch(() => {});
+    } catch (_) {}
+  }
+
   function speakTranslation(m) {
     if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
     const text = m.translations?.[state.myLang];
@@ -245,14 +267,25 @@
         const { token, region } = await getAzureToken();
         const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
         cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
+        cfg.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
 
-        // ✅ Route audio to the default speaker
-        const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-        const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
-
+        // Pas de sortie haut-parleur directe (bloquée par iOS hors geste) :
+        // on récupère l'audio et on le joue via l'élément déverrouillé.
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
         synth.speakTextAsync(
           text,
-          () => { synth.close(); resolve(); },
+          (r) => {
+            synth.close();
+            try {
+              if (!r.audioData || r.audioData.byteLength === 0) return resolve();
+              const a = ensureTtsAudio();
+              const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+              a.src = url;
+              a.onended = () => { URL.revokeObjectURL(url); resolve(); };
+              a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); resolve(); });
+            } catch (_) { resolve(); }
+          },
           (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
         );
       } catch (err) {
@@ -278,6 +311,7 @@
     startAudioStream,
     stopAudioStream,
     setLanguage,
+    unlockAudio,
     setTtsMuted:     (b) => { state.ttsMuted = !!b; },
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
