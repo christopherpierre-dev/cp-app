@@ -1178,6 +1178,7 @@ let confSession = false;
 let confCapturing = false;
 let confHeld = false;
 let confActive = false;
+let confCurrentTargets = []; // tracks languages the active recognizer is translating to
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1223,7 +1224,10 @@ async function startCapture(isSwitch){
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
     window.__confTk = tk; window.__confTkAt = Date.now();
     cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
-    const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
+    const attendeeLangs = (CPRemote.peers || []).map(p => p.lang).filter(Boolean);
+    const baseLangs = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]).filter(Boolean);
+    const targets = [...new Set([...attendeeLangs, ...baseLangs])].slice(0, 6);
+    confCurrentTargets = [...targets];
     targets.forEach(t => cfg.addTargetLanguage(t));
 
     const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -1682,6 +1686,16 @@ function leaveAttendeeView(){
 
 // Wire up CPRemote events for conference attendees
 CPRemote.on((type, data) => {
+  // Conference HOST: restart recognizer when an attendee joins with a new language
+  if(type === 'roster' && confActive && !confAttendeeActive) {
+    const attendees = (data.participants || []);
+    const needsRestart = attendees.some(p => p.lang && !confCurrentTargets.includes(p.lang));
+    if(needsRestart) {
+      stopConference('⏳ Adding language…');
+      setTimeout(() => startConference(), 700);
+    }
+    return;
+  }
   if(confAttendeeActive){
     if(type === 'partial_utterance'){
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
