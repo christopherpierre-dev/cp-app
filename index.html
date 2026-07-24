@@ -471,6 +471,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
+  <!-- Choix de la langue d'écoute : toujours visible, au-dessus de la transcription -->
+  <div style="margin:14px 24px 0;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;"><label style="font-size:13px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:6px 10px;font-size:13px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
+
   <div class="conf-transcript">
     <h4>Live Transcript</h4>
     <div id="confTranscript">
@@ -494,7 +497,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
-    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div style="text-align:center;margin-bottom:10px;">
     <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
