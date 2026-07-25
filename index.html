@@ -402,6 +402,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
       <span id="micLabel">Tap to speak</span>
     </div>
+    <div class="ctrl-btn" id="origVoiceCtrl" onclick="toggleOriginalVoice()" style="display:none;">
+      <button class="ctrl-icon ctrl-gray" id="voiceBtn">🎵</button>
+      <span id="voiceLabel">Real Voice</span>
+    </div>
     <div class="ctrl-btn" onclick="endCall()">
       <button class="ctrl-icon ctrl-red">📵</button>
       <span>End</span>
@@ -720,7 +724,10 @@ let recognition = null;
 let waveInterval = null;
 let obStep = 0;
 let azureRecognizer = null;
-let remoteMode = false; // NOUVEAU : mode appel à distance
+let remoteMode = false;
+let remoteOriginalVoice = false;
+let rcAudioEl = null, rcAudioMS = null, rcAudioSB = null;
+let rcAudioQueue = [], rcAudioBusy = false;
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
@@ -850,6 +857,35 @@ function showMicError(msg){
 }
 
 // ── Microphone ────────────────────────────────────────────────
+function toggleOriginalVoice(){
+  if(!remoteMode) return;
+  remoteOriginalVoice = !remoteOriginalVoice;
+  const btn=document.getElementById('voiceBtn'), lbl=document.getElementById('voiceLabel');
+  if(remoteOriginalVoice){
+    btn.textContent='🎵'; btn.style.background='linear-gradient(135deg,#22c55e,#16a34a)'; btn.style.boxShadow='0 8px 24px rgba(34,197,94,0.4)';
+    lbl.textContent='Real Voice'; CPRemote.setTTS(false); CPRemote.startAudioStream();
+  } else {
+    btn.textContent='🔇'; btn.style.background=''; btn.style.boxShadow='';
+    lbl.textContent='TTS Voice'; CPRemote.setTTS(true); CPRemote.stopAudioStream(); stopRCAudio();
+  }
+}
+function stopRCAudio(){ if(rcAudioEl){rcAudioEl.pause();rcAudioEl.src='';rcAudioEl=null;} rcAudioMS=null;rcAudioSB=null;rcAudioQueue=[];rcAudioBusy=false; }
+function handleRemoteAudioChunk({data,mimeType,isFirst}){
+  const bin=atob(data), buf=new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+  const ab=buf.buffer;
+  if(isFirst||!rcAudioEl){
+    if(rcAudioEl){rcAudioEl.pause();rcAudioEl.src='';}
+    rcAudioSB=null;rcAudioQueue=[ab];rcAudioBusy=false;
+    rcAudioEl=new Audio(); rcAudioMS=new MediaSource(); rcAudioEl.src=URL.createObjectURL(rcAudioMS);
+    rcAudioMS.addEventListener('sourceopen',()=>{
+      try{ const mt=mimeType||'audio/webm;codecs=opus'; rcAudioSB=rcAudioMS.addSourceBuffer(mt); rcAudioSB.mode='sequence';
+        rcAudioSB.addEventListener('updateend',()=>{rcAudioBusy=false;flushRCAudio();}); flushRCAudio();
+      }catch(e){console.warn('[RC Audio]',e);}
+    },{once:true}); rcAudioEl.play().catch(()=>{});
+  } else { rcAudioQueue.push(ab); flushRCAudio(); }
+}
+function flushRCAudio(){ if(!rcAudioSB||rcAudioBusy||rcAudioQueue.length===0)return; rcAudioBusy=true; try{rcAudioSB.appendBuffer(rcAudioQueue.shift());}catch(e){rcAudioBusy=false;} }
 function toggleMic(){
   // NOUVEAU : en mode distance, le micro passe par CPRemote
   if(remoteMode){
@@ -1537,6 +1573,7 @@ function hideQR(){ document.getElementById('qrPanel').style.display = 'none'; }
 function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
 
 function myRemoteOpts(){
+  window._myRemoteName = getMyName();
   return {
     name: getMyName(),
     lang: LANG_TRANS[currentLangA.name] || 'en',
@@ -1563,8 +1600,13 @@ function joinRemoteRoom(){
 }
 
 function enterRemoteCall(room, isHost){
-  remoteMode = true;
+  remoteMode = true; remoteOriginalVoice = false; stopRCAudio(); CPRemote.setTTS(true);
   document.getElementById('remoteModal').classList.remove('open');
+  document.querySelector('#langBoxA .lang-sub').textContent='You — tap mic to speak';
+  document.querySelector('#langBoxB .lang-sub').textContent='Them — their language';
+  const vc=document.getElementById('origVoiceCtrl'); vc.style.display='flex';
+  const vb=document.getElementById('voiceBtn'); vb.textContent='🎵'; vb.style.background=''; vb.style.boxShadow='';
+  document.getElementById('voiceLabel').textContent='Real Voice';
   showCall();
   document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
   document.getElementById('transA').textContent = '';
