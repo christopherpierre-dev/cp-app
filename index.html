@@ -603,10 +603,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <h3>Remote Call</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">
       Create a room and share the code, or join with a code you received.
-      Pick <strong>your</strong> language first (Speaker A on the call screen).
     </p>
+    <div style="margin-bottom:16px;background:rgba(79,142,247,0.08);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+      <label style="font-size:13.5px;color:var(--text);font-weight:600;">🗣 I speak:
+        <select id="remoteLangSel" onchange="setRemoteLang(this.value)"
+          style="margin-left:8px;background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:8px 10px;font-size:14px;"></select>
+      </label>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">You will hear and read the others in this language.</div>
+    </div>
     <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
     <div style="display:flex;gap:10px;margin-top:14px;">
       <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
@@ -1178,7 +1184,6 @@ let confSession = false;
 let confCapturing = false;
 let confHeld = false;
 let confActive = false;
-let confCurrentTargets = []; // tracks languages the active recognizer is translating to
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1224,10 +1229,7 @@ async function startCapture(isSwitch){
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
     window.__confTk = tk; window.__confTkAt = Date.now();
     cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
-    const attendeeLangs = (CPRemote.peers || []).map(p => p.lang).filter(Boolean);
-    const baseLangs = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]).filter(Boolean);
-    const targets = [...new Set([...attendeeLangs, ...baseLangs])].slice(0, 6);
-    confCurrentTargets = [...targets];
+    const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
     targets.forEach(t => cfg.addTargetLanguage(t));
 
     const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
@@ -1473,7 +1475,33 @@ applyMyName();
 <!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
 <script src="cp-remote.js"></script>
 <script>
-function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
+// Langues proposées à l'entrée d'une salle (le créole est exclu de l'ENTRÉE :
+// aucun moteur commercial ne reconnaît la parole créole — il reste disponible
+// en sortie pour les autres modes).
+function populateRemoteLangs(){
+  const sel = document.getElementById('remoteLangSel');
+  if(!sel || sel.options.length) return;
+  LANGUAGES.filter(l => l.name !== 'Haitian Creole').forEach(l => {
+    const o = document.createElement('option');
+    o.value = l.name;
+    o.textContent = l.flag + ' ' + l.name;
+    sel.appendChild(o);
+  });
+}
+function setRemoteLang(name){
+  const l = LANGUAGES.find(x => x.name === name);
+  if(!l) return;
+  currentLangA = {flag: l.flag, name: l.name};
+  try{ updateCallUI(); }catch(e){}
+  // En cours d'appel : prévenir la salle du changement de langue
+  try{ if(remoteMode) CPRemote.setLanguage(LANG_TRANS[l.name]||'en', LANG_SPEECH[l.name]||'en-US'); }catch(e){}
+}
+function openRemoteModal(){
+  populateRemoteLangs();
+  const sel = document.getElementById('remoteLangSel');
+  if(sel) sel.value = currentLangA.name;
+  document.getElementById('remoteModal').classList.add('open');
+}
 function closeRemoteModal(e){
   if(e.target===document.getElementById('remoteModal'))
     document.getElementById('remoteModal').classList.remove('open');
@@ -1686,16 +1714,6 @@ function leaveAttendeeView(){
 
 // Wire up CPRemote events for conference attendees
 CPRemote.on((type, data) => {
-  // Conference HOST: restart recognizer when an attendee joins with a new language
-  if(type === 'roster' && confActive && !confAttendeeActive) {
-    const attendees = (data.participants || []);
-    const needsRestart = attendees.some(p => p.lang && !confCurrentTargets.includes(p.lang));
-    if(needsRestart) {
-      stopConference('⏳ Adding language…');
-      setTimeout(() => startConference(), 700);
-    }
-    return;
-  }
   if(confAttendeeActive){
     if(type === 'partial_utterance'){
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
