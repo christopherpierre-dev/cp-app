@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.equivox.twa",
+      "sha256_cert_fingerprints": [
+        "D2:45:10:A5:73:4D:FB:C8:B5:DB:EC:3C:2D:3E:7C:26:F6:7D:F9:E9:D4:99:2A:31:B5:07:95:89:CD:E2:6C:80"
+      ]
+    }
+  }
+]
