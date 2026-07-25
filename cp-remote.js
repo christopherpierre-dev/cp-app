@@ -5,31 +5,32 @@
  * Dépend du SDK Azure Speech déjà chargé par l'app (SpeechSDK).
  *
  * Public API:
- *   CPRemote.create(opts)          `create a room, returns Promise<{room}>
- *   CPRemote.join(code, opts)       `join a room, returns Promise<{room}>
- *   CPRemote.startSpeaking()        `begin STT + translation broadcast
- *   CPRemote.stopSpeaking()         `stop STT
- *   CPRemote.startAudioStream()     `stream raw microphone audio to room (original voice)
- *   CPRemote.stopAudioStream()      `stop audio streaming
+ *   CPRemote.create(opts)          — create a room, returns Promise<{room}>
+ *   CPRemote.join(code, opts)      — join a room, returns Promise<{room}>
+ *   CPRemote.startSpeaking()       — begin STT + translation broadcast
+ *   CPRemote.stopSpeaking()        — stop STT
+ *   CPRemote.startAudioStream()    — stream raw microphone audio to room (original voice)
+ *   CPRemote.stopAudioStream()     — stop audio streaming
+ *   CPRemote.setTtsMuted(bool)     — mute/unmute spoken translations (text stays)
  *   CPRemote.setLanguage(code, speechCode)
- *   CPRemote.leave()                `disconnect
- *   CPRemote.on(cb)                 `event callback: (type, data) => {}
- *   CPRemote.room                   `current room code
- *   CPRemote.peers                  `current participants array
+ *   CPRemote.leave()               — disconnect
+ *   CPRemote.on(cb)                — event callback: (type, data) => {}
+ *   CPRemote.room                  — current room code
+ *   CPRemote.peers                 — current participants array
  *
  * Events emitted via on(cb):
- *   joined          `{room, participants}
- *   roster          `{participants}
- *   partial         `{text}  (your own interim speech, local only)
- *   final           `{original, translations}  (your own final speech, local only)
- *   utterance       `{srcLang, original, translations}  (from server)
- *   partial_utterance `{srcLang, original, translations}  (interim, from server)
- *   audio_chunk     `{data, mimeType, isFirst, seq}  (raw audio from speaker)
- *   audio_started   `{mimeType}
- *   audio_error     `{error}
- *   invite          `{room}  (auto-detected join from URL hash)
- *   closed          `{}
- *   error           `{error}
+ *   joined          — {room, participants}
+ *   roster          — {participants}
+ *   partial         — {text}  (your own interim speech, local only)
+ *   final           — {original, translations}  (your own final speech, local only)
+ *   utterance       — {srcLang, original, translations}  (from server)
+ *   partial_utterance — {srcLang, original, translations}  (interim, from server)
+ *   audio_chunk     — {data, mimeType, isFirst, seq}  (raw audio from speaker)
+ *   audio_started   — {mimeType}
+ *   audio_error     — {error}
+ *   invite          — {room}  (auto-detected join from URL hash)
+ *   closed          — {}
+ *   error           — {error}
  */
 (function () {
   const CP_SERVER_URL = 'https://cp-server-kdbg.onrender.com';
@@ -44,18 +45,18 @@
     peers: [],
     recognizer: null,
     ttsQueue: Promise.resolve(),
-    ttsEnabled: true,
+    ttsMuted: false,
     onEvent: () => {},
   };
 
-  // Azure token
+  // ── Azure token ──────────────────────────────────────────────────
   async function getAzureToken() {
     const r = await fetch(CP_SERVER_URL + '/api/token');
     if (!r.ok) throw new Error('Azure token unavailable');
-    return r.json();
+    return r.json(); // {token, region}
   }
 
-  // WebSocket connection
+  // ── WebSocket connection ─────────────────────────────────────────
   function connect(action, opts = {}) {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(WS_URL);
@@ -83,6 +84,8 @@
           const prevLangs = new Set(state.peers.map(p => p.lang));
           state.peers = m.participants.filter(p => p.name !== state.myName);
           state.onEvent('roster', m);
+          // (Christopher) Nouvelle langue dans la salle -> redemarrer la
+          // reconnaissance pour y ajouter cette cible de traduction.
           if (state.recognizer) {
             const hasNewLang = state.peers.some(p => p.lang && !prevLangs.has(p.lang));
             if (hasNewLang) {
@@ -91,11 +94,14 @@
             }
           }
         } else if (m.type === 'utterance') {
+          // Final translated utterance from any room participant
           state.onEvent('utterance', m);
           speakTranslation(m);
         } else if (m.type === 'partial_utterance') {
+          // Interim/streaming translation for instant preview
           state.onEvent('partial_utterance', m);
         } else if (m.type === 'audio_chunk') {
+          // Raw audio from the speaker for original voice playback
           state.onEvent('audio_chunk', m);
         } else if (m.type === 'error') {
           state.onEvent('error', m);
@@ -108,7 +114,7 @@
     });
   }
 
-  // STT + translation -> broadcast to room
+  // ── STT + translation → broadcast to room ───────────────────────
   async function startSpeaking() {
     const { token, region } = await getAzureToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, region);
@@ -116,6 +122,7 @@
 
     const targets = [...new Set(state.peers.map(p => p.lang))].filter(l => l && l !== state.myLang);
     if (targets.length === 0) {
+      // (Christopher) Personne d'autre encore la : couvrir large en attendant
       ['en', 'fr', 'es', 'pt', 'ht', 'de']
         .filter(l => l !== state.myLang)
         .slice(0, 5)
@@ -128,9 +135,12 @@
     const rec = new SpeechSDK.TranslationRecognizer(cfg, audio);
     state.recognizer = rec;
 
+    // Interim results → instant preview for attendees
     rec.recognizing = (_s, e) => {
       const text = e.result.text;
       state.onEvent('partial', { text });
+
+      // Broadcast partial translation so attendees see text as you speak
       if (state.ws?.readyState === WebSocket.OPEN && text) {
         const pt = {};
         targets.forEach(l => {
@@ -148,6 +158,7 @@
       }
     };
 
+    // Final recognized sentence → broadcast with full translations
     rec.recognized = (_s, e) => {
       if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech || !e.result.text) return;
       const translations = {};
@@ -171,7 +182,7 @@
     });
   }
 
-  // Original voice streaming
+  // ── Original voice streaming ─────────────────────────────────────
   let mediaRecorder = null;
   let audioStream = null;
 
@@ -181,7 +192,7 @@
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 24000 }
       });
 
-      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
         .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
       let chunkIndex = 0;
@@ -191,9 +202,11 @@
         if (e.data.size === 0 || state.ws?.readyState !== WebSocket.OPEN) return;
         const buf = await e.data.arrayBuffer();
         const bytes = new Uint8Array(buf);
+        // Encode as base64 in chunks to avoid large strings
         let binary = '';
         bytes.forEach(b => { binary += String.fromCharCode(b); });
         const base64 = btoa(binary);
+
         state.ws.send(JSON.stringify({
           type: 'audio_chunk',
           data: base64,
@@ -204,7 +217,7 @@
         chunkIndex++;
       };
 
-      mediaRecorder.start(200);
+      mediaRecorder.start(200); // 200ms chunks → ~5 per second, low latency
       state.onEvent('audio_started', { mimeType });
     } catch (err) {
       console.warn('[CPRemote] Audio stream error:', err);
@@ -223,7 +236,7 @@
     }
   }
 
-  // TTS: play received translation through speakers
+  // ── TTS: play received translation through speakers ──────────────
   const TTS_VOICES = {
     fr: 'fr-CA-JeanNeural',     en: 'en-US-GuyNeural',
     es: 'es-MX-JorgeNeural',   de: 'de-DE-ConradNeural',
@@ -235,22 +248,71 @@
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
     ht: 'fr-CA-JeanNeural',     sw: 'sw-KE-RafikiNeural',
     el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
+    'zh-Hans': 'zh-CN-YunxiNeural',
   };
 
+  // ── Déverrouillage audio (obligatoire sur iPhone/iPad) ───────────
+  // Safari iOS n'autorise le son que s'il part d'un geste de l'utilisateur.
+  // On joue un silence dans UN élément <audio> au moment du toucher (Join,
+  // micro…) ; ce même élément, désormais autorisé, jouera toutes les voix.
+  let ttsAudio = null;
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+  function ensureTtsAudio() {
+    if (!ttsAudio) {
+      ttsAudio = new Audio();
+      ttsAudio.setAttribute('playsinline', '');
+      ttsAudio.autoplay = false;
+    }
+    return ttsAudio;
+  }
+  let audioUnlocked = false;
+  function unlockAudio() {
+    if (audioUnlocked) return; // déjà autorisé — ne pas écraser une voix en cours
+    try {
+      const a = ensureTtsAudio();
+      a.src = SILENT_WAV;
+      a.play().then(() => { audioUnlocked = true; }).catch(() => {});
+    } catch (_) {}
+  }
+
   function speakTranslation(m) {
-    if (!state.ttsEnabled) return;
+    if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
     const text = m.translations?.[state.myLang];
     if (!text) return;
+    speakText(text, state.myLang);
+  }
+
+  /** Lecture vocale d'un texte dans une langue donnée, via le canal
+   *  audio déverrouillé (fiable sur iPhone). Utilisée par le Remote Call,
+   *  les participants de conférence et le Two-Way Call. */
+  function speakText(text, langCode) {
+    if (!text) return;
+
+    // Queue TTS so overlapping utterances play in order
     state.ttsQueue = state.ttsQueue.then(() => new Promise(async (resolve) => {
       try {
         const { token, region } = await getAzureToken();
         const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-        cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
-        const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-        const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
+        cfg.speechSynthesisVoiceName = TTS_VOICES[langCode] || 'en-US-GuyNeural';
+        cfg.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
+
+        // Pas de sortie haut-parleur directe (bloquée par iOS hors geste) :
+        // on récupère l'audio et on le joue via l'élément déverrouillé.
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
         synth.speakTextAsync(
           text,
-          () => { synth.close(); resolve(); },
+          (r) => {
+            synth.close();
+            try {
+              if (!r.audioData || r.audioData.byteLength === 0) return resolve();
+              const a = ensureTtsAudio();
+              const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+              a.src = url;
+              a.onended = () => { URL.revokeObjectURL(url); resolve(); };
+              a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); resolve(); });
+            } catch (_) { resolve(); }
+          },
           (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
         );
       } catch (err) {
@@ -260,12 +322,14 @@
     }));
   }
 
+  // ── Change language mid-call ─────────────────────────────────────
   function setLanguage(shortCode, speechCode) {
     state.myLang = shortCode;
     state.mySpeechLang = speechCode;
     state.ws?.send(JSON.stringify({ type: 'lang', lang: shortCode }));
   }
 
+  // ── Public API ───────────────────────────────────────────────────
   window.CPRemote = {
     create:          (o) => { Object.assign(state, mapOpts(o)); return connect('create'); },
     join:            (code, o) => { Object.assign(state, mapOpts(o)); return connect('join', { room: code }); },
@@ -274,9 +338,12 @@
     startAudioStream,
     stopAudioStream,
     setLanguage,
+    unlockAudio,
+    speakText,
+    setTtsMuted:     (b) => { state.ttsMuted = !!b; },
+    setTTS:          (v) => { state.ttsMuted = !v; },
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
-    setTTS:          (v) => { state.ttsEnabled = !!v; },
     sendRaw:         (obj) => state.ws?.send(JSON.stringify(obj)),
     get room()       { return state.room; },
     get peers()      { return state.peers; },
@@ -290,6 +357,7 @@
     };
   }
 
+  // Auto-join via shared link …/#join=K7Q2
   window.addEventListener('load', () => {
     const match = location.hash.match(/join=([A-Za-z0-9]{4})/i);
     if (match) state.onEvent('invite', { room: match[1].toUpperCase() });
