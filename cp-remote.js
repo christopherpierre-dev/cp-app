@@ -277,6 +277,10 @@
 
   function speakTranslation(m) {
     if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
+    // Même langue que l'orateur : on entend déjà sa vraie voix (et son texte).
+    // Répéter la même phrase en voix de synthèse = écho / répétition. On saute.
+    const base = (c) => String(c || '').toLowerCase().split('-')[0];
+    if (m.srcLang && base(m.srcLang) === base(state.myLang)) return;
     const text = m.translations?.[state.myLang];
     if (!text) return;
     speakText(text, state.myLang);
@@ -307,10 +311,14 @@
               if (!r.audioData || r.audioData.byteLength === 0) return resolve();
               const a = ensureTtsAudio();
               const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+              // Baisser la vraie voix SEULEMENT pendant que la traduction parle
+              // (cabine d'interprétation), puis remonter à plein volume.
+              const duck = (on) => { try { window.__rcDuck && window.__rcDuck(on); } catch (_) {} };
               a.src = url;
-              a.onended = () => { URL.revokeObjectURL(url); resolve(); };
-              a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
-              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); resolve(); });
+              a.onended = () => { URL.revokeObjectURL(url); duck(false); resolve(); };
+              a.onerror = () => { URL.revokeObjectURL(url); duck(false); resolve(); };
+              duck(true);
+              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); duck(false); resolve(); });
             } catch (_) { resolve(); }
           },
           (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }

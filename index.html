@@ -1008,16 +1008,21 @@ function toggleSpeaker(){
   btn.textContent = nowMuted?'🔇':'🔊';
   window.__ttsMuted = nowMuted;
   try{ CPRemote.setTtsMuted(nowMuted); }catch(e){}
-  // TTS coupé → la voix originale monte à plein volume (appel « normal »)
-  if(rcAudio) rcAudio.volume = nowMuted ? 1.0 : RC_DUCK_VOL;
+  // Dans tous les cas la voix originale revient à plein volume ;
+  // __rcDuck ne la baissera que pendant une lecture TTS (si non coupée).
+  if(rcAudio) rcAudio.volume = 1.0;
 }
 
 // ── Voix originale : lecture des morceaux audio reçus (Remote Call) ──
 // L'orateur envoie sa vraie voix en morceaux de 200 ms ; on les recolle
-// ici avec MediaSource. Volume réduit sous la traduction parlée (comme
-// une cabine d'interprétation), plein volume si la TTS est coupée (🔇).
+// ici avec MediaSource. Plein volume par défaut ; baissée UNIQUEMENT
+// pendant que la traduction parle (cabine d'interprétation), puis remontée.
 const RC_DUCK_VOL = 0.35;
 let rcAudio=null, rcMS=null, rcSB=null, rcQueue=[], rcMime=null;
+// Appelé par cp-remote.js au début/fin de chaque lecture TTS
+window.__rcDuck = (on) => {
+  try{ if(rcAudio) rcAudio.volume = (on && !window.__ttsMuted) ? RC_DUCK_VOL : 1.0; }catch(e){}
+};
 
 // Déverrouillage audio iOS : à appeler depuis un GESTE utilisateur (toucher).
 // Sans cela, Safari iPhone bloque silencieusement toute lecture de son.
@@ -1051,7 +1056,7 @@ function rcPlayChunk(m){
     if(!('MediaSource' in window) || !MediaSource.isTypeSupported(m.mimeType)) return; // repli : texte + TTS seulement
     rcMime = m.mimeType;
     if(!rcAudio){ rcAudio = document.createElement('audio'); rcAudio.autoplay = true; document.body.appendChild(rcAudio); }
-    rcAudio.volume = window.__ttsMuted ? 1.0 : RC_DUCK_VOL;
+    rcAudio.volume = 1.0; // plein volume ; __rcDuck la baisse pendant la TTS
     rcMS = new MediaSource();
     rcAudio.src = URL.createObjectURL(rcMS);
     rcMS.addEventListener('sourceopen', () => {
