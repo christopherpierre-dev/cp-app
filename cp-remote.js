@@ -49,6 +49,11 @@
     onEvent: () => {},
   };
 
+  // Horodatage du dernier morceau de vraie voix RÉELLEMENT lisible ici.
+  // Sert à décider si la voix de synthèse ferait double emploi (voir
+  // speakTranslation). Reste à 0 sur les appareils sans MediaSource.
+  let lastPlayableVoiceChunk = 0;
+
   // ── Azure token ──────────────────────────────────────────────────
   async function getAzureToken() {
     const r = await fetch(CP_SERVER_URL + '/api/token');
@@ -101,7 +106,16 @@
           // Interim/streaming translation for instant preview
           state.onEvent('partial_utterance', m);
         } else if (m.type === 'audio_chunk') {
-          // Raw audio from the speaker for original voice playback
+          // Raw audio from the speaker for original voice playback.
+          // On ne note l'heure QUE si cet appareil peut réellement lire ce
+          // format (iPhone/Safari ne supporte pas MediaSource : la vraie voix
+          // n'y sort pas, il faut donc garder la voix de synthèse).
+          try {
+            if (typeof MediaSource !== 'undefined' && m.mimeType &&
+                MediaSource.isTypeSupported(m.mimeType)) {
+              lastPlayableVoiceChunk = Date.now();
+            }
+          } catch (_) {}
           state.onEvent('audio_chunk', m);
         } else if (m.type === 'error') {
           state.onEvent('error', m);
@@ -277,10 +291,14 @@
 
   function speakTranslation(m) {
     if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
-    // Même langue que l'orateur : on entend déjà sa vraie voix (et son texte).
-    // Répéter la même phrase en voix de synthèse = écho / répétition. On saute.
+    // Anti-répétition : on ne saute la voix de synthèse QUE si la vraie voix
+    // de l'orateur est effectivement en train de sortir sur CET appareil ET
+    // qu'elle est dans notre langue. Sans ces deux conditions on parle
+    // toujours — sinon l'appareil resterait muet (cas iPhone, ou orateur qui
+    // n'envoie pas sa voix originale).
     const base = (c) => String(c || '').toLowerCase().split('-')[0];
-    if (m.srcLang && base(m.srcLang) === base(state.myLang)) return;
+    const voiceAudible = (Date.now() - lastPlayableVoiceChunk) < 3000;
+    if (voiceAudible && m.srcLang && base(m.srcLang) === base(state.myLang)) return;
     const text = m.translations?.[state.myLang];
     if (!text) return;
     speakText(text, state.myLang);
