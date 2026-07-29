@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>Loquivox  Real-Time AI Voice Translation</title>
+<title>Loquivox — Real-Time AI Voice Translation</title>
 
 <!-- PWA: iOS Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -167,9 +167,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .p-add{border:2px dashed var(--border);cursor:pointer;}
 .p-add .p-avatar{background:rgba(255,255,255,0.03);}
 .conf-transcript{margin:16px 24px 0;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
-/* La transcription défile à l'intérieur de sa boîte : les cartes de langue
-   et les boutons de séance restent toujours visibles, même en longue réunion. */
-#confTranscript{max-height:38vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .conf-transcript h4{font-size:13px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;}
 .transcript-line{display:flex;gap:10px;margin-bottom:12px;align-items:flex-start;}
 .t-flag{font-size:18px;flex-shrink:0;margin-top:2px;}
@@ -282,13 +279,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="mode-card" onclick="showCall()">
       <div class="mode-icon">📞</div>
       <h3>Two-Way Call</h3>
-      <p>2 people · 1 device · face to face</p>
+      <p>One-on-one real-time translation</p>
       <span class="badge badge-blue">Live</span>
     </div>
     <div class="mode-card" onclick="showScreen('conference')">
       <div class="mode-icon">👥</div>
       <h3>Conference</h3>
-      <p>1 room · 7 languages on one screen — works around a table too</p>
+      <p>Multi-language group calls</p>
       <span class="badge badge-purple">Beta</span>
     </div>
     <!-- NOUVEAU : appel à distance (2 appareils) -->
@@ -297,7 +294,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <div class="mode-icon" style="margin-bottom:0;">🌐</div>
         <div>
           <h3>Remote Call</h3>
-          <p>Up to 50 people · each on their own device · share a code or QR</p>
+          <p>Talk from two devices — share a room code, each in your own language</p>
           <span class="badge badge-purple">New</span>
         </div>
       </div>
@@ -402,6 +399,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
       <span id="micLabel">Tap to speak</span>
     </div>
+    <!-- Original Voice toggle — only shown in Remote Call mode -->
+    <div class="ctrl-btn" id="origVoiceCtrl" onclick="toggleOriginalVoice()" style="display:none;">
+      <button class="ctrl-icon ctrl-gray" id="voiceBtn">🎵</button>
+      <span id="voiceLabel">Real Voice</span>
+    </div>
     <div class="ctrl-btn" onclick="endCall()">
       <button class="ctrl-icon ctrl-red">📵</button>
       <span>End</span>
@@ -471,9 +473,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- Choix de la langue d'écoute : toujours visible, au-dessus de la transcription -->
-  <div style="margin:14px 24px 0;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;"><label style="font-size:13px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:6px 10px;font-size:13px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
-
   <div class="conf-transcript">
     <h4>Live Transcript</h4>
     <div id="confTranscript">
@@ -497,13 +496,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div style="text-align:center;margin-bottom:10px;">
     <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
   <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
-    <div style="text-align:center;font-size:11.5px;color:var(--muted,#8b93a7);margin-bottom:8px;line-height:1.5;">Tap a language card to <b>give the floor</b> to that speaker · <b>Hold the floor</b> mutes the mic between speakers</div>
     <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
-    <button class="btn btn-outline" id="confHoldBtn" onclick="holdFloor()" style="display:none;margin-top:8px;">⏸ Hold the floor (mute mic)</button>
   </div>
 
   <div class="bottom-nav">
@@ -534,7 +532,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="settings-section">
     <div class="settings-row">
       <div class="s-icon" style="background:rgba(34,197,94,0.12);">🔴</div>
-      <div class="s-info"><strong>Voice Cloning</strong><span>Planned (v2) — hear speakers in their own voice, with recorded consent</span></div>
+      <div class="s-info"><strong>Keep Original Voice</strong><span>Coming in v0.3 — voice preservation</span></div>
       <button class="toggle" style="opacity:.5;pointer-events:none;"></button>
     </div>
     <div class="settings-row">
@@ -603,16 +601,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <h3>Remote Call</h3>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
       Create a room and share the code, or join with a code you received.
+      Pick <strong>your</strong> language first (Speaker A on the call screen).
     </p>
-    <div style="margin-bottom:16px;background:rgba(79,142,247,0.08);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
-      <label style="font-size:13.5px;color:var(--text);font-weight:600;">🗣 I speak:
-        <select id="remoteLangSel" onchange="setRemoteLang(this.value)"
-          style="margin-left:8px;background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:8px 10px;font-size:14px;"></select>
-      </label>
-      <div style="font-size:11.5px;color:var(--muted);margin-top:6px;">You will hear and read the others in this language.</div>
-    </div>
     <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
     <div style="display:flex;gap:10px;margin-top:14px;">
       <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
@@ -721,6 +713,10 @@ let waveInterval = null;
 let obStep = 0;
 let azureRecognizer = null;
 let remoteMode = false; // NOUVEAU : mode appel à distance
+// ── Original Voice state (Remote Call) ───────────────────────
+let remoteOriginalVoice = false;
+let rcAudioEl = null, rcAudioMS = null, rcAudioSB = null;
+let rcAudioQueue = [], rcAudioBusy = false;
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
@@ -850,29 +846,88 @@ function showMicError(msg){
 }
 
 // ── Microphone ────────────────────────────────────────────────
+// ── Original Voice (Remote Call) ─────────────────────────────
+function toggleOriginalVoice(){
+  if(!remoteMode) return;
+  remoteOriginalVoice = !remoteOriginalVoice;
+  const btn = document.getElementById('voiceBtn');
+  const lbl = document.getElementById('voiceLabel');
+  if(remoteOriginalVoice){
+    btn.textContent = '🎵';
+    btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+    btn.style.boxShadow = '0 8px 24px rgba(34,197,94,0.4)';
+    lbl.textContent = 'Real Voice';
+    CPRemote.setTTS(false);
+    CPRemote.startAudioStream();
+  } else {
+    btn.textContent = '🔇';
+    btn.style.background = '';
+    btn.style.boxShadow = '';
+    lbl.textContent = 'TTS Voice';
+    CPRemote.setTTS(true);
+    CPRemote.stopAudioStream();
+    stopRCAudio();
+  }
+}
+
+function stopRCAudio(){
+  if(rcAudioEl){ rcAudioEl.pause(); rcAudioEl.src=''; rcAudioEl=null; }
+  rcAudioMS=null; rcAudioSB=null; rcAudioQueue=[]; rcAudioBusy=false;
+}
+
+function handleRemoteAudioChunk({ data, mimeType, isFirst }){
+  // Decode base64 → ArrayBuffer
+  const bin = atob(data);
+  const buf = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+  const ab = buf.buffer;
+
+  if(isFirst || !rcAudioEl){
+    // Start a fresh MediaSource stream for each new speaking burst
+    if(rcAudioEl){ rcAudioEl.pause(); rcAudioEl.src=''; }
+    rcAudioSB=null; rcAudioQueue=[ab]; rcAudioBusy=false;
+    rcAudioEl = new Audio();
+    rcAudioMS = new MediaSource();
+    rcAudioEl.src = URL.createObjectURL(rcAudioMS);
+    rcAudioMS.addEventListener('sourceopen', ()=>{
+      try{
+        const mt = mimeType || 'audio/webm;codecs=opus';
+        rcAudioSB = rcAudioMS.addSourceBuffer(mt);
+        rcAudioSB.mode = 'sequence';
+        rcAudioSB.addEventListener('updateend', ()=>{ rcAudioBusy=false; flushRCAudio(); });
+        flushRCAudio();
+      }catch(e){ console.warn('[RC Audio]',e); }
+    },{once:true});
+    rcAudioEl.play().catch(()=>{});
+  } else {
+    rcAudioQueue.push(ab);
+    flushRCAudio();
+  }
+}
+
+function flushRCAudio(){
+  if(!rcAudioSB || rcAudioBusy || rcAudioQueue.length===0) return;
+  rcAudioBusy=true;
+  try{ rcAudioSB.appendBuffer(rcAudioQueue.shift()); }
+  catch(e){ rcAudioBusy=false; console.warn('[RC Audio flush]',e); }
+}
+
 function toggleMic(){
   // NOUVEAU : en mode distance, le micro passe par CPRemote
   if(remoteMode){
     if(isListening){
       isListening=false;
       CPRemote.stopSpeaking();
-      try{ CPRemote.stopAudioStream(); }catch(e){}
       document.getElementById('micBtn').classList.remove('listening');
       document.getElementById('micLabel').textContent='Tap to speak';
       animateWave(false);
     } else {
       isListening=true;
-      unlockPlayback(); // geste utilisateur : autorise le son (iOS)
       document.getElementById('micBtn').classList.add('listening');
       document.getElementById('micLabel').textContent='Listening…';
       animateWave(true);
-      // Voix originale + reconnaissance/traduction, en parallèle
-      ensureMic().then(()=>{
-        try{ CPRemote.startAudioStream(); }catch(e){}
-        return CPRemote.startSpeaking();
-      }).catch(err=>{
+      ensureMic().then(()=>CPRemote.startSpeaking()).catch(err=>{
         isListening=false;
-        try{ CPRemote.stopAudioStream(); }catch(e){}
         document.getElementById('micBtn').classList.remove('listening');
         document.getElementById('micLabel').textContent='Tap to speak';
         animateWave(false);
@@ -885,7 +940,6 @@ function toggleMic(){
 }
 
 async function startListening(){
-  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   try{ await ensureMic(); }
   catch(e){ showMicError(e.message); return; }
   isListening=true;
@@ -922,24 +976,18 @@ async function startListening(){
           const translated = e.result.translations.get(targetLang);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
-          // Voix : prononcer la traduction dans la langue de l'interlocuteur
-          const spk = document.getElementById('speakerBtn');
-          if(translated && (!spk || spk.textContent !== '🔇')){
-            try{ CPRemote.speakText(translated, targetLang); }catch(e2){}
-          }
           stopListening();
         }
       };
 
-      // Pas de repli fictif : en cas d'échec, on le dit honnêtement.
       azureRecognizer.canceled = () => {
         stopListening();
-        showMicError('Translation service unavailable — check your connection and try again.');
+        runDemoTranslation();
       };
 
       azureRecognizer.startContinuousRecognitionAsync(
         ()=>{}, // success
-        ()=>{ stopListening(); showMicError('Could not start recognition — check your connection and try again.'); }
+        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
       );
 
       // Auto-stop after 10 seconds of silence
@@ -947,11 +995,11 @@ async function startListening(){
 
     } catch(err){
       stopListening();
-      showMicError('Translation service unavailable — check your connection and try again.');
+      runDemoTranslation();
     }
   } else {
-    stopListening();
-    showMicError('Speech engine not loaded — check your connection and reload the page.');
+    // Fallback demo mode
+    runDemoTranslation();
   }
 }
 
@@ -1004,83 +1052,7 @@ function showMockTranslation(original, speaker, preTranslated){
 
 function toggleSpeaker(){
   const btn=document.getElementById('speakerBtn');
-  const nowMuted = btn.textContent==='🔊';
-  btn.textContent = nowMuted?'🔇':'🔊';
-  window.__ttsMuted = nowMuted;
-  try{ CPRemote.setTtsMuted(nowMuted); }catch(e){}
-  // Dans tous les cas la voix originale revient à plein volume ;
-  // __rcDuck ne la baissera que pendant une lecture TTS (si non coupée).
-  if(rcAudio) rcAudio.volume = 1.0;
-}
-
-// ── Voix originale : lecture des morceaux audio reçus (Remote Call) ──
-// L'orateur envoie sa vraie voix en morceaux de 200 ms ; on les recolle
-// ici avec MediaSource. Plein volume par défaut ; baissée UNIQUEMENT
-// pendant que la traduction parle (cabine d'interprétation), puis remontée.
-const RC_DUCK_VOL = 0.35;
-let rcAudio=null, rcMS=null, rcSB=null, rcQueue=[], rcMime=null;
-// Appelé par cp-remote.js au début/fin de chaque lecture TTS
-window.__rcDuck = (on) => {
-  try{ if(rcAudio) rcAudio.volume = (on && !window.__ttsMuted) ? RC_DUCK_VOL : 1.0; }catch(e){}
-};
-
-// Déverrouillage audio iOS : à appeler depuis un GESTE utilisateur (toucher).
-// Sans cela, Safari iPhone bloque silencieusement toute lecture de son.
-let __rcUnlocked = false;
-function unlockPlayback(){
-  try{ CPRemote.unlockAudio(); }catch(e){}
-  if(__rcUnlocked) return; // déjà autorisé — ne pas interrompre la voix en cours
-  try{
-    if(!rcAudio){
-      rcAudio = document.createElement('audio');
-      rcAudio.autoplay = true;
-      rcAudio.setAttribute('playsinline','');
-      document.body.appendChild(rcAudio);
-    }
-    rcAudio.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
-    rcAudio.play().then(()=>{ __rcUnlocked = true; }).catch(()=>{});
-  }catch(e){}
-}
-
-function rcResetVoice(){
-  try{ if(rcAudio){ rcAudio.pause(); rcAudio.removeAttribute('src'); rcAudio.load(); } }catch(e){}
-  rcMS=null; rcSB=null; rcQueue=[]; rcMime=null;
-}
-
-function rcPlayChunk(m){
-  let bytes;
-  try{ bytes = Uint8Array.from(atob(m.data), c=>c.charCodeAt(0)); }catch(e){ return; }
-  const fresh = m.isFirst || !rcMS || rcMime !== m.mimeType;
-  if(fresh){
-    rcResetVoice();
-    if(!('MediaSource' in window) || !MediaSource.isTypeSupported(m.mimeType)) return; // repli : texte + TTS seulement
-    rcMime = m.mimeType;
-    if(!rcAudio){ rcAudio = document.createElement('audio'); rcAudio.autoplay = true; document.body.appendChild(rcAudio); }
-    rcAudio.volume = 1.0; // plein volume ; __rcDuck la baisse pendant la TTS
-    rcMS = new MediaSource();
-    rcAudio.src = URL.createObjectURL(rcMS);
-    rcMS.addEventListener('sourceopen', () => {
-      try{
-        rcSB = rcMS.addSourceBuffer(rcMime);
-        rcSB.mode = 'sequence';
-        rcSB.addEventListener('updateend', () => {
-          if(rcSB && !rcSB.updating && rcQueue.length) rcSB.appendBuffer(rcQueue.shift());
-          // Rester proche du direct : si on a >1,5 s de retard, on saute au bord
-          try{
-            if(rcAudio && rcSB && rcSB.buffered.length){
-              const end = rcSB.buffered.end(rcSB.buffered.length-1);
-              if(end - rcAudio.currentTime > 1.5) rcAudio.currentTime = end - 0.3;
-            }
-          }catch(e){}
-        });
-        rcSB.appendBuffer(bytes);
-        rcAudio.play().catch(()=>{});
-      }catch(e){ rcResetVoice(); }
-    }, {once:true});
-  } else if(rcSB){
-    if(rcSB.updating || rcQueue.length) rcQueue.push(bytes);
-    else { try{ rcSB.appendBuffer(bytes); }catch(e){ rcResetVoice(); } }
-  }
+  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
 }
 
 // ── Fin d'appel (local ou distance) ───────────────────────────
@@ -1088,7 +1060,12 @@ function endCall(){
   if(remoteMode){
     try{ CPRemote.leave(); }catch(e){}
     remoteMode=false;
-    rcResetVoice(); // couper la lecture de la voix originale
+    remoteOriginalVoice=false;
+    stopRCAudio();
+    CPRemote.setTTS(true);
+    document.getElementById('origVoiceCtrl').style.display='none';
+    document.querySelector('#langBoxA .lang-sub').textContent='Speaker A (You)';
+    document.querySelector('#langBoxB .lang-sub').textContent='Speaker B';
   }
   stopListening();
   document.getElementById('callTitle').textContent='Two-Way Translation';
@@ -1144,9 +1121,7 @@ function selectLang(flag,name){
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
 const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
-const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural',
-  pt:'pt-BR-AntonioNeural', de:'de-DE-ConradNeural', ja:'ja-JP-KeitaNeural', ko:'ko-KR-InJoonNeural', it:'it-IT-DiegoNeural', hi:'hi-IN-MadhurNeural',
-  nl:'nl-NL-MaartenNeural', pl:'pl-PL-MarekNeural', sv:'sv-SE-MattiasNeural', tr:'tr-TR-AhmetNeural', el:'el-GR-NestorasNeural', vi:'vi-VN-NamMinhNeural', sw:'sw-KE-RafikiNeural'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
 let confLang = {name:'English', flag:'🇺🇸'};
 
 function explainHtLimit(){
@@ -1159,18 +1134,15 @@ function setConfSpeaker(name, flag){
   const el = document.getElementById('confSrcLang');
   if(el) el.textContent = name;
   highlightConfSpeaker(name);
-  // Cliquer une carte = donner la parole à cette langue (et reprendre après une pause).
-  if(confSession) startCapture(true);
+  if(confActive){
+    stopConference('⏳ Switching speaker…');
+    setTimeout(()=>startConference(), 700);
+  }
 }
 
-async function speakConf(text, code){
+function speakConf(text, code){
   try{
-    if(!text || typeof SpeechSDK === 'undefined') return;
-    // Un auditeur qui n'a jamais parlé n'a pas de jeton, et un jeton Azure
-    // expire après ~10 min : on récupère/rafraîchit au besoin.
-    if(!window.__confTk || Date.now() - (window.__confTkAt || 0) > 8*60*1000){
-      try{ window.__confTk = await getCpToken(); window.__confTkAt = Date.now(); }catch(e){ return; }
-    }
+    if(!window.__confTk || !text) return;
     const c = SpeechSDK.SpeechConfig.fromAuthorizationToken(window.__confTk.token, window.__confTk.region);
     c.speechSynthesisVoiceName = CONF_VOICES[code] || 'en-US-GuyNeural';
     const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
@@ -1179,30 +1151,15 @@ async function speakConf(text, code){
   }catch(e){}
 }
 let confRecognizer = null;
-// Modèle « présidence » :
-//  confSession   = la séance est ouverte (bouton Start pressé)
-//  confCapturing = le micro écoute activement l'orateur en cours
-//  confHeld      = séance ouverte mais parole suspendue (micro coupé)
-// confActive reste un alias de compatibilité (= confCapturing) car
-// showConfQR() s'en sert pour exiger une séance démarrée avant de partager le QR.
-let confSession = false;
-let confCapturing = false;
-let confHeld = false;
 let confActive = false;
+let confCurrentTargets = []; // tracks languages the active recognizer is translating to
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function stopRecognizer(){
-  if(confRecognizer){
-    try{ confRecognizer.stopContinuousRecognitionAsync(() => { try{confRecognizer.close();}catch(e){} confRecognizer = null; }); }
-    catch(e){ confRecognizer = null; }
-  }
-}
-
 function toggleConference(){
-  if(confSession){ endConference(); } else { startConference(); }
+  if(confActive){ stopConference(); } else { startConference(); }
 }
 
 async function startConference(){
@@ -1211,90 +1168,57 @@ async function startConference(){
     alert('Speech engine unavailable — check your connection and reload.');
     return;
   }
-  const el = document.getElementById('confSrcLang');
-  if(el) el.textContent = confLang.name;
+  document.getElementById('confSrcLang').textContent = confLang.name;
   try{ await ensureMic(); }
   catch(e){ showMicError(e.message); btn.textContent = '▶ Start live session'; return; }
-  confSession = true;
-  document.getElementById('confTranscript').innerHTML = '';
-  startCapture(false);
-}
-
-// (Re)construit le recognizer pour la langue courante (confLang).
-// Sert à démarrer, à changer d'orateur, et à reprendre après une pause :
-// dans les trois cas, cela « donne la parole » à cette langue.
-async function startCapture(isSwitch){
-  const btn = document.getElementById('confBtn');
-  const hold = document.getElementById('confHoldBtn');
-  stopRecognizer();
-  clearConfInterim();
   btn.textContent = '⏳ Connecting…';
   try{
     const tk = await getCpToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-    window.__confTk = tk; window.__confTkAt = Date.now();
+    window.__confTk = tk;
     cfg.speechRecognitionLanguage = LANG_SPEECH[confLang.name] || 'en-US';
-    const targets = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]);
+    // Build targets: actual attendee languages first (so they always hear the speaker),
+    // then fill from CONF_TARGETS. Azure max = 6 target languages.
+    const attendeeLangs = (CPRemote.peers || []).map(p => p.lang).filter(Boolean);
+    const baseLangs = CONF_TARGETS.filter(n => n !== confLang.name).map(n => LANG_TRANS[n]).filter(Boolean);
+    const targets = [...new Set([...attendeeLangs, ...baseLangs])].slice(0, 6);
+    confCurrentTargets = [...targets];
     targets.forEach(t => cfg.addTargetLanguage(t));
 
     const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
     confRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
+
+    document.getElementById('confTranscript').innerHTML = '';
     highlightConfSpeaker(confLang.name);
 
-    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text, e.result.translations, targets); };
+    confRecognizer.recognizing = (s, e) => { if(e.result.text) showConfInterim(e.result.text); };
     confRecognizer.recognized = (s, e) => {
       if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech && e.result.text){
         addLiveConfLine(e.result.text, e.result.translations, targets);
       }
     };
-    confRecognizer.canceled = () => { holdFloor(true); };
+    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
 
     confRecognizer.startContinuousRecognitionAsync(
-      () => {
-        confCapturing = true; confActive = true; confHeld = false;
-        btn.textContent = '⏹ End session';
-        if(hold){ hold.style.display = ''; hold.textContent = '⏸ Hold the floor (mute mic)'; }
-      },
-      (err) => { endConference(); alert('Could not start the session: ' + err); }
+      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
+      (err) => { stopConference(); alert('Could not start the session: ' + err); }
     );
   } catch(err){
-    btn.textContent = confSession ? '⏹ End session' : '▶ Start live session';
+    btn.textContent = '▶ Start live session';
     alert('Speech service unavailable: ' + err.message);
   }
 }
 
-// Suspendre le micro entre deux orateurs (personne n'a la parole) — ou reprendre.
-function holdFloor(fromCancel){
-  if(!confSession) return;
-  const hold = document.getElementById('confHoldBtn');
-  const hint = document.getElementById('confHint');
-  if(confCapturing || fromCancel){
-    // → PAROLE SUSPENDUE : on coupe la capture, la séance reste ouverte
-    confCapturing = false; confActive = false; confHeld = true;
-    clearConfInterim();
-    stopRecognizer();
-    document.querySelectorAll('.participant-card').forEach(c => {
-      c.classList.remove('speaking');
-      const st = c.querySelector('.p-status');
-      if(st){ st.className = 'p-status listen'; st.textContent = 'Floor open'; }
-    });
-    if(hold){ hold.textContent = '▶ Give the floor back'; }
-    if(hint) hint.innerHTML = "⏸ Floor held — tap a speaker's language card to give them the floor";
-  } else {
-    // → REPRISE : on redonne la parole à la langue courante
-    if(hint) hint.innerHTML = '🎙 You speak <b id="confSrcLang">' + confLang.name + '</b> — the room reads you live in every language';
-    startCapture(true);
-  }
-}
-
-function endConference(){
-  confSession = false; confCapturing = false; confActive = false; confHeld = false;
+function stopConference(label){
+  confActive = false;
+  confCurrentTargets = [];
   const btn = document.getElementById('confBtn');
-  if(btn) btn.textContent = '▶ Start live session';
-  const hold = document.getElementById('confHoldBtn');
-  if(hold) hold.style.display = 'none';
+  if(btn) btn.textContent = label || '▶ Start live session';
   clearConfInterim();
-  stopRecognizer();
+  if(confRecognizer){
+    try{ confRecognizer.stopContinuousRecognitionAsync(() => { confRecognizer.close(); confRecognizer = null; }); }
+    catch(e){ confRecognizer = null; }
+  }
   document.querySelectorAll('.participant-card').forEach(c => {
     c.classList.remove('speaking');
     const st = c.querySelector('.p-status');
@@ -1315,7 +1239,7 @@ function highlightConfSpeaker(langName){
   });
 }
 
-function showConfInterim(text, translations, targets){
+function showConfInterim(text){
   let el = document.getElementById('confInterim');
   if(!el){
     el = document.createElement('div');
@@ -1323,26 +1247,12 @@ function showConfInterim(text, translations, targets){
     el.className = 'transcript-line';
     document.getElementById('confTranscript').appendChild(el);
   }
-  // Traduction simultanée : les versions provisoires s'affichent pendant
-  // que l'orateur parle, puis se figent à la fin de la phrase.
-  let trans = '';
-  if(translations && targets){
-    targets.forEach(t => {
-      let txt = null;
-      try{ txt = translations.get(t); }catch(e){}
-      if(txt) trans += `<div class="t-translated" dir="auto" style="opacity:.75">→ ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
-    });
-  }
-  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div>${trans}</div>`;
+  el.innerHTML = `<span class="t-flag">${confLang.flag}</span><div class="t-content"><div class="t-original">${escapeHtml(text)}<span class="cursor-blink"></span></div></div>`;
   const tc = document.getElementById('confTranscript');
   tc.scrollTop = tc.scrollHeight;
-  // Broadcast partial to remote attendees (avec les traductions provisoires)
+  // Broadcast partial to remote attendees
   if(currentRoomCode && CPRemote.room){
-    const pt = {};
-    if(translations && targets){
-      targets.forEach(t => { try{ const x = translations.get(t); if(x) pt[t] = x; }catch(e){} });
-    }
-    try { CPRemote.sendRaw({type:'partial_utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: text, translations: pt}); } catch(e){}
+    try { CPRemote.sendRaw({type:'partial_utterance', srcLang: LANG_TRANS[confLang.name]||'en', original: text, translations: {}}); } catch(e){}
   }
 }
 
@@ -1480,33 +1390,7 @@ applyMyName();
 <!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
 <script src="cp-remote.js"></script>
 <script>
-// Langues proposées à l'entrée d'une salle (le créole est exclu de l'ENTRÉE :
-// aucun moteur commercial ne reconnaît la parole créole — il reste disponible
-// en sortie pour les autres modes).
-function populateRemoteLangs(){
-  const sel = document.getElementById('remoteLangSel');
-  if(!sel || sel.options.length) return;
-  LANGUAGES.filter(l => l.name !== 'Haitian Creole').forEach(l => {
-    const o = document.createElement('option');
-    o.value = l.name;
-    o.textContent = l.flag + ' ' + l.name;
-    sel.appendChild(o);
-  });
-}
-function setRemoteLang(name){
-  const l = LANGUAGES.find(x => x.name === name);
-  if(!l) return;
-  currentLangA = {flag: l.flag, name: l.name};
-  try{ updateCallUI(); }catch(e){}
-  // En cours d'appel : prévenir la salle du changement de langue
-  try{ if(remoteMode) CPRemote.setLanguage(LANG_TRANS[l.name]||'en', LANG_SPEECH[l.name]||'en-US'); }catch(e){}
-}
-function openRemoteModal(){
-  populateRemoteLangs();
-  const sel = document.getElementById('remoteLangSel');
-  if(sel) sel.value = currentLangA.name;
-  document.getElementById('remoteModal').classList.add('open');
-}
+function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
 function closeRemoteModal(e){
   if(e.target===document.getElementById('remoteModal'))
     document.getElementById('remoteModal').classList.remove('open');
@@ -1542,6 +1426,7 @@ function hideQR(){ document.getElementById('qrPanel').style.display = 'none'; }
 function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
 
 function myRemoteOpts(){
+  window._myRemoteName = getMyName();
   return {
     name: getMyName(),
     lang: LANG_TRANS[currentLangA.name] || 'en',
@@ -1550,7 +1435,6 @@ function myRemoteOpts(){
 }
 
 function createRemoteRoom(){
-  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   setRemoteStatus('Creating room…');
   CPRemote.create(myRemoteOpts())
     .then(({room}) => enterRemoteCall(room, true))
@@ -1558,7 +1442,6 @@ function createRemoteRoom(){
 }
 
 function joinRemoteRoom(){
-  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   const code = (document.getElementById('joinCodeInput').value || '').trim().toUpperCase();
   if(code.length !== 4){ setRemoteStatus('Enter the 4-character room code.'); return; }
   setRemoteStatus('Joining ' + code + '…');
@@ -1569,12 +1452,24 @@ function joinRemoteRoom(){
 
 function enterRemoteCall(room, isHost){
   remoteMode = true;
+  remoteOriginalVoice = false;
+  stopRCAudio();
+  CPRemote.setTTS(true);
   document.getElementById('remoteModal').classList.remove('open');
   showCall();
   document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
   document.getElementById('transA').textContent = '';
   document.getElementById('transB').textContent = '';
   document.getElementById('origB').textContent = 'Waiting for the other participant…';
+  // Update sub-labels for bidirectional mode
+  document.querySelector('#langBoxA .lang-sub').textContent = 'You — tap mic to speak';
+  document.querySelector('#langBoxB .lang-sub').textContent = 'Them — their language';
+  // Show Original Voice toggle, reset its appearance
+  const vc = document.getElementById('origVoiceCtrl');
+  vc.style.display = 'flex';
+  const vb = document.getElementById('voiceBtn');
+  vb.textContent = '🎵'; vb.style.background=''; vb.style.boxShadow='';
+  document.getElementById('voiceLabel').textContent = 'Real Voice';
   currentRoomCode = room;
   if(isHost){
     document.getElementById('origA').innerHTML =
@@ -1626,7 +1521,7 @@ function showConfRoomQR(room){
 }
 
 function showConfQR(){
-  if(!confSession){
+  if(!confActive){
     alert('Start the live session first, then share the QR.');
     return;
   }
@@ -1671,7 +1566,6 @@ function selectAttLang(idx){
 }
 
 async function doJoinConference(){
-  unlockPlayback(); // geste utilisateur : autorise le son (iOS)
   if(!confJoinCode) return;
   const nameInput = document.getElementById('confJoinNameInput');
   const attendeeName = (nameInput && nameInput.value.trim()) || '';
@@ -1706,7 +1600,7 @@ async function showAttendeeView(name){
   v.style.display = 'flex';
   v.style.flexDirection = 'column';
   // Pre-fetch Azure token so TTS works for attendees
-  try { if(!window.__confTk){ window.__confTk = await getCpToken(); window.__confTkAt = Date.now(); } } catch(e){}
+  try { if(!window.__confTk) window.__confTk = await getCpToken(); } catch(e){}
 }
 
 function leaveAttendeeView(){
@@ -1719,6 +1613,17 @@ function leaveAttendeeView(){
 
 // Wire up CPRemote events for conference attendees
 CPRemote.on((type, data) => {
+  // Conference HOST: when an attendee joins with a language not yet targeted,
+  // restart the recognizer so their language is included (simultaneous for all listeners)
+  if(type === 'roster' && confActive && !confAttendeeActive) {
+    const attendees = (data.participants || []);
+    const needsRestart = attendees.some(p => p.lang && !confCurrentTargets.includes(p.lang));
+    if(needsRestart) {
+      stopConference('⏳ Adding language…');
+      setTimeout(() => startConference(), 700);
+    }
+    return;
+  }
   if(confAttendeeActive){
     if(type === 'partial_utterance'){
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
@@ -1729,7 +1634,7 @@ CPRemote.on((type, data) => {
       const txt = data.translations?.[confJoinLang.code] || data.original || '';
       document.getElementById('attPartialText').textContent = '';
       document.getElementById('attFinalText').textContent = txt;
-      // (la voix est lue par cp-remote.js — pas de second appel ici, sinon écho double)
+      if(txt) speakConf(txt, confJoinLang.code);
     }
     return;
   }
@@ -1741,28 +1646,33 @@ CPRemote.on((type, data) => {
     document.getElementById('origA').textContent = data.original;
     document.getElementById('transA').textContent = Object.values(data.translations)[0] || '';
   }
-  if(type === 'partial_utterance' && remoteMode){
-    // L'autre est en train de parler : aperçu instantané dans ma langue
-    const myLang = LANG_TRANS[currentLangA.name] || 'en';
-    const txt = data.translations[myLang] || data.original || '';
-    if(txt) document.getElementById('transB').innerHTML = escapeHtml(txt) + '<span class="cursor-blink"></span>';
-  }
-  if(type === 'audio_chunk' && remoteMode){
-    rcPlayChunk(data); // vraie voix de l'interlocuteur
-  }
   if(type === 'utterance'){
     const myLang = LANG_TRANS[currentLangA.name] || 'en';
-    const heard = data.translations[myLang] || Object.values(data.translations)[0] || '';
     document.getElementById('origB').textContent = data.original;
-    document.getElementById('transB').textContent = heard;
-    // (la traduction est lue à voix haute par cp-remote.js ; 🔇 la coupe)
+    document.getElementById('transB').textContent = data.translations[myLang] || Object.values(data.translations)[0] || '';
+  }
+  if(type === 'partial_utterance' && remoteMode){
+    const myLang = LANG_TRANS[currentLangA.name] || 'en';
+    const txt = data.translations?.[myLang] || data.original || '';
+    if(txt) document.getElementById('origB').innerHTML = txt + '<span class="cursor-blink"></span>';
+  }
+  if(type === 'audio_chunk' && remoteMode && remoteOriginalVoice){
+    handleRemoteAudioChunk(data);
   }
   if(type === 'roster'){
-    const other = (data.participants || [])[0];
-    if(other && remoteMode){
-      document.getElementById('bLangB').textContent = (other.lang || '').toUpperCase();
+    const peers = (data.participants || []).filter(p => p.name !== (window._myRemoteName||''));
+    if(peers.length > 0 && remoteMode){
+      const other = peers[0];
+      // Find display name for their language code
+      const langName = Object.entries(LANG_TRANS).find(([k,v])=>v===other.lang)?.[0] || other.lang || '';
+      const langFlag = LANGUAGES.find(l=>l.name===langName)?.flag || '🌐';
+      document.getElementById('flagB').textContent = langFlag;
+      document.getElementById('langNameB').textContent = langName || other.lang;
+      document.getElementById('bFlagB').textContent = langFlag;
+      document.getElementById('bLangB').textContent = langName || (other.lang||'').toUpperCase();
+      document.querySelector('#langBoxB .lang-sub').textContent = (other.name||'Them') + ' — tap their mic to speak';
       if(document.getElementById('origB').textContent.startsWith('Waiting'))
-        document.getElementById('origB').textContent = other.name + ' joined the room.';
+        document.getElementById('origB').textContent = (other.name||'Participant') + ' joined — both can now speak.';
     }
   }
   if(type === 'invite'){
