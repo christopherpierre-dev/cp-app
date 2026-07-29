@@ -1,5 +1,5 @@
 /**
- * cp-remote.js — Appel traduit à distance pour Equivox
+ * cp-remote.js — Appel traduit à distance pour Loquivox
  * À inclure dans index.html : <script src="cp-remote.js"></script>
  *
  * Dépend du SDK Azure Speech déjà chargé par l'app (SpeechSDK).
@@ -110,7 +110,7 @@
       };
 
       ws.onclose = () => state.onEvent('closed', {});
-      ws.onerror = () => reject(new Error('Cannot connect to Equivox conference server'));
+      ws.onerror = () => reject(new Error('Cannot connect to Loquivox conference server'));
     });
   }
 
