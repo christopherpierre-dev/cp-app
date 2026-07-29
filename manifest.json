@@ -1,7 +1,7 @@
 {
-  "name": "Equivox",
-  "short_name": "Equivox",
-  "description": "Equivox — real-time AI voice translation for multilateral meetings and everyday conversations. Powered by CP technology (CREDIA INC.).",
+  "name": "Loquivox",
+  "short_name": "Loquivox",
+  "description": "Loquivox — real-time AI voice translation for multilateral meetings and everyday conversations. Powered by CP technology (CREDIA INC.).",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0e1a",
