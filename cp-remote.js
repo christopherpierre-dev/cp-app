@@ -11,7 +11,6 @@
  *   CPRemote.stopSpeaking()        — stop STT
  *   CPRemote.startAudioStream()    — stream raw microphone audio to room (original voice)
  *   CPRemote.stopAudioStream()     — stop audio streaming
- *   CPRemote.setTtsMuted(bool)     — mute/unmute spoken translations (text stays)
  *   CPRemote.setLanguage(code, speechCode)
  *   CPRemote.leave()               — disconnect
  *   CPRemote.on(cb)                — event callback: (type, data) => {}
@@ -45,20 +44,40 @@
     peers: [],
     recognizer: null,
     ttsQueue: Promise.resolve(),
-    ttsMuted: false,
+    ttsEnabled: true,
     onEvent: () => {},
   };
 
-  // Horodatage du dernier morceau de vraie voix RÉELLEMENT lisible ici.
-  // Sert à décider si la voix de synthèse ferait double emploi (voir
-  // speakTranslation). Reste à 0 sur les appareils sans MediaSource.
-  let lastPlayableVoiceChunk = 0;
-
   // ── Azure token ──────────────────────────────────────────────────
+  // Returns {token, region, isKey} where isKey=true means subscription key, false means JWT auth token
   async function getAzureToken() {
-    const r = await fetch(CP_SERVER_URL + '/api/token');
-    if (!r.ok) throw new Error('Azure token unavailable');
-    return r.json(); // {token, region}
+    // 1. Try server (JWT auth token — works when CORS allows this origin)
+    try {
+      const r = await fetch(CP_SERVER_URL + '/api/token');
+      if (r.ok) {
+        const data = await r.json(); // {token, region}
+        return { ...data, isKey: false };
+      }
+    } catch (_) { /* CORS or network — fall through */ }
+
+    // 2. Fall back to user's own Azure subscription key stored in Settings
+    const key = localStorage.getItem('cp_azure_key');
+    const region = localStorage.getItem('cp_azure_region') || 'westus2';
+    if (key) return { token: key, region, isKey: true };
+
+    throw new Error('Azure key not configured. Go to Settings and enter your Azure Speech key.');
+  }
+
+  function makeSpeechTranslationConfig({ token, region, isKey }) {
+    return isKey
+      ? SpeechSDK.SpeechTranslationConfig.fromSubscription(token, region)
+      : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, region);
+  }
+
+  function makeSpeechConfig({ token, region, isKey }) {
+    return isKey
+      ? SpeechSDK.SpeechConfig.fromSubscription(token, region)
+      : SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
   }
 
   // ── WebSocket connection ─────────────────────────────────────────
@@ -89,8 +108,8 @@
           const prevLangs = new Set(state.peers.map(p => p.lang));
           state.peers = m.participants.filter(p => p.name !== state.myName);
           state.onEvent('roster', m);
-          // (Christopher) Nouvelle langue dans la salle -> redemarrer la
-          // reconnaissance pour y ajouter cette cible de traduction.
+          // If a peer joined whose language isn't covered by the active recognizer,
+          // restart STT so translations include their language (simultaneous for all)
           if (state.recognizer) {
             const hasNewLang = state.peers.some(p => p.lang && !prevLangs.has(p.lang));
             if (hasNewLang) {
@@ -106,16 +125,7 @@
           // Interim/streaming translation for instant preview
           state.onEvent('partial_utterance', m);
         } else if (m.type === 'audio_chunk') {
-          // Raw audio from the speaker for original voice playback.
-          // On ne note l'heure QUE si cet appareil peut réellement lire ce
-          // format (iPhone/Safari ne supporte pas MediaSource : la vraie voix
-          // n'y sort pas, il faut donc garder la voix de synthèse).
-          try {
-            if (typeof MediaSource !== 'undefined' && m.mimeType &&
-                MediaSource.isTypeSupported(m.mimeType)) {
-              lastPlayableVoiceChunk = Date.now();
-            }
-          } catch (_) {}
+          // Raw audio from the speaker for original voice playback
           state.onEvent('audio_chunk', m);
         } else if (m.type === 'error') {
           state.onEvent('error', m);
@@ -130,18 +140,20 @@
 
   // ── STT + translation → broadcast to room ───────────────────────
   async function startSpeaking() {
-    const { token, region } = await getAzureToken();
-    const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, region);
+    const creds = await getAzureToken();
+    const cfg = makeSpeechTranslationConfig(creds);
     cfg.speechRecognitionLanguage = state.mySpeechLang;
 
     const targets = [...new Set(state.peers.map(p => p.lang))].filter(l => l && l !== state.myLang);
     if (targets.length === 0) {
-      // (Christopher) Personne d'autre encore la : couvrir large en attendant
+      // No peers known yet — pre-target common languages so audio works
+      // as soon as someone joins (roster restart will refine this)
       ['en', 'fr', 'es', 'pt', 'ht', 'de']
         .filter(l => l !== state.myLang)
         .slice(0, 5)
         .forEach(l => targets.push(l));
     }
+    // Azure allows max 6 target languages
     if (targets.length > 6) targets.length = 6;
     targets.forEach(l => cfg.addTargetLanguage(l));
 
@@ -206,7 +218,7 @@
         audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 24000 }
       });
 
-      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4']
+      const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
         .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
       let chunkIndex = 0;
@@ -231,7 +243,7 @@
         chunkIndex++;
       };
 
-      mediaRecorder.start(200); // 200ms chunks → ~5 per second, low latency
+      mediaRecorder.start(200); // 200ms chunks → ~4 per second, low latency
       state.onEvent('audio_started', { mimeType });
     } catch (err) {
       console.warn('[CPRemote] Audio stream error:', err);
@@ -262,83 +274,27 @@
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
     ht: 'fr-CA-JeanNeural',     sw: 'sw-KE-RafikiNeural',
     el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
-    'zh-Hans': 'zh-CN-YunxiNeural',
   };
 
-  // ── Déverrouillage audio (obligatoire sur iPhone/iPad) ───────────
-  // Safari iOS n'autorise le son que s'il part d'un geste de l'utilisateur.
-  // On joue un silence dans UN élément <audio> au moment du toucher (Join,
-  // micro…) ; ce même élément, désormais autorisé, jouera toutes les voix.
-  let ttsAudio = null;
-  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
-  function ensureTtsAudio() {
-    if (!ttsAudio) {
-      ttsAudio = new Audio();
-      ttsAudio.setAttribute('playsinline', '');
-      ttsAudio.autoplay = false;
-    }
-    return ttsAudio;
-  }
-  let audioUnlocked = false;
-  function unlockAudio() {
-    if (audioUnlocked) return; // déjà autorisé — ne pas écraser une voix en cours
-    try {
-      const a = ensureTtsAudio();
-      a.src = SILENT_WAV;
-      a.play().then(() => { audioUnlocked = true; }).catch(() => {});
-    } catch (_) {}
-  }
-
   function speakTranslation(m) {
-    if (state.ttsMuted) return; // l'utilisateur a coupé la voix de traduction (🔇)
-    // Anti-répétition : on ne saute la voix de synthèse QUE si la vraie voix
-    // de l'orateur est effectivement en train de sortir sur CET appareil ET
-    // qu'elle est dans notre langue. Sans ces deux conditions on parle
-    // toujours — sinon l'appareil resterait muet (cas iPhone, ou orateur qui
-    // n'envoie pas sa voix originale).
-    const base = (c) => String(c || '').toLowerCase().split('-')[0];
-    const voiceAudible = (Date.now() - lastPlayableVoiceChunk) < 3000;
-    if (voiceAudible && m.srcLang && base(m.srcLang) === base(state.myLang)) return;
+    if (!state.ttsEnabled) return;
     const text = m.translations?.[state.myLang];
-    if (!text) return;
-    speakText(text, state.myLang);
-  }
-
-  /** Lecture vocale d'un texte dans une langue donnée, via le canal
-   *  audio déverrouillé (fiable sur iPhone). Utilisée par le Remote Call,
-   *  les participants de conférence et le Two-Way Call. */
-  function speakText(text, langCode) {
     if (!text) return;
 
     // Queue TTS so overlapping utterances play in order
     state.ttsQueue = state.ttsQueue.then(() => new Promise(async (resolve) => {
       try {
-        const { token, region } = await getAzureToken();
-        const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
-        cfg.speechSynthesisVoiceName = TTS_VOICES[langCode] || 'en-US-GuyNeural';
-        cfg.speechSynthesisOutputFormat = SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
+        const creds = await getAzureToken();
+        const cfg = makeSpeechConfig(creds);
+        cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
 
-        // Pas de sortie haut-parleur directe (bloquée par iOS hors geste) :
-        // on récupère l'audio et on le joue via l'élément déverrouillé.
-        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
+        // ✅ Route audio to the default speaker
+        const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
+
         synth.speakTextAsync(
           text,
-          (r) => {
-            synth.close();
-            try {
-              if (!r.audioData || r.audioData.byteLength === 0) return resolve();
-              const a = ensureTtsAudio();
-              const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
-              // Baisser la vraie voix SEULEMENT pendant que la traduction parle
-              // (cabine d'interprétation), puis remonter à plein volume.
-              const duck = (on) => { try { window.__rcDuck && window.__rcDuck(on); } catch (_) {} };
-              a.src = url;
-              a.onended = () => { URL.revokeObjectURL(url); duck(false); resolve(); };
-              a.onerror = () => { URL.revokeObjectURL(url); duck(false); resolve(); };
-              duck(true);
-              a.play().catch((e) => { console.warn('[CPRemote] lecture TTS bloquée:', e && e.name); duck(false); resolve(); });
-            } catch (_) { resolve(); }
-          },
+          () => { synth.close(); resolve(); },
           (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
         );
       } catch (err) {
@@ -364,12 +320,9 @@
     startAudioStream,
     stopAudioStream,
     setLanguage,
-    unlockAudio,
-    speakText,
-    setTtsMuted:     (b) => { state.ttsMuted = !!b; },
-    setTTS:          (v) => { state.ttsMuted = !v; },
     leave:           () => { stopSpeaking(); stopAudioStream(); state.ws?.close(); },
     on:              (cb) => { state.onEvent = cb; },
+    setTTS:          (v) => { state.ttsEnabled = !!v; },
     sendRaw:         (obj) => state.ws?.send(JSON.stringify(obj)),
     get room()       { return state.room; },
     get peers()      { return state.peers; },
