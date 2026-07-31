@@ -817,7 +817,7 @@ function getMock(langA, langB){
 
 // ── Jetons Azure éphémères fournis par le serveur CP ──────────
 // (la clé Azure reste sur le serveur ; le client ne la voit jamais)
-const CP_TOKEN_URL = 'https://cp-server-kdbg.onrender.com/api/token';
+const CP_TOKEN_URL = 'https://cp-app-loquivox.vercel.app/api/token';
 async function getCpToken(){
   // Fast path — server already awake
   try {
@@ -1859,13 +1859,10 @@ window.addEventListener('load', () => {
 // Generic Azure creds getter (re-use cp-remote fallback pattern)
 async function getPremiumAzureCreds() {
   try {
-    const r = await fetch('https://cp-server-kdbg.onrender.com/api/token');
+    const r = await fetch(CP_TOKEN_URL);
     if (r.ok) { const d = await r.json(); return { ...d, isKey: false }; }
   } catch (_) {}
-  const key = localStorage.getItem('cp_azure_key');
-  const region = localStorage.getItem('cp_azure_region') || 'westus2';
-  if (key) return { token: key, region, isKey: true };
-  throw new Error('Azure key not configured. Go to Settings → enter your Azure Speech key.');
+  throw new Error('Translation service unavailable. Please try again in a moment.');
 }
 
 function premSpeechTransConfig({ token, region, isKey }) {
