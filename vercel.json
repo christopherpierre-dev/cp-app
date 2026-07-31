@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    }
-  ]
+  "functions": { "api/token.js": { "maxDuration": 60 } },
+  "routes": [{ "src": "/api/(.*)", "dest": "/api/$1" }]
 }
