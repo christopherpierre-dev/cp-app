@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-<title>Loquivox â Real-Time AI Voice Translation</title>
+<title>Loquivox — Real-Time AI Voice Translation</title>
 
 <!-- PWA: iOS Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="Loquivox"/>
 <meta name="theme-color" content="#0a0e1a"/>
-<meta name="description" content="Real-time AI voice translation for multilateral meetings and everyday conversations â break every language barrier. Born from CREDIA's research on linguistic justice."/>
+<meta name="description" content="Real-time AI voice translation for multilateral meetings and everyday conversations — break every language barrier. Born from CREDIA's research on linguistic justice."/>
 
 <!-- PWA: Icons -->
 <link rel="apple-touch-icon" href="icon-192.png"/>
@@ -38,12 +38,12 @@
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
 
-/* ââ SCREENS ââ */
+/* ── SCREENS ── */
 .screen{display:none;flex-direction:column;min-height:100vh;animation:fadeIn .3s ease;}
 .screen.active{display:flex;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-/* ââ SPLASH ââ */
+/* ── SPLASH ── */
 #splash{align-items:center;justify-content:center;background:linear-gradient(145deg,#0a0e1a 0%,#0d1b38 100%);}
 .splash-logo{text-align:center;margin-bottom:40px;}
 .logo-circle{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 20px;box-shadow:0 0 60px rgba(79,142,247,0.4);}
@@ -57,7 +57,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);}
 .splash-btns{width:100%;max-width:320px;display:flex;flex-direction:column;gap:12px;padding:0 24px;}
 
-/* ââ ONBOARDING ââ */
+/* ── ONBOARDING ── */
 #onboarding{padding:60px 24px 40px;}
 .onboard-step{display:none;flex-direction:column;align-items:center;text-align:center;flex:1;}
 .onboard-step.active{display:flex;}
@@ -70,7 +70,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dot.active{background:var(--accent);width:24px;border-radius:4px;}
 .onboard-nav{width:100%;display:flex;flex-direction:column;gap:10px;}
 
-/* ââ HOME ââ */
+/* ── HOME ── */
 #home{padding:0 0 80px;}
 .home-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 30px;}
 .home-header h2{font-size:22px;font-weight:700;}
@@ -100,13 +100,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .recent-info span{display:block;font-size:11px;color:var(--muted);margin-top:2px;}
 .recent-time{font-size:11px;color:var(--muted);}
 
-/* ââ BOTTOM NAV ââ */
+/* ── BOTTOM NAV ── */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,14,26,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:10px 0 22px;z-index:200;}
 .nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);cursor:pointer;transition:color .2s;border:none;background:transparent;padding:4px 16px;}
 .nav-btn.active{color:var(--accent);}
 .nav-btn .ni{font-size:22px;}
 
-/* ââ CALL SCREEN ââ */
+/* ── CALL SCREEN ── */
 #call{padding:0;}
 .call-bg{background:linear-gradient(180deg,#0d1b38 0%,#0a0e1a 60%);padding:50px 24px 20px;}
 .call-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
@@ -151,7 +151,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 @keyframes micPulse{0%,100%{box-shadow:0 8px 24px rgba(79,142,247,0.4)}50%{box-shadow:0 8px 40px rgba(79,142,247,0.7),0 0 0 12px rgba(79,142,247,0.1)}}
 .ctrl-mic.muted{background:rgba(239,68,68,0.2);box-shadow:none;border:2px solid var(--red);}
 
-/* ââ CONFERENCE SCREEN ââ */
+/* ── CONFERENCE SCREEN ── */
 #conference{padding:0 0 80px;}
 .conf-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 20px;display:flex;align-items:center;gap:12px;}
 .participants-grid{padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
@@ -175,7 +175,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .t-translated{font-size:12px;color:var(--accent);font-style:italic;margin-top:3px;}
 .conf-start-btn{margin:16px 24px 0;}
 
-/* ââ SETTINGS ââ */
+/* ── SETTINGS ── */
 #settings{padding:50px 24px 80px;}
 .settings-header{margin-bottom:24px;}
 .settings-header h2{font-size:22px;font-weight:700;}
@@ -192,7 +192,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .toggle.on::after{transform:translateX(18px);}
 .s-arrow{color:var(--muted);font-size:16px;}
 
-/* ââ LANGUAGE PICKER MODAL ââ */
+/* ── LANGUAGE PICKER MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:flex-end;}
 .modal-overlay.open{display:flex;}
 .modal-sheet{background:#131929;border-radius:24px 24px 0 0;width:100%;max-height:80vh;overflow-y:auto;padding:24px;}
@@ -208,11 +208,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lang-option .info span{font-size:12px;color:var(--muted);}
 .lang-option .check{margin-left:auto;color:var(--accent);font-size:18px;}
 
-/* ââ MOCK TRANSLATIONS ââ */
+/* ── MOCK TRANSLATIONS ── */
 
-/* ââââââââââââââââââââââââââââââââââââââââââââââââââ
-   PREMIUM FEATURES â Shared + Per-Screen Styles
-ââââââââââââââââââââââââââââââââââââââââââââââââââ */
+/* ══════════════════════════════════════════════════
+   PREMIUM FEATURES — Shared + Per-Screen Styles
+══════════════════════════════════════════════════ */
 .premium-screen{padding:0 0 80px;}
 .premium-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 24px;display:flex;align-items:center;gap:12px;}
 .premium-header h2{font-size:19px;font-weight:700;flex:1;}
@@ -229,7 +229,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .badge-gold{background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1));color:#f59e0b;border:1px solid rgba(245,158,11,0.3);}
 .badge-green{background:rgba(34,197,94,0.12);color:var(--green);}
 
-/* ââ AI MEETING ASSISTANT ââ */
+/* ── AI MEETING ASSISTANT ── */
 #meeting.premium-screen{}
 .meeting-big-btn{margin:0 16px 16px;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:18px;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(79,142,247,0.35);transition:all .2s;}
 .meeting-big-btn:active{transform:scale(0.98);}
@@ -247,12 +247,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .summary-box p{font-size:13px;color:var(--text);line-height:1.6;}
 .action-items-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
 .ai-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);}
-.ai-item::before{content:'â';color:var(--accent);flex-shrink:0;margin-top:1px;}
+.ai-item::before{content:'☐';color:var(--accent);flex-shrink:0;margin-top:1px;}
 .export-row{display:flex;gap:8px;margin:0 16px 14px;}
 .export-btn{flex:1;padding:12px 8px;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;}
 .export-btn:active{opacity:.7;}
 
-/* ââ LOQUIVOX NUMBER ââ */
+/* ── LOQUIVOX NUMBER ── */
 #lnumber.premium-screen{}
 .number-hero{margin:0 16px 16px;background:linear-gradient(135deg,rgba(79,142,247,0.1),rgba(124,92,252,0.1));border:1px solid rgba(124,92,252,0.2);border-radius:20px;padding:24px;text-align:center;}
 .number-display{font-size:28px;font-weight:800;letter-spacing:2px;color:var(--text);margin:10px 0;}
@@ -270,7 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .dept-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.2);border-radius:20px;padding:6px 12px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .2s;}
 .dept-chip.active{background:rgba(79,142,247,0.2);border-color:var(--accent);}
 
-/* ââ BUSINESS WORKSPACE ââ */
+/* ── BUSINESS WORKSPACE ── */
 #workspace.premium-screen{}
 .ws-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 14px;}
 .ws-stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;}
@@ -295,7 +295,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .int-badge.connected{border-color:var(--green);background:rgba(34,197,94,0.07);}
 .integrations-row{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 14px;}
 
-/* ââ AMBIENT AI INTERPRETER ââ */
+/* ── AMBIENT AI INTERPRETER ── */
 #ambient.premium-screen{}
 .ambient-hero{margin:0 16px 16px;border-radius:22px;overflow:hidden;position:relative;min-height:180px;background:linear-gradient(135deg,#0d1b38,#0a0e1a);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
 .ambient-ring{width:100px;height:100px;border-radius:50%;border:3px solid rgba(79,142,247,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative;}
@@ -320,15 +320,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </head>
 <body>
 
-<!-- ââââââââââââââââââ SPLASH ââââââââââââââââââ -->
+<!-- ══════════════════ SPLASH ══════════════════ -->
 <div class="screen active" id="splash">
   <div class="splash-logo">
-    <div class="logo-circle">ð</div>
+    <div class="logo-circle">🌐</div>
     <h1>Loqui<span>vox</span></h1>
     <p>Break every language barrier</p>
   </div>
   <div class="splash-btns">
-    <button class="btn btn-primary" onclick="showScreen('onboarding')">Get Started â</button>
+    <button class="btn btn-primary" onclick="showScreen('onboarding')">Get Started →</button>
     <button class="btn btn-outline" onclick="showScreen('home')">Sign In</button>
   </div>
   <svg class="splash-waves" viewBox="0 0 1440 180" preserveAspectRatio="none">
@@ -337,22 +337,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </svg>
 </div>
 
-<!-- ââââââââââââââââââ ONBOARDING ââââââââââââââââââ -->
+<!-- ══════════════════ ONBOARDING ══════════════════ -->
 <div class="screen" id="onboarding">
   <div id="ob1" class="onboard-step active">
-    <div class="onboard-icon">ð£ï¸</div>
+    <div class="onboard-icon">🗣️</div>
     <h2>Speak. Be Understood.<br>Instantly.</h2>
-    <p>Designed for multilateral meetings and everyday conversations alike, Loquivox translates your voice in real time â every participant speaks and listens in their own language.</p>
+    <p>Designed for multilateral meetings and everyday conversations alike, Loquivox translates your voice in real time — every participant speaks and listens in their own language.</p>
   </div>
   <div id="ob2" class="onboard-step">
-    <div class="onboard-icon">ð</div>
+    <div class="onboard-icon">🔒</div>
     <h2>Your Voice,<br>Your Privacy.</h2>
     <p>Your speech is processed securely by Microsoft Azure and is not stored by Loquivox. You stay in control of your microphone at all times.</p>
   </div>
   <div id="ob3" class="onboard-step">
-    <div class="onboard-icon">ð</div>
+    <div class="onboard-icon">🌍</div>
     <h2>20 Languages.<br>One App.</h2>
-    <p>From Spanish to Swahili to Haitian Creole, Loquivox supports 20 languages â and the list keeps growing.</p>
+    <p>From Spanish to Swahili to Haitian Creole, Loquivox supports 20 languages — and the list keeps growing.</p>
   </div>
   <div class="dots">
     <div class="dot active" id="dot0"></div>
@@ -360,80 +360,80 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="dot" id="dot2"></div>
   </div>
   <div class="onboard-nav" style="padding:0 24px;">
-    <button class="btn btn-primary" id="obNext" onclick="nextOnboard()">Next â</button>
+    <button class="btn btn-primary" id="obNext" onclick="nextOnboard()">Next →</button>
     <button class="btn btn-outline" onclick="showScreen('home')" style="margin-top:4px;">Skip</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ HOME ââââââââââââââââââ -->
+<!-- ══════════════════ HOME ══════════════════ -->
 <div class="screen" id="home">
   <div class="home-header">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
       <div>
-        <div style="font-size:13px;color:var(--muted);">Good morning ð</div>
+        <div style="font-size:13px;color:var(--muted);">Good morning 👋</div>
         <h2 id="homeUserName">there</h2>
       </div>
       <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px;">CP</div>
     </div>
     <div class="status-bar">
       <div class="status-dot"></div>
-      <span>AI Engine Ready Â· Powered by Azure Speech</span>
+      <span>AI Engine Ready · Powered by Azure Speech</span>
     </div>
   </div>
 
   <div class="mode-grid">
     <div class="mode-card" onclick="showCall()">
-      <div class="mode-icon">ð</div>
+      <div class="mode-icon">📞</div>
       <h3>Two-Way Call</h3>
       <p>One-on-one real-time translation</p>
       <span class="badge badge-blue">Live</span>
     </div>
     <div class="mode-card" onclick="showScreen('conference')">
-      <div class="mode-icon">ð¥</div>
+      <div class="mode-icon">👥</div>
       <h3>Conference</h3>
       <p>Multi-language group calls</p>
       <span class="badge badge-purple">Beta</span>
     </div>
-    <!-- NOUVEAU : appel Ã  distance (2 appareils) -->
+    <!-- NOUVEAU : appel à distance (2 appareils) -->
     <div class="mode-card wide" onclick="openRemoteModal()">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="mode-icon" style="margin-bottom:0;">ð</div>
+        <div class="mode-icon" style="margin-bottom:0;">🌐</div>
         <div>
           <h3>Remote Call</h3>
-          <p>Talk from two devices â share a room code, each in your own language</p>
+          <p>Talk from two devices — share a room code, each in your own language</p>
           <span class="badge badge-purple">New</span>
         </div>
       </div>
     </div>
     <div class="mode-card wide" onclick="showCall()">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="mode-icon" style="margin-bottom:0;">â¡</div>
+        <div class="mode-icon" style="margin-bottom:0;">⚡</div>
         <div>
           <h3>Quick Connect</h3>
           <p>Start translating instantly with last-used language pair</p>
-          <span class="badge badge-blue">EN â FR</span>
+          <span class="badge badge-blue">EN → FR</span>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="section-label" style="padding-top:24px;">â¨ Premium Services</div>
+  <div class="section-label" style="padding-top:24px;">✨ Premium Services</div>
   <div class="mode-grid" style="margin-top:0;">
     <div class="mode-card" onclick="showScreen('meeting')">
-      <div class="mode-icon">ð¤</div>
+      <div class="mode-icon">🤝</div>
       <h3>AI Meeting</h3>
       <p>Live transcription, summaries & action items</p>
       <span class="badge badge-purple">AI-Powered</span>
     </div>
     <div class="mode-card" onclick="showScreen('ambient')">
-      <div class="mode-icon">ðï¸</div>
+      <div class="mode-icon">👁️</div>
       <h3>Ambient AI</h3>
       <p>Always-on interpreter for any conversation</p>
       <span class="badge badge-blue">Live</span>
     </div>
     <div class="mode-card wide" onclick="showScreen('lnumber')">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="mode-icon" style="margin-bottom:0;">ð²</div>
+        <div class="mode-icon" style="margin-bottom:0;">📲</div>
         <div>
           <h3>Loquivox Number</h3>
           <p>Virtual business number with AI receptionist, voicemail & smart routing</p>
@@ -443,10 +443,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="mode-card wide" onclick="showScreen('workspace')">
       <div style="display:flex;align-items:center;gap:16px;">
-        <div class="mode-icon" style="margin-bottom:0;">ð¢</div>
+        <div class="mode-icon" style="margin-bottom:0;">🏢</div>
         <div>
           <h3>Business Workspace</h3>
-          <p>Teams, projects, analytics & integrations â all in one place</p>
+          <p>Teams, projects, analytics & integrations — all in one place</p>
           <span class="badge badge-gold" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Enterprise</span>
         </div>
       </div>
@@ -456,55 +456,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="section-label">Recent Conversations</div>
   <div class="recent-list">
     <div class="recent-item">
-      <div class="lang-flags">ðºð¸&nbsp;â&nbsp;ð«ð·</div>
+      <div class="lang-flags">🇺🇸&nbsp;→&nbsp;🇫🇷</div>
       <div class="recent-info">
-        <strong>English â French</strong>
-        <span>Client call Â· 14 min</span>
+        <strong>English → French</strong>
+        <span>Client call · 14 min</span>
       </div>
       <div class="recent-time">Today</div>
     </div>
     <div class="recent-item">
-      <div class="lang-flags">ðªð¸&nbsp;â&nbsp;ð©ðª</div>
+      <div class="lang-flags">🇪🇸&nbsp;→&nbsp;🇩🇪</div>
       <div class="recent-info">
-        <strong>Spanish â German</strong>
-        <span>Conference Â· 5 speakers</span>
+        <strong>Spanish → German</strong>
+        <span>Conference · 5 speakers</span>
       </div>
       <div class="recent-time">Yesterday</div>
     </div>
     <div class="recent-item">
-      <div class="lang-flags">ð¯ðµ&nbsp;â&nbsp;ðºð¸</div>
+      <div class="lang-flags">🇯🇵&nbsp;→&nbsp;🇺🇸</div>
       <div class="recent-info">
-        <strong>Japanese â English</strong>
-        <span>Customer support Â· 8 min</span>
+        <strong>Japanese → English</strong>
+        <span>Customer support · 8 min</span>
       </div>
       <div class="recent-time">Mon</div>
     </div>
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn active" onclick="navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn active" onclick="navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ CALL SCREEN ââââââââââââââââââ -->
+<!-- ══════════════════ CALL SCREEN ══════════════════ -->
 <div class="screen" id="call">
   <div class="call-bg">
     <div class="call-header">
-      <button class="back-btn" onclick="endCall()">â</button>
+      <button class="back-btn" onclick="endCall()">←</button>
       <h2 id="callTitle">Two-Way Translation</h2>
     </div>
     <div class="lang-selector-row">
       <div class="lang-select-box active-speaker" id="langBoxA" onclick="openLangPicker('A')">
-        <div class="flag" id="flagA">ðºð¸</div>
+        <div class="flag" id="flagA">🇺🇸</div>
         <div class="lang-name" id="langNameA">English</div>
         <div class="lang-sub">Speaker A (You)</div>
       </div>
-      <button class="swap-btn" onclick="swapLangs()">â</button>
+      <button class="swap-btn" onclick="swapLangs()">⇄</button>
       <div class="lang-select-box" id="langBoxB" onclick="openLangPicker('B')">
-        <div class="flag" id="flagB">ð«ð·</div>
+        <div class="flag" id="flagB">🇫🇷</div>
         <div class="lang-name" id="langNameB">French</div>
         <div class="lang-sub">Speaker B</div>
       </div>
@@ -514,14 +514,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="translation-area">
     <!-- Speaker A bubble -->
     <div class="speech-bubble speaker-a" id="bubbleA">
-      <div class="bubble-label"><span class="flag-sm" id="bFlagA">ðºð¸</span> You Â· <span id="bLangA">English</span></div>
-      <div class="original-text" id="origA">Tap the microphone to start speakingâ¦</div>
+      <div class="bubble-label"><span class="flag-sm" id="bFlagA">🇺🇸</span> You · <span id="bLangA">English</span></div>
+      <div class="original-text" id="origA">Tap the microphone to start speaking…</div>
       <div class="translated-text" id="transA"></div>
     </div>
     <!-- Speaker B bubble -->
     <div class="speech-bubble speaker-b" id="bubbleB">
-      <div class="bubble-label"><span class="flag-sm" id="bFlagB">ð«ð·</span> Them Â· <span id="bLangB">French</span></div>
-      <div class="original-text" id="origB">En attente de l'autre locuteurâ¦</div>
+      <div class="bubble-label"><span class="flag-sm" id="bFlagB">🇫🇷</span> Them · <span id="bLangB">French</span></div>
+      <div class="original-text" id="origB">En attente de l'autre locuteur…</div>
       <div class="translated-text" id="transB"></div>
     </div>
   </div>
@@ -534,82 +534,82 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <!-- Controls -->
   <div class="call-controls">
     <div class="ctrl-btn" onclick="toggleSpeaker()">
-      <button class="ctrl-icon ctrl-gray" id="speakerBtn">ð</button>
+      <button class="ctrl-icon ctrl-gray" id="speakerBtn">🔊</button>
       <span>Speaker</span>
     </div>
     <div class="ctrl-btn" onclick="toggleMic()">
-      <button class="ctrl-icon ctrl-mic" id="micBtn">ðï¸</button>
+      <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
       <span id="micLabel">Tap to speak</span>
     </div>
-    <!-- Original Voice toggle â only shown in Remote Call mode -->
+    <!-- Original Voice toggle — only shown in Remote Call mode -->
     <div class="ctrl-btn" id="origVoiceCtrl" onclick="toggleOriginalVoice()" style="display:none;">
-      <button class="ctrl-icon ctrl-gray" id="voiceBtn">ðµ</button>
+      <button class="ctrl-icon ctrl-gray" id="voiceBtn">🎵</button>
       <span id="voiceLabel">Real Voice</span>
     </div>
     <div class="ctrl-btn" onclick="endCall()">
-      <button class="ctrl-icon ctrl-red">ðµ</button>
+      <button class="ctrl-icon ctrl-red">📵</button>
       <span>End</span>
     </div>
   </div>
 
   <!-- Note about speech -->
   <div style="text-align:center;padding:0 24px 24px;font-size:12px;color:var(--muted);">
-    ðï¸ Powered by Azure AI Â· Real-time voice translation<br>Open in Chrome and allow microphone access
+    🎙️ Powered by Azure AI · Real-time voice translation<br>Open in Chrome and allow microphone access
   </div>
 </div>
 
-<!-- ââââââââââââââââââ CONFERENCE ââââââââââââââââââ -->
+<!-- ══════════════════ CONFERENCE ══════════════════ -->
 <div class="screen" id="conference">
   <div class="conf-header">
-    <button class="back-btn" onclick="showScreen('home')">â</button>
+    <button class="back-btn" onclick="showScreen('home')">←</button>
     <h2>Conference Mode</h2>
   </div>
 
   <div class="participants-grid">
-    <div class="participant-card" id="pl-en" onclick="setConfSpeaker('English','ðºð¸')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">ðºð¸</div>
+    <div class="participant-card" id="pl-en" onclick="setConfSpeaker('English','🇺🇸')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(79,142,247,0.15);">🇺🇸</div>
       <div class="p-name">English</div>
-      <div class="p-lang">ðºð¸ English</div>
+      <div class="p-lang">🇺🇸 English</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-fr" onclick="setConfSpeaker('French','ð«ð·')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">ð«ð·</div>
-      <div class="p-name">FranÃ§ais</div>
-      <div class="p-lang">ð«ð· French</div>
+    <div class="participant-card" id="pl-fr" onclick="setConfSpeaker('French','🇫🇷')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(124,92,252,0.15);">🇫🇷</div>
+      <div class="p-name">Français</div>
+      <div class="p-lang">🇫🇷 French</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-es" onclick="setConfSpeaker('Spanish','ðªð¸')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">ðªð¸</div>
-      <div class="p-name">EspaÃ±ol</div>
-      <div class="p-lang">ðªð¸ Spanish</div>
+    <div class="participant-card" id="pl-es" onclick="setConfSpeaker('Spanish','🇪🇸')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(34,197,94,0.12);">🇪🇸</div>
+      <div class="p-name">Español</div>
+      <div class="p-lang">🇪🇸 Spanish</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ru" onclick="setConfSpeaker('Russian','ð·ðº')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(236,72,153,0.12);">ð·ðº</div>
-      <div class="p-name">Ð ÑÑÑÐºÐ¸Ð¹</div>
-      <div class="p-lang">ð·ðº Russian</div>
+    <div class="participant-card" id="pl-ru" onclick="setConfSpeaker('Russian','🇷🇺')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(236,72,153,0.12);">🇷🇺</div>
+      <div class="p-name">Русский</div>
+      <div class="p-lang">🇷🇺 Russian</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-zh" onclick="setConfSpeaker('Chinese','ð¨ð³')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(245,158,11,0.12);">ð¨ð³</div>
-      <div class="p-name">ä¸­æ</div>
-      <div class="p-lang">ð¨ð³ Chinese</div>
+    <div class="participant-card" id="pl-zh" onclick="setConfSpeaker('Chinese','🇨🇳')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(245,158,11,0.12);">🇨🇳</div>
+      <div class="p-name">中文</div>
+      <div class="p-lang">🇨🇳 Chinese</div>
       <div class="p-status listen">Listening</div>
     </div>
-    <div class="participant-card" id="pl-ar" onclick="setConfSpeaker('Arabic','ð¸ð¦')" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(20,184,166,0.12);">ð¸ð¦</div>
-      <div class="p-name">Ø§ÙØ¹Ø±Ø¨ÙØ©</div>
-      <div class="p-lang">ð¸ð¦ Arabic</div>
+    <div class="participant-card" id="pl-ar" onclick="setConfSpeaker('Arabic','🇸🇦')" style="cursor:pointer;">
+      <div class="p-avatar" style="background:rgba(20,184,166,0.12);">🇸🇦</div>
+      <div class="p-name">العربية</div>
+      <div class="p-lang">🇸🇦 Arabic</div>
       <div class="p-status listen">Listening</div>
     </div>
     <div class="participant-card" id="pl-ht" onclick="explainHtLimit()" style="cursor:pointer;">
-      <div class="p-avatar" style="background:rgba(239,68,68,0.12);">ð­ð¹</div>
-      <div class="p-name">KreyÃ²l</div>
-      <div class="p-lang">ð­ð¹ Haitian Creole</div>
+      <div class="p-avatar" style="background:rgba(239,68,68,0.12);">🇭🇹</div>
+      <div class="p-name">Kreyòl</div>
+      <div class="p-lang">🇭🇹 Haitian Creole</div>
       <div class="p-status listen">Text + audio out</div>
     </div>
-    <div class="participant-card p-add" onclick="alert('Custom languages â coming in v1.1!')">
-      <div class="p-avatar" style="font-size:28px;">â</div>
+    <div class="participant-card p-add" onclick="alert('Custom languages — coming in v1.1!')">
+      <div class="p-avatar" style="font-size:28px;">➕</div>
       <div class="p-name" style="color:var(--muted);">Add</div>
       <div class="p-lang" style="color:var(--border);">Language</div>
     </div>
@@ -619,42 +619,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <h4>Live Transcript</h4>
     <div id="confTranscript">
       <div class="transcript-line">
-        <span class="t-flag">ðºð¸</span>
+        <span class="t-flag">🇺🇸</span>
         <div class="t-content">
           <div class="t-original">Hello everyone, let's begin the meeting.</div>
-          <div class="t-translated">â FR: Bonjour Ã  tous, commenÃ§ons la rÃ©union.</div>
-          <div class="t-translated">â ES: Hola a todos, empecemos la reuniÃ³n.</div>
+          <div class="t-translated">→ FR: Bonjour à tous, commençons la réunion.</div>
+          <div class="t-translated">→ ES: Hola a todos, empecemos la reunión.</div>
         </div>
       </div>
       <div class="transcript-line">
-        <span class="t-flag">ð«ð·</span>
+        <span class="t-flag">🇫🇷</span>
         <div class="t-content">
-          <div class="t-original">Oui, je suis prÃªt. Merci pour l'invitation.</div>
-          <div class="t-translated">â EN: Yes, I'm ready. Thank you for the invitation.</div>
-          <div class="t-translated">â ES: SÃ­, estoy listo. Gracias por la invitaciÃ³n.</div>
+          <div class="t-original">Oui, je suis prêt. Merci pour l'invitation.</div>
+          <div class="t-translated">→ EN: Yes, I'm ready. Thank you for the invitation.</div>
+          <div class="t-translated">→ ES: Sí, estoy listo. Gracias por la invitación.</div>
         </div>
       </div>
     </div>
   </div>
 
   <div class="conf-start-btn">
-    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">ð Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">FranÃ§ais</option><option value="es">EspaÃ±ol</option><option value="ru">Ð ÑÑÑÐºÐ¸Ð¹</option><option value="zh-Hans">ä¸­æ</option><option value="ar">Ø§ÙØ¹Ø±Ø¨ÙØ©</option><option value="ht">KreyÃ²l (voix fr)</option></select></label></div>
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div style="text-align:center;margin-bottom:10px;">
-    <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">ð± Invite attendees â Show QR</button>
+    <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
-  <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">ð You speak <b id="confSrcLang">English</b> â the room reads you live in every language</div>
-    <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">â¶ Start live session</button>
+  <div id="confHint" style="text-align:center;font-size:12.5px;color:var(--muted,#8b93a7);margin-bottom:8px;">🎙 You speak <b id="confSrcLang">English</b> — the room reads you live in every language</div>
+    <button class="btn btn-primary" id="confBtn" onclick="toggleConference()">▶ Start live session</button>
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn active"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn active"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ SETTINGS ââââââââââââââââââ -->
+<!-- ══════════════════ SETTINGS ══════════════════ -->
 <div class="screen" id="settings">
   <div class="settings-header">
     <h2>Settings</h2>
@@ -662,28 +662,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
   <div class="settings-section">
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(79,142,247,0.12);">ð¤</div>
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">👤</div>
       <div class="s-info" id="profileNameRow">
         <strong id="profileNameDisplay">Your Name</strong>
         <span id="profileEmailDisplay" style="font-size:12px;color:var(--muted);margin-top:2px;display:block;"></span>
-        <span style="color:var(--accent);font-size:12px;cursor:pointer;margin-top:4px;display:inline-block;" onclick="openNameEditor(false)">âï¸ Edit profile</span>
+        <span style="color:var(--accent);font-size:12px;cursor:pointer;margin-top:4px;display:inline-block;" onclick="openNameEditor(false)">✏️ Edit profile</span>
       </div>
     </div>
   </div>
 
   <div class="settings-section">
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(34,197,94,0.12);">ð´</div>
-      <div class="s-info"><strong>Keep Original Voice</strong><span>Coming in v0.3 â voice preservation</span></div>
+      <div class="s-icon" style="background:rgba(34,197,94,0.12);">🔴</div>
+      <div class="s-info"><strong>Keep Original Voice</strong><span>Coming in v0.3 — voice preservation</span></div>
       <button class="toggle" style="opacity:.5;pointer-events:none;"></button>
     </div>
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(124,92,252,0.12);">ð</div>
+      <div class="s-icon" style="background:rgba(124,92,252,0.12);">🔕</div>
       <div class="s-info"><strong>Noise Cancellation</strong><span>Filter background sounds</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(245,158,11,0.12);">ð</div>
+      <div class="s-icon" style="background:rgba(245,158,11,0.12);">📝</div>
       <div class="s-info"><strong>Show Transcript</strong><span>Display text alongside audio</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
@@ -691,47 +691,47 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 
   <div class="settings-section">
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(79,142,247,0.12);">ð</div>
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">🌐</div>
       <div class="s-info"><strong>Primary Language</strong><span>English (US)</span></div>
-      <span class="s-arrow">âº</span>
+      <span class="s-arrow">›</span>
     </div>
     <div class="settings-row">
-      <div class="s-icon" style="background:rgba(79,142,247,0.12);">ð±</div>
+      <div class="s-icon" style="background:rgba(79,142,247,0.12);">📱</div>
       <div class="s-info"><strong>Platform Integrations</strong><span>Zoom, Skype, Teams</span></div>
-      <span class="s-arrow">âº</span>
+      <span class="s-arrow">›</span>
     </div>
   </div>
 
   <div style="text-align:center;padding:24px;font-size:12px;color:var(--muted);">
-    Loquivox Â· v0.2 Beta â powered by CP technology<br>Â© 2026 CREDIA INC.
+    Loquivox · v0.2 Beta — powered by CP technology<br>© 2026 CREDIA INC.
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn active"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn active"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ LANGUAGE PICKER MODAL ââââââââââââââââââ -->
+<!-- ══════════════════ LANGUAGE PICKER MODAL ══════════════════ -->
 <div class="modal-overlay" id="langModal" onclick="closeLangPicker(event)">
   <div class="modal-sheet">
     <div class="modal-handle"></div>
     <h3>Select Language</h3>
     <div class="search-box">
-      <span>ð</span>
-      <input type="text" placeholder="Search languagesâ¦" id="langSearch" oninput="filterLangs(this.value)"/>
+      <span>🔍</span>
+      <input type="text" placeholder="Search languages…" id="langSearch" oninput="filterLangs(this.value)"/>
     </div>
     <div id="langList"></div>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ REMOTE CALL MODAL (NOUVEAU) ââââââââââââââââââ -->
+<!-- ══════════════════ REMOTE CALL MODAL (NOUVEAU) ══════════════════ -->
 
 <div id="qrPanel" style="display:none;position:fixed;inset:0;z-index:10000;background:#0a0e1a;color:#fff;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">
-  <div style="font-size:13px;letter-spacing:2px;color:#8b93a7;text-transform:uppercase;margin-bottom:6px;">Loquivox Â· Join the room</div>
-  <div style="font-size:15px;color:#c9d3e6;margin-bottom:20px;">Scan with your phone camera â then pick your language</div>
+  <div style="font-size:13px;letter-spacing:2px;color:#8b93a7;text-transform:uppercase;margin-bottom:6px;">Loquivox · Join the room</div>
+  <div style="font-size:15px;color:#c9d3e6;margin-bottom:20px;">Scan with your phone camera — then pick your language</div>
   <div id="qrBox" style="background:#fff;padding:18px;border-radius:16px;line-height:0;"></div>
   <div id="qrCode" style="font-size:52px;font-weight:700;letter-spacing:10px;margin-top:22px;color:#7fb3e8;"></div>
   <div style="font-size:14px;color:#8b93a7;margin-top:4px;">or enter this code in the app</div>
@@ -747,7 +747,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       Create a room and share the code, or join with a code you received.
       Pick <strong>your</strong> language first (Speaker A on the call screen).
     </p>
-    <button class="btn btn-primary" onclick="createRemoteRoom()">â Create a room</button>
+    <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
     <div style="display:flex;gap:10px;margin-top:14px;">
       <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
         style="flex:1;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;text-transform:uppercase;"/>
@@ -758,56 +758,56 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 </div>
 
 <script>
-// ââ Language data âââââââââââââââââââââââââââââââââââââââââââââ
+// ── Language data ─────────────────────────────────────────────
 const LANGUAGES = [
-  {flag:'ðºð¸',name:'English',sub:'United States'},
-  {flag:'ð«ð·',name:'French',sub:'France'},
-  {flag:'ðªð¸',name:'Spanish',sub:'Spain / Latin America'},
-  {flag:'ð©ðª',name:'German',sub:'Germany'},
-  {flag:'ð¯ðµ',name:'Japanese',sub:'Japan'},
-  {flag:'ð¨ð³',name:'Chinese',sub:'Mandarin'},
-  {flag:'ð§ð·',name:'Portuguese',sub:'Brazil'},
-  {flag:'ð¸ð¦',name:'Arabic',sub:'Modern Standard'},
-  {flag:'ð·ðº',name:'Russian',sub:'Russia'},
-  {flag:'ð®ð³',name:'Hindi',sub:'India'},
-  {flag:'ð°ð·',name:'Korean',sub:'South Korea'},
-  {flag:'ð®ð¹',name:'Italian',sub:'Italy'},
-  {flag:'ð³ð±',name:'Dutch',sub:'Netherlands'},
-  {flag:'ðµð±',name:'Polish',sub:'Poland'},
-  {flag:'ð¸ðª',name:'Swedish',sub:'Sweden'},
-  {flag:'ð¹ð·',name:'Turkish',sub:'Turkey'},
-  {flag:'ð¬ð·',name:'Greek',sub:'Greece'},
-  {flag:'ð»ð³',name:'Vietnamese',sub:'Vietnam'},
-  {flag:'ð³ð¬',name:'Haitian Creole',sub:'Haiti'},
-  {flag:'ð°ðª',name:'Swahili',sub:'East Africa'},
+  {flag:'🇺🇸',name:'English',sub:'United States'},
+  {flag:'🇫🇷',name:'French',sub:'France'},
+  {flag:'🇪🇸',name:'Spanish',sub:'Spain / Latin America'},
+  {flag:'🇩🇪',name:'German',sub:'Germany'},
+  {flag:'🇯🇵',name:'Japanese',sub:'Japan'},
+  {flag:'🇨🇳',name:'Chinese',sub:'Mandarin'},
+  {flag:'🇧🇷',name:'Portuguese',sub:'Brazil'},
+  {flag:'🇸🇦',name:'Arabic',sub:'Modern Standard'},
+  {flag:'🇷🇺',name:'Russian',sub:'Russia'},
+  {flag:'🇮🇳',name:'Hindi',sub:'India'},
+  {flag:'🇰🇷',name:'Korean',sub:'South Korea'},
+  {flag:'🇮🇹',name:'Italian',sub:'Italy'},
+  {flag:'🇳🇱',name:'Dutch',sub:'Netherlands'},
+  {flag:'🇵🇱',name:'Polish',sub:'Poland'},
+  {flag:'🇸🇪',name:'Swedish',sub:'Sweden'},
+  {flag:'🇹🇷',name:'Turkish',sub:'Turkey'},
+  {flag:'🇬🇷',name:'Greek',sub:'Greece'},
+  {flag:'🇻🇳',name:'Vietnamese',sub:'Vietnam'},
+  {flag:'🇳🇬',name:'Haitian Creole',sub:'Haiti'},
+  {flag:'🇰🇪',name:'Swahili',sub:'East Africa'},
 ];
 
 // Mock translations per language pair
 const MOCK = {
-  'EnglishâFrench':[
+  'English→French':[
     ['Hello, how can I help you today?','Bonjour, comment puis-je vous aider aujourd\'hui ?'],
     ['I need assistance with my order.','J\'ai besoin d\'aide pour ma commande.'],
-    ['Let me transfer you to the right department.','Laissez-moi vous transfÃ©rer au bon service.'],
+    ['Let me transfer you to the right department.','Laissez-moi vous transférer au bon service.'],
   ],
-  'EnglishâSpanish':[
-    ['Good morning, what can I do for you?','Buenos dÃ­as, Â¿en quÃ© puedo ayudarle?'],
+  'English→Spanish':[
+    ['Good morning, what can I do for you?','Buenos días, ¿en qué puedo ayudarle?'],
     ['Please hold while I check your account.','Por favor espere mientras verifico su cuenta.'],
     ['Thank you for calling us today.','Gracias por llamarnos hoy.'],
   ],
-  'EnglishâGerman':[
+  'English→German':[
     ['Welcome, how may I assist you?','Willkommen, wie kann ich Ihnen helfen?'],
-    ['I understand your concern completely.','Ich verstehe Ihr Anliegen vollstÃ¤ndig.'],
-    ['We will resolve this right away.','Wir werden das sofort lÃ¶sen.'],
+    ['I understand your concern completely.','Ich verstehe Ihr Anliegen vollständig.'],
+    ['We will resolve this right away.','Wir werden das sofort lösen.'],
   ],
-  'FrenchâEnglish':[
-    ['Bonjour, j\'ai un problÃ¨me avec ma facture.','Hello, I have a problem with my invoice.'],
+  'French→English':[
+    ['Bonjour, j\'ai un problème avec ma facture.','Hello, I have a problem with my invoice.'],
     ['Pouvez-vous m\'expliquer les frais ?','Can you explain the charges to me?'],
-    ['Merci de votre aide prÃ©cieuse.','Thank you for your valuable help.'],
+    ['Merci de votre aide précieuse.','Thank you for your valuable help.'],
   ],
 };
 
 function getMock(langA, langB){
-  const key = `${langA}â${langB}`;
+  const key = `${langA}→${langB}`;
   return MOCK[key] || [
     [`Hello from ${langA}!`, `[Translated to ${langB}]`],
     [`How are you?`, `[Translated greeting in ${langB}]`],
@@ -815,8 +815,8 @@ function getMock(langA, langB){
   ];
 }
 
-// ââ Jetons Azure Ã©phÃ©mÃ¨res fournis par le serveur CP ââââââââââ
-// (la clÃ© Azure reste sur le serveur ; le client ne la voit jamais)
+// ── Jetons Azure éphémères fournis par le serveur CP ──────────
+// (la clé Azure reste sur le serveur ; le client ne la voit jamais)
 const CP_TOKEN_URL = 'https://cp-server-kdbg.onrender.com/api/token';
 async function getCpToken(){
   // Fast path — server already awake
@@ -827,7 +827,7 @@ async function getCpToken(){
     clearTimeout(tid);
     if(r.ok) return { ...(await r.json()), isKey: false };
   } catch(_) {}
-  // Server may be waking (Render free tier sleeps after 15 min) — retry with 45s window
+  // Server may be waking (Render free tier) — retry with 45s window
   showToast('⏳ Waking translation service…', 45000);
   try {
     const ctrl2 = new AbortController();
@@ -857,9 +857,9 @@ const LANG_TRANS = {
   Greek:'el', Vietnamese:'vi', 'Haitian Creole':'ht', Swahili:'sw'
 };
 
-// ââ State âââââââââââââââââââââââââââââââââââââââââââââââââââââ
-let currentLangA = {flag:'ðºð¸',name:'English'};
-let currentLangB = {flag:'ð«ð·',name:'French'};
+// ── State ─────────────────────────────────────────────────────
+let currentLangA = {flag:'🇺🇸',name:'English'};
+let currentLangB = {flag:'🇫🇷',name:'French'};
 let activeSpeaker = 'A';
 let pickingFor = 'A';
 let isListening = false;
@@ -869,13 +869,13 @@ let recognition = null;
 let waveInterval = null;
 let obStep = 0;
 let azureRecognizer = null;
-let remoteMode = false; // NOUVEAU : mode appel Ã  distance
-// ââ Original Voice state (Remote Call) âââââââââââââââââââââââ
+let remoteMode = false; // NOUVEAU : mode appel à distance
+// ── Original Voice state (Remote Call) ───────────────────────
 let remoteOriginalVoice = false;
 let rcAudioEl = null, rcAudioMS = null, rcAudioSB = null;
 let rcAudioQueue = [], rcAudioBusy = false;
 
-// ââ Screen navigation âââââââââââââââââââââââââââââââââââââââââ
+// ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -887,7 +887,7 @@ function navTo(id, btn){
   btn.classList.add('active');
 }
 
-// ââ Onboarding ââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Onboarding ────────────────────────────────────────────────
 function nextOnboard(){
   obStep++;
   if(obStep>=3){showScreen('home');return;}
@@ -895,10 +895,10 @@ function nextOnboard(){
     document.getElementById(id).classList.toggle('active',i===obStep);
     document.getElementById('dot'+i).classList.toggle('active',i===obStep);
   });
-  if(obStep===2) document.getElementById('obNext').textContent='Get Started ð';
+  if(obStep===2) document.getElementById('obNext').textContent='Get Started 🚀';
 }
 
-// ââ Call screen âââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Call screen ───────────────────────────────────────────────
 function showCall(){
   showScreen('call');
   updateCallUI();
@@ -926,7 +926,7 @@ function swapLangs(){
   mockIdx=0;
 }
 
-// ââ Waveform ââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Waveform ──────────────────────────────────────────────────
 function buildWaveform(){
   const wf=document.getElementById('waveform');
   wf.innerHTML='';
@@ -958,7 +958,7 @@ function animateWave(on){
 }
 
 
-// ââ VÃ©rification prÃ©alable du micro (message clair si l'autorisation manque) ââ
+// ── Vérification préalable du micro (message clair si l'autorisation manque) ──
 async function ensureMic(){
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
     throw new Error("Microphone unavailable. Open this page over https:// in Chrome, Edge or Safari.");
@@ -977,7 +977,7 @@ async function ensureMic(){
     return true;
   }catch(err){
     if(err && err.message === '__PROMPT_TIMEOUT__'){
-      throw new Error("Waiting for microphone permission. Chrome should show a prompt at the top of the window â click Allow. If you see no prompt, click the padlock in the address bar, set Microphone to Allow, then reload.");
+      throw new Error("Waiting for microphone permission. Chrome should show a prompt at the top of the window — click Allow. If you see no prompt, click the padlock in the address bar, set Microphone to Allow, then reload.");
     }
     if(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')){
       throw new Error("Microphone permission denied. Click the padlock in the address bar, set Microphone to Allow, then reload.");
@@ -1002,22 +1002,22 @@ function showMicError(msg){
   window.__micErrT = setTimeout(()=>{ const b=document.getElementById('micErrBar'); if(b) b.remove(); }, 15000);
 }
 
-// ââ Microphone ââââââââââââââââââââââââââââââââââââââââââââââââ
-// ââ Original Voice (Remote Call) âââââââââââââââââââââââââââââ
+// ── Microphone ────────────────────────────────────────────────
+// ── Original Voice (Remote Call) ─────────────────────────────
 function toggleOriginalVoice(){
   if(!remoteMode) return;
   remoteOriginalVoice = !remoteOriginalVoice;
   const btn = document.getElementById('voiceBtn');
   const lbl = document.getElementById('voiceLabel');
   if(remoteOriginalVoice){
-    btn.textContent = 'ðµ';
+    btn.textContent = '🎵';
     btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
     btn.style.boxShadow = '0 8px 24px rgba(34,197,94,0.4)';
     lbl.textContent = 'Real Voice';
     CPRemote.setTTS(false);
     CPRemote.startAudioStream();
   } else {
-    btn.textContent = 'ð';
+    btn.textContent = '🔇';
     btn.style.background = '';
     btn.style.boxShadow = '';
     lbl.textContent = 'TTS Voice';
@@ -1033,7 +1033,7 @@ function stopRCAudio(){
 }
 
 function handleRemoteAudioChunk({ data, mimeType, isFirst }){
-  // Decode base64 â ArrayBuffer
+  // Decode base64 → ArrayBuffer
   const bin = atob(data);
   const buf = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
@@ -1081,7 +1081,7 @@ function toggleMic(){
     } else {
       isListening=true;
       document.getElementById('micBtn').classList.add('listening');
-      document.getElementById('micLabel').textContent='Listeningâ¦';
+      document.getElementById('micLabel').textContent='Listening…';
       animateWave(true);
       ensureMic().then(()=>CPRemote.startSpeaking()).catch(err=>{
         isListening=false;
@@ -1102,12 +1102,12 @@ async function startListening(){
   isListening=true;
   const btn=document.getElementById('micBtn');
   btn.classList.add('listening');
-  document.getElementById('micLabel').textContent='Listeningâ¦';
+  document.getElementById('micLabel').textContent='Listening…';
   document.getElementById('origA').textContent='';
   document.getElementById('transA').textContent='';
   animateWave(true);
 
-  // ââ Try Azure Speech Translation SDK (jeton via serveur CP) ââ
+  // ── Try Azure Speech Translation SDK (jeton via serveur CP) ──
   if(typeof SpeechSDK !== 'undefined'){
     try{
       const tk = await getCpToken();
@@ -1144,7 +1144,7 @@ async function startListening(){
 
       azureRecognizer.startContinuousRecognitionAsync(
         ()=>{}, // success
-        ()=>{ stopListening(); runDemoTranslation(); } // error â demo
+        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
       );
 
       // Auto-stop after 10 seconds of silence
@@ -1209,10 +1209,10 @@ function showMockTranslation(original, speaker, preTranslated){
 
 function toggleSpeaker(){
   const btn=document.getElementById('speakerBtn');
-  btn.textContent=btn.textContent==='ð'?'ð':'ð';
+  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
 }
 
-// ââ Fin d'appel (local ou distance) âââââââââââââââââââââââââââ
+// ── Fin d'appel (local ou distance) ───────────────────────────
 function endCall(){
   if(remoteMode){
     try{ CPRemote.leave(); }catch(e){}
@@ -1229,7 +1229,7 @@ function endCall(){
   showScreen('home');
 }
 
-// ââ Language Picker âââââââââââââââââââââââââââââââââââââââââââ
+// ── Language Picker ───────────────────────────────────────────
 function openLangPicker(side){
   pickingFor=side;
   document.getElementById('langSearch').value='';
@@ -1253,7 +1253,7 @@ function renderLangList(langs){
     <div class="lang-option" onclick="selectLang('${l.flag}','${l.name}')">
       <span class="flag">${l.flag}</span>
       <div class="info"><strong>${l.name}</strong><span>${l.sub}</span></div>
-      ${l.name===current?'<span class="check">â</span>':''}
+      ${l.name===current?'<span class="check">✓</span>':''}
     </div>
   `).join('');
 }
@@ -1272,17 +1272,17 @@ function selectLang(flag,name){
   }
 }
 
-// ââ Conference (LIVE â real Azure multi-target translation) ââ
+// ── Conference (LIVE — real Azure multi-target translation) ──
 // Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
-// Azure traduit chaque Ã©noncÃ© vers les langues des participants affichÃ©s,
-// en une seule passe (multi-cibles) â la brique du futur mode Ã©vÃ©nement.
+// Azure traduit chaque énoncé vers les langues des participants affichés,
+// en une seule passe (multi-cibles) — la brique du futur mode événement.
 const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
 const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
-let confLang = {name:'English', flag:'ðºð¸'};
+let confLang = {name:'English', flag:'🇺🇸'};
 
 function explainHtLimit(){
-  alert("Kreyol ayisyen â available as OUTPUT (live text translation + spoken audio) for every statement.\n\nSpeaking Kreyol INTO the mic is not yet possible: no commercial engine (including Azure) offers Haitian Creole speech recognition today. This is precisely the linguistic inequity CREDIA's research documents.\n\nPlanned: Kreyol speech input via open-source models (v0.4).");
+  alert("Kreyol ayisyen — available as OUTPUT (live text translation + spoken audio) for every statement.\n\nSpeaking Kreyol INTO the mic is not yet possible: no commercial engine (including Azure) offers Haitian Creole speech recognition today. This is precisely the linguistic inequity CREDIA's research documents.\n\nPlanned: Kreyol speech input via open-source models (v0.4).");
 }
 
 function setConfSpeaker(name, flag){
@@ -1292,7 +1292,7 @@ function setConfSpeaker(name, flag){
   if(el) el.textContent = name;
   highlightConfSpeaker(name);
   if(confActive){
-    stopConference('â³ Switching speakerâ¦');
+    stopConference('⏳ Switching speaker…');
     setTimeout(()=>startConference(), 700);
   }
 }
@@ -1322,13 +1322,13 @@ function toggleConference(){
 async function startConference(){
   const btn = document.getElementById('confBtn');
   if(typeof SpeechSDK === 'undefined'){
-    alert('Speech engine unavailable â check your connection and reload.');
+    alert('Speech engine unavailable — check your connection and reload.');
     return;
   }
   document.getElementById('confSrcLang').textContent = confLang.name;
   try{ await ensureMic(); }
-  catch(e){ showMicError(e.message); btn.textContent = 'â¶ Start live session'; return; }
-  btn.textContent = 'â³ Connectingâ¦';
+  catch(e){ showMicError(e.message); btn.textContent = '▶ Start live session'; return; }
+  btn.textContent = '⏳ Connecting…';
   try{
     const tk = await getCpToken();
     const cfg = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
@@ -1354,14 +1354,14 @@ async function startConference(){
         addLiveConfLine(e.result.text, e.result.translations, targets);
       }
     };
-    confRecognizer.canceled = () => { stopConference('â¶ Resume session'); };
+    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
 
     confRecognizer.startContinuousRecognitionAsync(
-      () => { confActive = true; btn.textContent = 'â¹ Stop session'; },
+      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
       (err) => { stopConference(); alert('Could not start the session: ' + err); }
     );
   } catch(err){
-    btn.textContent = 'â¶ Start live session';
+    btn.textContent = '▶ Start live session';
     alert('Speech service unavailable: ' + err.message);
   }
 }
@@ -1370,7 +1370,7 @@ function stopConference(label){
   confActive = false;
   confCurrentTargets = [];
   const btn = document.getElementById('confBtn');
-  if(btn) btn.textContent = label || 'â¶ Start live session';
+  if(btn) btn.textContent = label || '▶ Start live session';
   clearConfInterim();
   if(confRecognizer){
     try{ confRecognizer.stopContinuousRecognitionAsync(() => { confRecognizer.close(); confRecognizer = null; }); }
@@ -1391,7 +1391,7 @@ function highlightConfSpeaker(langName){
     const pl = c.querySelector('.p-lang');
     if(pl && pl.textContent.includes(langName)){
       c.classList.add('speaking');
-      if(st){ st.className = 'p-status speak'; st.textContent = 'â Speaking'; }
+      if(st){ st.className = 'p-status speak'; st.textContent = '● Speaking'; }
     }
   });
 }
@@ -1424,7 +1424,7 @@ function addLiveConfLine(orig, translations, targets){
   targets.forEach(t => {
     let txt = null;
     try{ txt = translations && translations.get(t); }catch(e){}
-    if(txt) trans += `<div class="t-translated" dir="auto">â ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
+    if(txt) trans += `<div class="t-translated" dir="auto">→ ${CONF_LABEL[t] || t.toUpperCase()}: ${escapeHtml(txt)}</div>`;
   });
   const div = document.createElement('div');
   div.className = 'transcript-line';
@@ -1448,10 +1448,10 @@ function addLiveConfLine(orig, translations, targets){
   }
 }
 
-// ââ Init ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Init ──────────────────────────────────────────────────────
 buildWaveform();
 
-// ââ PWA Install prompt (Android Chrome) ââââââââââââââââââââââ
+// ── PWA Install prompt (Android Chrome) ──────────────────────
 let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -1480,12 +1480,12 @@ function dismissIos() {
   document.getElementById('iosGuide').style.display = 'none';
 }
 
-// ââ Service Worker registration âââââââââââââââââââââââââââââââ
+// ── Service Worker registration ───────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
 
-// ââ User profile (localStorage) ââââââââââââââââââââââââââââââ
+// ── User profile (localStorage) ──────────────────────────────
 function getMyName(){  return localStorage.getItem('loquivox_name') || ''; }
 function getMyEmail(){ return localStorage.getItem('loquivox_email') || ''; }
 
@@ -1497,7 +1497,7 @@ function applyMyName(){
   const pd = document.getElementById('profileNameDisplay');
   if(pd) pd.textContent = name || 'Set your name';
   const pe = document.getElementById('profileEmailDisplay');
-  if(pe) pe.textContent = email || (name ? 'â' : 'Tap to sign in');
+  if(pe) pe.textContent = email || (name ? '—' : 'Tap to sign in');
   // Pre-fill attendee join name field
   const ni = document.getElementById('confJoinNameInput');
   if(ni && !ni.value) ni.value = name;
@@ -1533,7 +1533,7 @@ function saveNameEditor(){
   closeNameEditor();
 }
 
-// On first visit â prompt for name after onboarding
+// On first visit — prompt for name after onboarding
 function checkFirstVisit(){
   if(!getMyName()) setTimeout(() => openNameEditor(true), 600);
 }
@@ -1541,10 +1541,10 @@ function checkFirstVisit(){
 // Apply name immediately on load
 applyMyName();
 
-// ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// ── Init ─────────────────────────────────────────────────────
 </script>
 
-<!-- ââââââââââââââââââ REMOTE CALL â logique (NOUVEAU) ââââââââââââââââââ -->
+<!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
 <script src="cp-remote.js"></script>
 <script>
 function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
@@ -1555,7 +1555,7 @@ function closeRemoteModal(e){
 function setRemoteStatus(t){ document.getElementById('remoteStatus').textContent=t; }
 
 
-// ââ Code QR pour rejoindre la salle ââââââââââââââââââââââââââ
+// ── Code QR pour rejoindre la salle ──────────────────────────
 let currentRoomCode = null;
 
 function roomLink(room){
@@ -1570,7 +1570,7 @@ function showQR(room){
   try{
     new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
   }catch(e){
-    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable â share the code below</div>';
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
   }
   document.getElementById('qrCode').textContent = room;
   document.getElementById('qrLink').textContent = link;
@@ -1592,19 +1592,19 @@ function myRemoteOpts(){
 }
 
 function createRemoteRoom(){
-  setRemoteStatus('Creating roomâ¦');
+  setRemoteStatus('Creating room…');
   CPRemote.create(myRemoteOpts())
     .then(({room}) => enterRemoteCall(room, true))
-    .catch(e => setRemoteStatus('â ï¸ ' + e.message));
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
 }
 
 function joinRemoteRoom(){
   const code = (document.getElementById('joinCodeInput').value || '').trim().toUpperCase();
   if(code.length !== 4){ setRemoteStatus('Enter the 4-character room code.'); return; }
-  setRemoteStatus('Joining ' + code + 'â¦');
+  setRemoteStatus('Joining ' + code + '…');
   CPRemote.join(code, myRemoteOpts())
     .then(({room}) => enterRemoteCall(room, false))
-    .catch(e => setRemoteStatus('â ï¸ ' + e.message));
+    .catch(e => setRemoteStatus('⚠️ ' + e.message));
 }
 
 function enterRemoteCall(room, isHost){
@@ -1614,18 +1614,18 @@ function enterRemoteCall(room, isHost){
   CPRemote.setTTS(true);
   document.getElementById('remoteModal').classList.remove('open');
   showCall();
-  document.getElementById('callTitle').textContent = 'Remote Call Â· ' + room;
+  document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
   document.getElementById('transA').textContent = '';
   document.getElementById('transB').textContent = '';
-  document.getElementById('origB').textContent = 'Waiting for the other participantâ¦';
+  document.getElementById('origB').textContent = 'Waiting for the other participant…';
   // Update sub-labels for bidirectional mode
-  document.querySelector('#langBoxA .lang-sub').textContent = 'You â tap mic to speak';
-  document.querySelector('#langBoxB .lang-sub').textContent = 'Them â their language';
+  document.querySelector('#langBoxA .lang-sub').textContent = 'You — tap mic to speak';
+  document.querySelector('#langBoxB .lang-sub').textContent = 'Them — their language';
   // Show Original Voice toggle, reset its appearance
   const vc = document.getElementById('origVoiceCtrl');
   vc.style.display = 'flex';
   const vb = document.getElementById('voiceBtn');
-  vb.textContent = 'ðµ'; vb.style.background=''; vb.style.boxShadow='';
+  vb.textContent = '🎵'; vb.style.background=''; vb.style.boxShadow='';
   document.getElementById('voiceLabel').textContent = 'Real Voice';
   currentRoomCode = room;
   if(isHost){
@@ -1640,21 +1640,21 @@ function enterRemoteCall(room, isHost){
 // CPRemote events handled below
 
 
-// ââ Conference attendee QR & join âââââââââââââââââââââââââââââ
+// ── Conference attendee QR & join ─────────────────────────────
 let confJoinCode = null;
-let confJoinLang = {name:'English', flag:'ðºð¸', code:'en', speechCode:'en-US'};
+let confJoinLang = {name:'English', flag:'🇺🇸', code:'en', speechCode:'en-US'};
 let confAttendeeActive = false;
 
 const CONF_JOIN_LANGS = [
-  {flag:'ðºð¸',name:'English',code:'en',speechCode:'en-US'},
-  {flag:'ð«ð·',name:'FranÃ§ais',code:'fr',speechCode:'fr-FR'},
-  {flag:'ðªð¸',name:'EspaÃ±ol',code:'es',speechCode:'es-ES'},
-  {flag:'ð·ðº',name:'Ð ÑÑÑÐºÐ¸Ð¹',code:'ru',speechCode:'ru-RU'},
-  {flag:'ð¨ð³',name:'ä¸­æ',code:'zh-Hans',speechCode:'zh-CN'},
-  {flag:'ð¸ð¦',name:'Ø§ÙØ¹Ø±Ø¨ÙØ©',code:'ar',speechCode:'ar-SA'},
-  {flag:'ð­ð¹',name:'KreyÃ²l',code:'ht',speechCode:'fr-HT'},
-  {flag:'ð§ð·',name:'PortuguÃªs',code:'pt',speechCode:'pt-BR'},
-  {flag:'ð©ðª',name:'Deutsch',code:'de',speechCode:'de-DE'},
+  {flag:'🇺🇸',name:'English',code:'en',speechCode:'en-US'},
+  {flag:'🇫🇷',name:'Français',code:'fr',speechCode:'fr-FR'},
+  {flag:'🇪🇸',name:'Español',code:'es',speechCode:'es-ES'},
+  {flag:'🇷🇺',name:'Русский',code:'ru',speechCode:'ru-RU'},
+  {flag:'🇨🇳',name:'中文',code:'zh-Hans',speechCode:'zh-CN'},
+  {flag:'🇸🇦',name:'العربية',code:'ar',speechCode:'ar-SA'},
+  {flag:'🇭🇹',name:'Kreyòl',code:'ht',speechCode:'fr-HT'},
+  {flag:'🇧🇷',name:'Português',code:'pt',speechCode:'pt-BR'},
+  {flag:'🇩🇪',name:'Deutsch',code:'de',speechCode:'de-DE'},
 ];
 
 
@@ -1669,7 +1669,7 @@ function showConfRoomQR(room){
   try{
     new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
   }catch(e){
-    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable â share the code below</div>';
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
   }
   document.getElementById('qrCode').textContent = room;
   document.getElementById('qrLink').textContent = link;
@@ -1694,7 +1694,7 @@ function showConfQR(){
 
 function openConfJoin(code){
   confJoinCode = code;
-  document.getElementById('confJoinRoomLabel').textContent = 'Room ' + code + ' â enter your name and pick your language';
+  document.getElementById('confJoinRoomLabel').textContent = 'Room ' + code + ' — enter your name and pick your language';
   // Pre-fill with saved name
   const ni = document.getElementById('confJoinNameInput');
   if(ni) ni.value = getMyName();
@@ -1704,7 +1704,7 @@ function openConfJoin(code){
     <div onclick="selectAttLang(${i})" id="attlang${i}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:${i===0?'rgba(79,142,247,0.15)':'rgba(255,255,255,0.04)'};border:1.5px solid ${i===0?'#4f8ef7':'#1e2d4a'};border-radius:14px;cursor:pointer;">
       <span style="font-size:24px;">${l.flag}</span>
       <span style="font-size:15px;font-weight:600;color:#e8edf5;">${l.name}</span>
-      ${i===0?'<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">â</span>':''}
+      ${i===0?'<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">✓</span>':''}
     </div>
   `).join('');
   confJoinLang = CONF_JOIN_LANGS[0];
@@ -1718,7 +1718,7 @@ function selectAttLang(idx){
     el.style.background = active ? 'rgba(79,142,247,0.15)' : 'rgba(255,255,255,0.04)';
     el.style.border = '1.5px solid ' + (active ? '#4f8ef7' : '#1e2d4a');
     el.innerHTML = el.innerHTML.replace(/<span style="margin-left:auto.*?<\/span>/g, '');
-    if(active) el.innerHTML += '<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">â</span>';
+    if(active) el.innerHTML += '<span style="margin-left:auto;color:#4f8ef7;font-size:16px;">✓</span>';
   });
 }
 
@@ -1733,7 +1733,7 @@ async function doJoinConference(){
   // Save for next time
   localStorage.setItem('loquivox_name', attendeeName);
   applyMyName();
-  document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + 'â¦';
+  document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + '…';
   try {
     await CPRemote.join(confJoinCode, {
       name: attendeeName,
@@ -1743,14 +1743,14 @@ async function doJoinConference(){
     document.getElementById('confJoinPanel').style.display = 'none';
     showAttendeeView(attendeeName);
   } catch(e) {
-    document.getElementById('confJoinStatus').textContent = 'â ï¸ ' + e.message;
+    document.getElementById('confJoinStatus').textContent = '⚠️ ' + e.message;
   }
 }
 
 async function showAttendeeView(name){
   confAttendeeActive = true;
-  document.getElementById('attRoomLabel').textContent = (name ? name + ' Â· ' : '') + 'Room ' + confJoinCode;
-  document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' Â· TTS on';
+  document.getElementById('attRoomLabel').textContent = (name ? name + ' · ' : '') + 'Room ' + confJoinCode;
+  document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' · TTS on';
   document.getElementById('attFinalText').textContent = '';
   document.getElementById('attPartialText').textContent = '';
   const v = document.getElementById('confAttendeeView');
@@ -1776,7 +1776,7 @@ CPRemote.on((type, data) => {
     const attendees = (data.participants || []);
     const needsRestart = attendees.some(p => p.lang && !confCurrentTargets.includes(p.lang));
     if(needsRestart) {
-      stopConference('â³ Adding languageâ¦');
+      stopConference('⏳ Adding language…');
       setTimeout(() => startConference(), 700);
     }
     return;
@@ -1822,20 +1822,20 @@ CPRemote.on((type, data) => {
       const other = peers[0];
       // Find display name for their language code
       const langName = Object.entries(LANG_TRANS).find(([k,v])=>v===other.lang)?.[0] || other.lang || '';
-      const langFlag = LANGUAGES.find(l=>l.name===langName)?.flag || 'ð';
+      const langFlag = LANGUAGES.find(l=>l.name===langName)?.flag || '🌐';
       document.getElementById('flagB').textContent = langFlag;
       document.getElementById('langNameB').textContent = langName || other.lang;
       document.getElementById('bFlagB').textContent = langFlag;
       document.getElementById('bLangB').textContent = langName || (other.lang||'').toUpperCase();
-      document.querySelector('#langBoxB .lang-sub').textContent = (other.name||'Them') + ' â tap their mic to speak';
+      document.querySelector('#langBoxB .lang-sub').textContent = (other.name||'Them') + ' — tap their mic to speak';
       if(document.getElementById('origB').textContent.startsWith('Waiting'))
-        document.getElementById('origB').textContent = (other.name||'Participant') + ' joined â both can now speak.';
+        document.getElementById('origB').textContent = (other.name||'Participant') + ' joined — both can now speak.';
     }
   }
   if(type === 'invite'){
     openRemoteModal();
     document.getElementById('joinCodeInput').value = data.room;
-    setRemoteStatus('Invitation detected â tap Join.');
+    setRemoteStatus('Invitation detected — tap Join.');
   }
   if(type === 'closed' && remoteMode){
     document.getElementById('origB').textContent = 'Connection closed.';
@@ -1851,11 +1851,11 @@ window.addEventListener('load', () => {
 
 </script>
 
-<!-- ââââââââââââââââââ PREMIUM FEATURES â JavaScript ââââââââââââââââââ -->
+<!-- ══════════════════ PREMIUM FEATURES — JavaScript ══════════════════ -->
 <script>
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────────────
    SHARED HELPERS
-âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────────────── */
 // Generic Azure creds getter (re-use cp-remote fallback pattern)
 async function getPremiumAzureCreds() {
   try {
@@ -1865,7 +1865,7 @@ async function getPremiumAzureCreds() {
   const key = localStorage.getItem('cp_azure_key');
   const region = localStorage.getItem('cp_azure_region') || 'westus2';
   if (key) return { token: key, region, isKey: true };
-  throw new Error('Azure key not configured. Go to Settings â enter your Azure Speech key.');
+  throw new Error('Azure key not configured. Go to Settings → enter your Azure Speech key.');
 }
 
 function premSpeechTransConfig({ token, region, isKey }) {
@@ -1889,17 +1889,17 @@ function showToast(msg, duration = 2500) {
   t._timer = setTimeout(() => { t.style.opacity = '0'; }, duration);
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────────────
    AI MEETING ASSISTANT
-âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────────────── */
 let meetRecognizer = null;
 let meetIsRecording = false;
 let meetStartTime = null;
 let meetTimerInterval = null;
 let meetTranscriptData = []; // [{speaker, text, trans, ts}]
 let meetWordCount = 0;
-let meetLang = { flag: 'ðºð¸', name: 'English' };
-let meetTargetLang = { flag: 'ð«ð·', name: 'French' };
+let meetLang = { flag: '🇺🇸', name: 'English' };
+let meetTargetLang = { flag: '🇫🇷', name: 'French' };
 let meetPickingFor = null;
 
 function openMeetingLangPicker() { meetPickingFor = 'src'; openLangPicker('A'); }
@@ -1953,7 +1953,7 @@ async function toggleMeetingRecording() {
 async function startMeetingRecording() {
   const btn = document.getElementById('meetRecBtn');
   btn.disabled = true;
-  btn.querySelector('#meetRecLabel').textContent = 'Startingâ¦';
+  btn.querySelector('#meetRecLabel').textContent = 'Starting…';
   try {
     const creds = await getPremiumAzureCreds();
     const cfg = premSpeechTransConfig(creds);
@@ -1996,7 +1996,7 @@ async function startMeetingRecording() {
         document.getElementById('meetExportRow').style.display = 'none';
 
         btn.classList.add('recording');
-        btn.querySelector('#meetRecIcon').textContent = 'â¹';
+        btn.querySelector('#meetRecIcon').textContent = '⏹';
         document.getElementById('meetRecLabel').textContent = 'Stop Recording';
         btn.disabled = false;
 
@@ -2009,13 +2009,13 @@ async function startMeetingRecording() {
       err => {
         btn.disabled = false;
         btn.querySelector('#meetRecLabel').textContent = 'Start Recording';
-        showToast('â ï¸ Mic error: ' + err);
+        showToast('⚠️ Mic error: ' + err);
       }
     );
   } catch (err) {
     btn.disabled = false;
     btn.querySelector('#meetRecLabel').textContent = 'Start Recording';
-    showToast('â ï¸ ' + err.message);
+    showToast('⚠️ ' + err.message);
   }
 }
 
@@ -2040,7 +2040,7 @@ async function stopMeetingRecording() {
   meetIsRecording = false;
   const btn = document.getElementById('meetRecBtn');
   btn.classList.remove('recording');
-  btn.querySelector('#meetRecIcon').textContent = 'âº';
+  btn.querySelector('#meetRecIcon').textContent = '⏺';
   document.getElementById('meetRecLabel').textContent = 'Start New Recording';
   document.getElementById('meetPartialText').textContent = '';
 
@@ -2084,29 +2084,29 @@ function generateMeetingSummary() {
 
 function exportMeetingTxt() {
   const lines = meetTranscriptData.map(s =>
-    `[${s.speaker}]\n${s.text}${s.trans ? '\nâ ' + meetTargetLang.name + ': ' + s.trans : ''}\n`
+    `[${s.speaker}]\n${s.text}${s.trans ? '\n→ ' + meetTargetLang.name + ': ' + s.trans : ''}\n`
   ).join('\n');
-  const header = `LOQUIVOX MEETING TRANSCRIPT\nDate: ${new Date().toLocaleString()}\n${meetLang.name} â ${meetTargetLang.name}\n${'â'.repeat(40)}\n\n`;
+  const header = `LOQUIVOX MEETING TRANSCRIPT\nDate: ${new Date().toLocaleString()}\n${meetLang.name} → ${meetTargetLang.name}\n${'─'.repeat(40)}\n\n`;
   const blob = new Blob([header + lines], { type: 'text/plain' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'loquivox-meeting-' + Date.now() + '.txt'; a.click();
-  showToast('â Transcript exported as TXT');
+  showToast('✅ Transcript exported as TXT');
 }
 
 function exportMeetingMd() {
   const lines = meetTranscriptData.map(s =>
     `**${s.speaker}:** ${s.text}${s.trans ? `\n> *${meetTargetLang.flag} ${s.trans}*` : ''}`
   ).join('\n\n');
-  const header = `# Loquivox Meeting Transcript\n**Date:** ${new Date().toLocaleString()}  \n**Languages:** ${meetLang.flag} ${meetLang.name} â ${meetTargetLang.flag} ${meetTargetLang.name}\n\n---\n\n`;
+  const header = `# Loquivox Meeting Transcript\n**Date:** ${new Date().toLocaleString()}  \n**Languages:** ${meetLang.flag} ${meetLang.name} → ${meetTargetLang.flag} ${meetTargetLang.name}\n\n---\n\n`;
   const blob = new Blob([header + lines], { type: 'text/markdown' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
   a.download = 'loquivox-meeting-' + Date.now() + '.md'; a.click();
-  showToast('â Transcript exported as Markdown');
+  showToast('✅ Transcript exported as Markdown');
 }
 
 function copyMeetingTranscript() {
   const lines = meetTranscriptData.map(s => `${s.speaker}: ${s.text}${s.trans ? ' | ' + s.trans : ''}`).join('\n');
-  navigator.clipboard.writeText(lines).then(() => showToast('ð Transcript copied!')).catch(() => showToast('â ï¸ Copy failed'));
+  navigator.clipboard.writeText(lines).then(() => showToast('📋 Transcript copied!')).catch(() => showToast('⚠️ Copy failed'));
 }
 
 function saveMeetingToHistory() {
@@ -2117,7 +2117,7 @@ function saveMeetingToHistory() {
     id: Date.now(),
     date: new Date().toLocaleDateString(),
     duration: m + ':' + String(duration % 60).padStart(2, '0'),
-    langs: meetLang.flag + ' â ' + meetTargetLang.flag,
+    langs: meetLang.flag + ' → ' + meetTargetLang.flag,
     segments: meetTranscriptData.length,
     words: meetWordCount,
     data: meetTranscriptData,
@@ -2136,12 +2136,12 @@ function renderMeetingHistory() {
   }
   box.innerHTML = hist.slice(0, 5).map((h, i) => `
     <div class="prem-row" style="cursor:pointer;" onclick="loadMeetingHistory(${i})">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);">ð¤</div>
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);">🤝</div>
       <div class="prem-row-info">
-        <strong>${h.langs} Â· ${h.duration}</strong>
-        <span>${h.date} Â· ${h.segments} segments Â· ${h.words} words</span>
+        <strong>${h.langs} · ${h.duration}</strong>
+        <span>${h.date} · ${h.segments} segments · ${h.words} words</span>
       </div>
-      <span style="color:var(--muted);font-size:16px;">âº</span>
+      <span style="color:var(--muted);font-size:16px;">›</span>
     </div>
   `).join('');
 }
@@ -2159,7 +2159,7 @@ function loadMeetingHistory(idx) {
   document.getElementById('meetSegCount').textContent = h.segments;
   document.getElementById('meetPartialText').textContent = '';
   if (meetTranscriptData.length > 0) { generateMeetingSummary(); document.getElementById('meetExportRow').style.display = 'flex'; }
-  showToast('ð Loaded: ' + h.date);
+  showToast('📂 Loaded: ' + h.date);
 }
 
 // Load history when screen is shown
@@ -2170,12 +2170,12 @@ window.showScreen = function(id) {
   if (id === 'workspace') { const n = getMyName(); if (n) document.getElementById('wsOwnerName').textContent = n; }
 };
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────────────
    LOQUIVOX NUMBER
-âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────────────── */
 function copyLnNumber() {
   const num = document.getElementById('lnNumberDisplay').textContent;
-  navigator.clipboard.writeText(num).then(() => showToast('ð Number copied: ' + num)).catch(() => showToast('Number: ' + num));
+  navigator.clipboard.writeText(num).then(() => showToast('📋 Number copied: ' + num)).catch(() => showToast('Number: ' + num));
 }
 
 function shareLnNumber() {
@@ -2187,13 +2187,13 @@ function shareLnNumber() {
   }
 }
 
-/* âââââââââââââââââââââââââââââââââââââââââââââââââââââ
+/* ─────────────────────────────────────────────────────
    AMBIENT AI INTERPRETER
-âââââââââââââââââââââââââââââââââââââââââââââââââââââ */
+───────────────────────────────────────────────────── */
 let ambientRecognizer = null;
 let ambientActive = false;
-let ambientSrc = { flag: 'ðºð¸', name: 'English' };
-let ambientTgt = { flag: 'ð«ð·', name: 'French' };
+let ambientSrc = { flag: '🇺🇸', name: 'English' };
+let ambientTgt = { flag: '🇫🇷', name: 'French' };
 let ambientPickingFor = null;
 let ambientMode = 'General';
 
@@ -2204,7 +2204,7 @@ function setAmbientMode(el, mode) {
   ambientMode = mode;
   document.querySelectorAll('#ambientModeChips .mode-chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('ambientStatus').textContent = 'Mode: ' + mode + ' Â· Tap to listen';
+  document.getElementById('ambientStatus').textContent = 'Mode: ' + mode + ' · Tap to listen';
 }
 
 async function toggleAmbient() {
@@ -2218,7 +2218,7 @@ async function toggleAmbient() {
 async function startAmbient() {
   const btn = document.getElementById('ambientBtn');
   btn.disabled = true;
-  document.getElementById('ambientBtnLabel').textContent = 'Startingâ¦';
+  document.getElementById('ambientBtnLabel').textContent = 'Starting…';
   try {
     const creds = await getPremiumAzureCreds();
     const cfg = premSpeechTransConfig(creds);
@@ -2246,25 +2246,25 @@ async function startAmbient() {
         ambientActive = true;
         const ring = document.getElementById('ambientRing');
         ring.classList.add('active');
-        document.getElementById('ambientIcon').textContent = 'ð¤';
-        document.getElementById('ambientStatus').textContent = 'â Listening Â· ' + ambientMode;
+        document.getElementById('ambientIcon').textContent = '🎤';
+        document.getElementById('ambientStatus').textContent = '● Listening · ' + ambientMode;
         document.getElementById('ambientStatus').style.color = 'var(--green)';
-        document.getElementById('ambientDetectedLang').textContent = ambientSrc.flag + ' ' + ambientSrc.name + ' â ' + ambientTgt.flag + ' ' + ambientTgt.name;
+        document.getElementById('ambientDetectedLang').textContent = ambientSrc.flag + ' ' + ambientSrc.name + ' → ' + ambientTgt.flag + ' ' + ambientTgt.name;
         btn.classList.add('listening');
-        document.getElementById('ambientBtnIcon').textContent = 'ð';
+        document.getElementById('ambientBtnIcon').textContent = '🛑';
         document.getElementById('ambientBtnLabel').textContent = 'Stop Listening';
         btn.disabled = false;
       },
       err => {
         btn.disabled = false;
         document.getElementById('ambientBtnLabel').textContent = 'Start Listening';
-        showToast('â ï¸ Mic error: ' + err);
+        showToast('⚠️ Mic error: ' + err);
       }
     );
   } catch (err) {
     btn.disabled = false;
     document.getElementById('ambientBtnLabel').textContent = 'Start Listening';
-    showToast('â ï¸ ' + err.message);
+    showToast('⚠️ ' + err.message);
   }
 }
 
@@ -2279,7 +2279,7 @@ function stopAmbient() {
   const ring = document.getElementById('ambientRing');
   if (ring) ring.classList.remove('active');
   const icon = document.getElementById('ambientIcon');
-  if (icon) icon.textContent = 'ð';
+  if (icon) icon.textContent = '👂';
   const stat = document.getElementById('ambientStatus');
   if (stat) { stat.textContent = 'Tap listen to start'; stat.style.color = ''; }
   const det = document.getElementById('ambientDetectedLang');
@@ -2287,19 +2287,19 @@ function stopAmbient() {
   const btn = document.getElementById('ambientBtn');
   if (btn) { btn.classList.remove('listening'); btn.disabled = false; }
   const bi = document.getElementById('ambientBtnIcon');
-  if (bi) bi.textContent = 'ð';
+  if (bi) bi.textContent = '👂';
   const bl = document.getElementById('ambientBtnLabel');
   if (bl) bl.textContent = 'Start Listening';
   const part = document.getElementById('ambientPartial');
-  if (part) part.textContent = 'Waiting for speechâ¦';
+  if (part) part.textContent = 'Waiting for speech…';
 }
 </script>
 
-<!-- ââââââââââââââââââ SIGN-IN MODAL ââââââââââââââââââ -->
+<!-- ══════════════════ SIGN-IN MODAL ══════════════════ -->
 <div id="nameEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:20000;align-items:flex-end;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 44px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 22px;"></div>
-    <div style="font-size:32px;text-align:center;margin-bottom:12px;">ð</div>
+    <div style="font-size:32px;text-align:center;margin-bottom:12px;">🌐</div>
     <h3 style="font-size:20px;font-weight:700;margin-bottom:6px;text-align:center;">Welcome to Loquivox</h3>
     <p style="font-size:13px;color:#64748b;margin-bottom:22px;text-align:center;line-height:1.5;">Sign in so others can see who's speaking.<br>Your info stays on your device.</p>
     <label style="font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;display:block;">Your name <span style="color:#ef4444;">*</span></label>
@@ -2317,18 +2317,18 @@ function stopAmbient() {
   </div>
 </div>
 
-<!-- ââ Install Banner (Android) ââ -->
+<!-- ── Install Banner (Android) ── -->
 <div id="installBanner" style="display:none;position:fixed;bottom:90px;left:16px;right:16px;background:#131929;border:1px solid #4f8ef7;border-radius:16px;padding:14px 16px;z-index:500;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,0.5);">
-  <span style="font-size:28px;">ð²</span>
+  <span style="font-size:28px;">📲</span>
   <div style="flex:1;">
     <div style="font-size:14px;font-weight:600;color:#e8edf5;">Install Loquivox</div>
     <div style="font-size:12px;color:#64748b;margin-top:2px;">Add to your home screen for instant access</div>
   </div>
   <button onclick="installApp()" style="background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;">Install</button>
-  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:0 4px;">Ã</button>
+  <button onclick="dismissInstall()" style="background:none;border:none;color:#64748b;font-size:20px;cursor:pointer;padding:0 4px;">×</button>
 </div>
 
-<!-- ââ iOS Install Guide ââ -->
+<!-- ── iOS Install Guide ── -->
 <div id="iosGuide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:flex-end;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
@@ -2341,7 +2341,7 @@ function stopAmbient() {
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
         <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">2</div>
-        <div style="font-size:14px;color:#e8edf5;">Tap the <strong>Share</strong> button <span style="font-size:18px;">â</span> at the bottom</div>
+        <div style="font-size:14px;color:#e8edf5;">Tap the <strong>Share</strong> button <span style="font-size:18px;">⎙</span> at the bottom</div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;">
         <div style="width:36px;height:36px;border-radius:50%;background:rgba(79,142,247,0.15);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">3</div>
@@ -2353,12 +2353,12 @@ function stopAmbient() {
 </div>
 
 
-<!-- ââââââââââââââââââ CONFERENCE ATTENDEE JOIN ââââââââââââââââââ -->
+<!-- ══════════════════ CONFERENCE ATTENDEE JOIN ══════════════════ -->
 <div id="confJoinPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:10001;align-items:flex-end;justify-content:center;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 40px;">
     <div style="width:40px;height:4px;border-radius:2px;background:#1e2d4a;margin:0 auto 20px;"></div>
     <h3 style="font-size:18px;font-weight:700;margin-bottom:6px;">Join Conference</h3>
-    <p id="confJoinRoomLabel" style="font-size:13px;color:#64748b;margin-bottom:16px;">Room â enter your name and pick your language</p>
+    <p id="confJoinRoomLabel" style="font-size:13px;color:#64748b;margin-bottom:16px;">Room — enter your name and pick your language</p>
     <input id="confJoinNameInput" type="text" placeholder="Your name" maxlength="30"
       style="width:100%;background:rgba(255,255,255,0.05);border:1.5px solid #1e2d4a;border-radius:14px;padding:13px 16px;color:#e8edf5;font-size:15px;outline:none;margin-bottom:14px;"
       oninput="this.style.borderColor=this.value.trim()?'#4f8ef7':'#1e2d4a'"/>
@@ -2369,10 +2369,10 @@ function stopAmbient() {
   </div>
 </div>
 
-<!-- ââââââââââââââââââ AI MEETING ASSISTANT ââââââââââââââââââ -->
+<!-- ══════════════════ AI MEETING ASSISTANT ══════════════════ -->
 <div class="screen premium-screen" id="meeting">
   <div class="premium-header">
-    <button class="back-btn" onclick="showScreen('home')">â</button>
+    <button class="back-btn" onclick="showScreen('home')">←</button>
     <h2>AI Meeting Assistant</h2>
     <span class="prem-pill">AI-Powered</span>
   </div>
@@ -2382,30 +2382,30 @@ function stopAmbient() {
     <div style="flex:1;">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Transcribe from</div>
       <div onclick="openMeetingLangPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">
-        <span id="meetLangFlag" style="font-size:22px;">ðºð¸</span>
+        <span id="meetLangFlag" style="font-size:22px;">🇺🇸</span>
         <span id="meetLangName" style="font-size:14px;font-weight:600;">English</span>
-        <span style="margin-left:auto;color:var(--muted);font-size:16px;">â¾</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:16px;">▾</span>
       </div>
     </div>
     <div style="flex:1;">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Translate to</div>
       <div onclick="openMeetingTargetPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">
-        <span id="meetTargetFlag" style="font-size:22px;">ð«ð·</span>
+        <span id="meetTargetFlag" style="font-size:22px;">🇫🇷</span>
         <span id="meetTargetName" style="font-size:14px;font-weight:600;">French</span>
-        <span style="margin-left:auto;color:var(--muted);font-size:16px;">â¾</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:16px;">▾</span>
       </div>
     </div>
   </div>
 
   <!-- Record Button -->
   <button class="meeting-big-btn" id="meetRecBtn" onclick="toggleMeetingRecording()">
-    <span id="meetRecIcon">âº</span> <span id="meetRecLabel">Start Recording</span>
+    <span id="meetRecIcon">⏺</span> <span id="meetRecLabel">Start Recording</span>
   </button>
 
   <!-- Live transcript -->
   <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:0 16px 8px;font-weight:600;">Live Transcript</div>
   <div class="meeting-transcript-box" id="meetTranscriptBox">
-    <div class="mtx-partial" id="meetPartialText">Tap record to start the meetingâ¦</div>
+    <div class="mtx-partial" id="meetPartialText">Tap record to start the meeting…</div>
     <div id="meetTranscriptLines"></div>
   </div>
 
@@ -2427,7 +2427,7 @@ function stopAmbient() {
 
   <!-- AI Summary (shows after recording) -->
   <div class="summary-box" id="meetSummaryBox" style="display:none;">
-    <h4>ð¤ AI Summary</h4>
+    <h4>🤖 AI Summary</h4>
     <p id="meetSummaryText"></p>
     <div style="margin-top:12px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Action Items</div>
     <div class="action-items-list" id="meetActionItems"></div>
@@ -2435,9 +2435,9 @@ function stopAmbient() {
 
   <!-- Export buttons -->
   <div class="export-row" id="meetExportRow" style="display:none;">
-    <button class="export-btn" onclick="exportMeetingTxt()">ð TXT</button>
-    <button class="export-btn" onclick="exportMeetingMd()">ð Markdown</button>
-    <button class="export-btn" onclick="copyMeetingTranscript()">ð Copy</button>
+    <button class="export-btn" onclick="exportMeetingTxt()">📄 TXT</button>
+    <button class="export-btn" onclick="exportMeetingMd()">📝 Markdown</button>
+    <button class="export-btn" onclick="copyMeetingTranscript()">📋 Copy</button>
   </div>
 
   <!-- Meeting history -->
@@ -2447,17 +2447,17 @@ function stopAmbient() {
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ LOQUIVOX NUMBER ââââââââââââââââââ -->
+<!-- ══════════════════ LOQUIVOX NUMBER ══════════════════ -->
 <div class="screen premium-screen" id="lnumber">
   <div class="premium-header">
-    <button class="back-btn" onclick="showScreen('home')">â</button>
+    <button class="back-btn" onclick="showScreen('home')">←</button>
     <h2>Loquivox Number</h2>
     <span class="prem-pill">Business</span>
   </div>
@@ -2466,10 +2466,10 @@ function stopAmbient() {
   <div class="number-hero">
     <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Your Virtual Number</div>
     <div class="number-display" id="lnNumberDisplay">+1 (786) 555-0147</div>
-    <div style="font-size:13px;color:var(--green);margin-bottom:14px;"><span class="number-status-dot"></span>Active Â· AI Receptionist On</div>
+    <div style="font-size:13px;color:var(--green);margin-bottom:14px;"><span class="number-status-dot"></span>Active · AI Receptionist On</div>
     <div style="display:flex;gap:10px;justify-content:center;">
-      <button onclick="copyLnNumber()" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3);color:var(--accent);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">ð Copy</button>
-      <button onclick="shareLnNumber()" style="background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">â Share</button>
+      <button onclick="copyLnNumber()" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3);color:var(--accent);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">📋 Copy</button>
+      <button onclick="shareLnNumber()" style="background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">↗ Share</button>
     </div>
   </div>
 
@@ -2477,24 +2477,24 @@ function stopAmbient() {
   <div class="prem-section">
     <div class="prem-section-title">AI Receptionist</div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">ð¤</div>
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🤖</div>
       <div class="prem-row-info"><strong>Auto-Answer</strong><span>Greet callers in their language</span></div>
       <button class="toggle on" id="aiReceptionistToggle" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">ð</div>
+      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">🌐</div>
       <div class="prem-row-info"><strong>Language Detection</strong><span>Auto-detect caller's language</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">ð</div>
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">📝</div>
       <div class="prem-row-info"><strong>Voicemail Transcription</strong><span>Voicemails converted to text</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">ð</div>
-      <div class="prem-row-info"><strong>Business Hours</strong><span>MonâFri, 9amâ6pm</span></div>
-      <span style="color:var(--muted);font-size:16px;">âº</span>
+      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">🕐</div>
+      <div class="prem-row-info"><strong>Business Hours</strong><span>Mon–Fri, 9am–6pm</span></div>
+      <span style="color:var(--muted);font-size:16px;">›</span>
     </div>
   </div>
 
@@ -2502,10 +2502,10 @@ function stopAmbient() {
   <div class="prem-section">
     <div class="prem-section-title">Departments & Extensions</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;">
-      <div class="dept-chip active">ð Sales Â· Ext. 1</div>
-      <div class="dept-chip">ð  Support Â· Ext. 2</div>
-      <div class="dept-chip">ð¼ Billing Â· Ext. 3</div>
-      <div class="dept-chip" onclick="alert('Add department â coming soon')">+ Add</div>
+      <div class="dept-chip active">📞 Sales · Ext. 1</div>
+      <div class="dept-chip">🛠 Support · Ext. 2</div>
+      <div class="dept-chip">💼 Billing · Ext. 3</div>
+      <div class="dept-chip" onclick="alert('Add department — coming soon')">+ Add</div>
     </div>
   </div>
 
@@ -2513,14 +2513,14 @@ function stopAmbient() {
   <div class="prem-section">
     <div class="prem-section-title">Smart Routing</div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">ð</div>
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">🔀</div>
       <div class="prem-row-info"><strong>Language-Based Routing</strong><span>Route Spanish callers to bilingual agents</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">ðµ</div>
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🎵</div>
       <div class="prem-row-info"><strong>Hold Music</strong><span>Multi-language on-hold messages</span></div>
-      <span style="color:var(--muted);font-size:16px;">âº</span>
+      <span style="color:var(--muted);font-size:16px;">›</span>
     </div>
   </div>
 
@@ -2528,39 +2528,39 @@ function stopAmbient() {
   <div class="section-label" style="padding-top:4px;">Recent Calls</div>
   <div class="prem-section" style="margin-bottom:0;">
     <div class="call-log-item">
-      <div class="call-log-icon in">ð²</div>
-      <div class="call-log-info"><strong>ð«ð· French caller Â· Sales</strong><span>Auto-translated to English Â· 3m 42s</span></div>
+      <div class="call-log-icon in">📲</div>
+      <div class="call-log-info"><strong>🇫🇷 French caller · Sales</strong><span>Auto-translated to English · 3m 42s</span></div>
       <div class="call-log-time">10:24 AM</div>
     </div>
     <div class="call-log-item">
-      <div class="call-log-icon missed">â</div>
-      <div class="call-log-info"><strong>ðªð¸ Spanish caller Â· Support</strong><span>Voicemail left â tap to read</span></div>
+      <div class="call-log-icon missed">⛔</div>
+      <div class="call-log-info"><strong>🇪🇸 Spanish caller · Support</strong><span>Voicemail left — tap to read</span></div>
       <div class="call-log-time">9:11 AM</div>
     </div>
     <div class="call-log-item">
-      <div class="call-log-icon in">ð²</div>
-      <div class="call-log-info"><strong>ð©ðª German caller Â· Billing</strong><span>Auto-translated to English Â· 6m 18s</span></div>
+      <div class="call-log-icon in">📲</div>
+      <div class="call-log-info"><strong>🇩🇪 German caller · Billing</strong><span>Auto-translated to English · 6m 18s</span></div>
       <div class="call-log-time">Yesterday</div>
     </div>
     <div class="call-log-item">
-      <div class="call-log-icon out">ð¤</div>
-      <div class="call-log-info"><strong>ðºð¸ Outbound Â· +1 305 555-0199</strong><span>Outgoing call Â· 2m 05s</span></div>
+      <div class="call-log-icon out">📤</div>
+      <div class="call-log-info"><strong>🇺🇸 Outbound · +1 305 555-0199</strong><span>Outgoing call · 2m 05s</span></div>
       <div class="call-log-time">Yesterday</div>
     </div>
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ BUSINESS WORKSPACE ââââââââââââââââââ -->
+<!-- ══════════════════ BUSINESS WORKSPACE ══════════════════ -->
 <div class="screen premium-screen" id="workspace">
   <div class="premium-header">
-    <button class="back-btn" onclick="showScreen('home')">â</button>
+    <button class="back-btn" onclick="showScreen('home')">←</button>
     <h2>Business Workspace</h2>
     <span class="prem-pill">Enterprise</span>
   </div>
@@ -2590,26 +2590,26 @@ function stopAmbient() {
     <div class="prem-section-title">Team Members</div>
     <div class="ws-member">
       <div class="ws-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;">CP</div>
-      <div class="ws-member-info"><strong id="wsOwnerName">You</strong><span>English Â· Admin</span></div>
+      <div class="ws-member-info"><strong id="wsOwnerName">You</strong><span>English · Admin</span></div>
       <span class="ws-role admin">Admin</span>
     </div>
     <div class="ws-member">
       <div class="ws-avatar" style="background:rgba(34,197,94,0.15);color:var(--green);">ML</div>
-      <div class="ws-member-info"><strong>Marie Leclerc</strong><span>French Â· Member</span></div>
+      <div class="ws-member-info"><strong>Marie Leclerc</strong><span>French · Member</span></div>
       <span class="ws-role member">Member</span>
     </div>
     <div class="ws-member">
       <div class="ws-avatar" style="background:rgba(245,158,11,0.15);color:#f59e0b;">JR</div>
-      <div class="ws-member-info"><strong>Juan Rodriguez</strong><span>Spanish Â· Member</span></div>
+      <div class="ws-member-info"><strong>Juan Rodriguez</strong><span>Spanish · Member</span></div>
       <span class="ws-role member">Member</span>
     </div>
     <div class="ws-member">
       <div class="ws-avatar" style="background:rgba(124,92,252,0.15);color:var(--accent2);">AK</div>
-      <div class="ws-member-info"><strong>Aiko Kimura</strong><span>Japanese Â· Viewer</span></div>
+      <div class="ws-member-info"><strong>Aiko Kimura</strong><span>Japanese · Viewer</span></div>
       <span class="ws-role viewer">Viewer</span>
     </div>
-    <div class="prem-row" style="cursor:pointer;" onclick="alert('Invite member â coming soon')">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);color:var(--accent);">â</div>
+    <div class="prem-row" style="cursor:pointer;" onclick="alert('Invite member — coming soon')">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);color:var(--accent);">➕</div>
       <div class="prem-row-info"><strong style="color:var(--accent);">Invite Team Member</strong><span>Send invite by email</span></div>
     </div>
   </div>
@@ -2618,18 +2618,18 @@ function stopAmbient() {
   <div class="section-label" style="padding-top:4px;">Projects &amp; Tasks</div>
   <div class="task-kanban">
     <div class="kanban-col">
-      <h5>ð To Do</h5>
-      <div class="kanban-card">Translate client proposal ENâFR</div>
+      <h5>📋 To Do</h5>
+      <div class="kanban-card">Translate client proposal EN→FR</div>
       <div class="kanban-card">Set up Zoom integration</div>
     </div>
     <div class="kanban-col">
-      <h5>ð In Progress</h5>
+      <h5>🔄 In Progress</h5>
       <div class="kanban-card">Q3 multilingual report</div>
-      <div class="kanban-card">Staff training â FR team</div>
+      <div class="kanban-card">Staff training — FR team</div>
     </div>
     <div class="kanban-col">
-      <h5>â Done</h5>
-      <div class="kanban-card">Client call ESâEN 7/28</div>
+      <h5>✅ Done</h5>
+      <div class="kanban-card">Client call ES→EN 7/28</div>
       <div class="kanban-card">Onboard JP team</div>
     </div>
   </div>
@@ -2641,15 +2641,15 @@ function stopAmbient() {
       <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;"><span>Most used languages</span><span>This month</span></div>
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>ðºð¸ English</span><span style="color:var(--muted);">68%</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇺🇸 English</span><span style="color:var(--muted);">68%</span></div>
           <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:68%;height:100%;background:var(--accent);border-radius:3px;"></div></div>
         </div>
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>ð«ð· French</span><span style="color:var(--muted);">45%</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇫🇷 French</span><span style="color:var(--muted);">45%</span></div>
           <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:45%;height:100%;background:var(--accent2);border-radius:3px;"></div></div>
         </div>
         <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>ðªð¸ Spanish</span><span style="color:var(--muted);">28%</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇪🇸 Spanish</span><span style="color:var(--muted);">28%</span></div>
           <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:28%;height:100%;background:var(--green);border-radius:3px;"></div></div>
         </div>
       </div>
@@ -2660,8 +2660,8 @@ function stopAmbient() {
   <div class="section-label" style="padding-top:4px;">Integrations</div>
   <div class="prem-section" style="margin-bottom:0;">
     <div class="integrations-row">
-      <div class="int-badge connected">â Zoom</div>
-      <div class="int-badge connected">â Google Meet</div>
+      <div class="int-badge connected">✅ Zoom</div>
+      <div class="int-badge connected">✅ Google Meet</div>
       <div class="int-badge">+ Microsoft Teams</div>
       <div class="int-badge">+ Slack</div>
       <div class="int-badge">+ Google Workspace</div>
@@ -2670,34 +2670,34 @@ function stopAmbient() {
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ AMBIENT AI INTERPRETER ââââââââââââââââââ -->
+<!-- ══════════════════ AMBIENT AI INTERPRETER ══════════════════ -->
 <div class="screen premium-screen" id="ambient">
   <div class="premium-header">
-    <button class="back-btn" onclick="stopAmbient();showScreen('home')">â</button>
+    <button class="back-btn" onclick="stopAmbient();showScreen('home')">←</button>
     <h2>Ambient AI</h2>
     <span class="prem-pill">Always-On</span>
   </div>
 
   <!-- Mode chips -->
   <div class="mode-chips" id="ambientModeChips">
-    <div class="mode-chip active" onclick="setAmbientMode(this,'General')">ð General</div>
-    <div class="mode-chip" onclick="setAmbientMode(this,'Travel')">âï¸ Travel</div>
-    <div class="mode-chip" onclick="setAmbientMode(this,'Hospital')">ð¥ Hospital</div>
-    <div class="mode-chip" onclick="setAmbientMode(this,'Conference')">ð¤ Conference</div>
-    <div class="mode-chip" onclick="setAmbientMode(this,'Airport')">ð« Airport</div>
+    <div class="mode-chip active" onclick="setAmbientMode(this,'General')">🌐 General</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Travel')">✈️ Travel</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Hospital')">🏥 Hospital</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Conference')">🎤 Conference</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Airport')">🛫 Airport</div>
   </div>
 
   <!-- Ambient hero -->
   <div class="ambient-hero">
     <div class="ambient-ring" id="ambientRing">
-      <div class="ambient-icon-inner" id="ambientIcon">ð</div>
+      <div class="ambient-icon-inner" id="ambientIcon">👂</div>
     </div>
     <div id="ambientStatus" style="font-size:14px;font-weight:600;color:var(--muted);">Tap listen to start</div>
     <div id="ambientDetectedLang" style="font-size:12px;color:var(--muted);margin-top:4px;"></div>
@@ -2705,7 +2705,7 @@ function stopAmbient() {
 
   <!-- Live subtitles -->
   <div class="subtitle-display">
-    <div class="subtitle-partial" id="ambientPartial">Waiting for speechâ¦</div>
+    <div class="subtitle-partial" id="ambientPartial">Waiting for speech…</div>
     <div class="subtitle-final" id="ambientFinal"></div>
     <div class="subtitle-trans" id="ambientTrans"></div>
   </div>
@@ -2715,62 +2715,62 @@ function stopAmbient() {
     <div style="flex:1;">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Detect &amp; transcribe</div>
       <div onclick="openAmbientSrcPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-        <span id="ambientSrcFlag" style="font-size:20px;">ðºð¸</span>
+        <span id="ambientSrcFlag" style="font-size:20px;">🇺🇸</span>
         <span id="ambientSrcName" style="font-size:13px;font-weight:600;">English</span>
-        <span style="margin-left:auto;color:var(--muted);">â¾</span>
+        <span style="margin-left:auto;color:var(--muted);">▾</span>
       </div>
     </div>
     <div style="flex:1;">
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Show translation</div>
       <div onclick="openAmbientTgtPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-        <span id="ambientTgtFlag" style="font-size:20px;">ð«ð·</span>
+        <span id="ambientTgtFlag" style="font-size:20px;">🇫🇷</span>
         <span id="ambientTgtName" style="font-size:13px;font-weight:600;">French</span>
-        <span style="margin-left:auto;color:var(--muted);">â¾</span>
+        <span style="margin-left:auto;color:var(--muted);">▾</span>
       </div>
     </div>
   </div>
 
   <!-- Main listen button -->
   <button class="ambient-big-btn" id="ambientBtn" onclick="toggleAmbient()">
-    <span id="ambientBtnIcon">ð</span> <span id="ambientBtnLabel">Start Listening</span>
+    <span id="ambientBtnIcon">👂</span> <span id="ambientBtnLabel">Start Listening</span>
   </button>
 
   <!-- Settings -->
   <div class="prem-section">
     <div class="prem-section-title">Settings</div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">ð</div>
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">🔇</div>
       <div class="prem-row-info"><strong>Noise Reduction</strong><span>Filter background sounds</span></div>
       <button class="toggle on" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">ð</div>
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🔒</div>
       <div class="prem-row-info"><strong>Privacy Mode</strong><span>Don't save transcripts</span></div>
       <button class="toggle" id="ambientPrivacyToggle" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">ð§</div>
+      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">🎧</div>
       <div class="prem-row-info"><strong>Earbud Audio</strong><span>Route translation to earbuds</span></div>
       <button class="toggle" onclick="this.classList.toggle('on')"></button>
     </div>
     <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">ð´</div>
+      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">📴</div>
       <div class="prem-row-info"><strong>Offline Mode</strong><span>Device-only processing</span></div>
-      <button class="toggle" onclick="alert('Offline mode â coming soon')"></button>
+      <button class="toggle" onclick="alert('Offline mode — coming soon')"></button>
     </div>
   </div>
 
   <div class="bottom-nav">
-    <button class="nav-btn" onclick="stopAmbient();showScreen('home');navTo('home',this)"><span class="ni">ð </span>Home</button>
-    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">ð</span>Call</button>
-    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">ð¥</span>Group</button>
-    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">âï¸</span>Settings</button>
+    <button class="nav-btn" onclick="stopAmbient();showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
-<!-- ââââââââââââââââââ ATTENDEE LIVE VIEW ââââââââââââââââââ -->
+<!-- ══════════════════ ATTENDEE LIVE VIEW ══════════════════ -->
 <div id="confAttendeeView" style="display:none;position:fixed;inset:0;background:#0a0e1a;z-index:10002;flex-direction:column;align-items:center;padding:40px 24px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Loquivox Â· Live Conference</div>
+  <div style="font-size:13px;letter-spacing:2px;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Loquivox · Live Conference</div>
   <div id="attRoomLabel" style="font-size:16px;color:#7c5cfc;margin-bottom:28px;font-weight:600;"></div>
   <div style="width:100%;max-width:480px;background:#131929;border:1px solid #1e2d4a;border-radius:20px;padding:20px;min-height:140px;margin-bottom:16px;">
     <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">Live Translation</div>
