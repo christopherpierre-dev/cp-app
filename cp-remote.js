@@ -34,6 +34,8 @@
 (function () {
   const CP_SERVER_URL = 'https://cp-server-kdbg.onrender.com';
   const WS_URL = CP_SERVER_URL.replace(/^http/, 'ws') + '/ws';
+  // CORS proxy on Vercel
+  const CP_TOKEN_URL = 'https://cp-app-loquivox.vercel.app/api/token';
 
   const state = {
     ws: null,
@@ -53,7 +55,7 @@
   async function getAzureToken() {
     // 1. Try server (JWT auth token — works when CORS allows this origin)
     try {
-      const r = await fetch(CP_SERVER_URL + '/api/token');
+      const r = await fetch(CP_TOKEN_URL);
       if (r.ok) {
         const data = await r.json(); // {token, region}
         return { ...data, isKey: false };
@@ -339,7 +341,7 @@
   // Auto-join via shared link …/#join=K7Q2
   window.addEventListener('load', () => {
     // Wake Render server proactively (free tier sleeps after 15 min inactivity)
-    fetch(CP_SERVER_URL + '/api/token', { method: 'HEAD' }).catch(() => {});
+    fetch(CP_TOKEN_URL, { method: 'HEAD' }).catch(() => {});
     const match = location.hash.match(/join=([A-Za-z0-9]{4})/i);
     if (match) state.onEvent('invite', { room: match[1].toUpperCase() });
   });
