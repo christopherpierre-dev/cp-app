@@ -35,7 +35,7 @@
   const CP_SERVER_URL = 'https://cp-server-kdbg.onrender.com';
   const WS_URL = CP_SERVER_URL.replace(/^http/, 'ws') + '/ws';
   // CORS proxy on Vercel
-  const CP_TOKEN_URL = 'https://cp-app-loquivox.vercel.app/api/token';
+  const CP_TOKEN_URL = 'https://cp-app-rho.vercel.app/api/token';
 
   const state = {
     ws: null,
