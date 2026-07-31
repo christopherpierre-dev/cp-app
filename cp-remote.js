@@ -338,6 +338,8 @@
 
   // Auto-join via shared link …/#join=K7Q2
   window.addEventListener('load', () => {
+    // Wake Render server proactively (free tier sleeps after 15 min inactivity)
+    fetch(CP_SERVER_URL + '/api/token', { method: 'HEAD' }).catch(() => {});
     const match = location.hash.match(/join=([A-Za-z0-9]{4})/i);
     if (match) state.onEvent('invite', { room: match[1].toUpperCase() });
   });
