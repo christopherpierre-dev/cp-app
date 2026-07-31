@@ -1892,39 +1892,39 @@ function openMeetingTargetPicker() { meetPickingFor = 'tgt'; openLangPicker('B')
 
 // Hook into existing selectLang to handle meeting screen context
 const _origSelectLang = window.selectLang;
-window.selectLang = function(idx) {
+window.selectLang = function(flag, name) {
   const screen = document.querySelector('.screen.active');
   if (screen && screen.id === 'meeting' && meetPickingFor) {
-    const lang = LANGUAGES[idx];
+    const lang = { flag, name };
     if (meetPickingFor === 'src') {
       meetLang = lang;
-      document.getElementById('meetLangFlag').textContent = lang.flag;
-      document.getElementById('meetLangName').textContent = lang.name;
+      document.getElementById('meetLangFlag').textContent = flag;
+      document.getElementById('meetLangName').textContent = name;
     } else {
       meetTargetLang = lang;
-      document.getElementById('meetTargetFlag').textContent = lang.flag;
-      document.getElementById('meetTargetName').textContent = lang.name;
+      document.getElementById('meetTargetFlag').textContent = flag;
+      document.getElementById('meetTargetName').textContent = name;
     }
     meetPickingFor = null;
-    closeLangPicker && closeLangPicker();
+    document.getElementById('langModal').classList.remove('open');
     return;
   }
   if (screen && screen.id === 'ambient' && ambientPickingFor) {
-    const lang = LANGUAGES[idx];
+    const lang = { flag, name };
     if (ambientPickingFor === 'src') {
       ambientSrc = lang;
-      document.getElementById('ambientSrcFlag').textContent = lang.flag;
-      document.getElementById('ambientSrcName').textContent = lang.name;
+      document.getElementById('ambientSrcFlag').textContent = flag;
+      document.getElementById('ambientSrcName').textContent = name;
     } else {
       ambientTgt = lang;
-      document.getElementById('ambientTgtFlag').textContent = lang.flag;
-      document.getElementById('ambientTgtName').textContent = lang.name;
+      document.getElementById('ambientTgtFlag').textContent = flag;
+      document.getElementById('ambientTgtName').textContent = name;
     }
     ambientPickingFor = null;
-    closeLangPicker && closeLangPicker();
+    document.getElementById('langModal').classList.remove('open');
     return;
   }
-  if (_origSelectLang) _origSelectLang(idx);
+  if (_origSelectLang) _origSelectLang(flag, name);
 };
 
 async function toggleMeetingRecording() {
