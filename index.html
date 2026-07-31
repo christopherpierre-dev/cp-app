@@ -209,6 +209,112 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .lang-option .check{margin-left:auto;color:var(--accent);font-size:18px;}
 
 /* ── MOCK TRANSLATIONS ── */
+
+/* ══════════════════════════════════════════════════
+   PREMIUM FEATURES — Shared + Per-Screen Styles
+══════════════════════════════════════════════════ */
+.premium-screen{padding:0 0 80px;}
+.premium-header{background:linear-gradient(180deg,#0d1b38 0%,transparent 100%);padding:50px 24px 24px;display:flex;align-items:center;gap:12px;}
+.premium-header h2{font-size:19px;font-weight:700;flex:1;}
+.prem-pill{font-size:10px;padding:3px 10px;border-radius:20px;background:linear-gradient(135deg,rgba(79,142,247,0.2),rgba(124,92,252,0.2));color:var(--accent2);font-weight:700;border:1px solid rgba(124,92,252,0.25);letter-spacing:.5px;white-space:nowrap;}
+.prem-section{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;overflow:hidden;}
+.prem-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;padding:14px 16px 0;font-weight:600;}
+.prem-row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.prem-row:last-child{border-bottom:none;}
+.prem-row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.prem-row-info{flex:1;}
+.prem-row-info strong{font-size:14px;display:block;}
+.prem-row-info span{font-size:12px;color:var(--muted);margin-top:1px;display:block;}
+.prem-action-bar{padding:16px;display:flex;gap:10px;}
+.badge-gold{background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(239,68,68,0.1));color:#f59e0b;border:1px solid rgba(245,158,11,0.3);}
+.badge-green{background:rgba(34,197,94,0.12);color:var(--green);}
+
+/* ── AI MEETING ASSISTANT ── */
+#meeting.premium-screen{}
+.meeting-big-btn{margin:0 16px 16px;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:18px;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(79,142,247,0.35);transition:all .2s;}
+.meeting-big-btn:active{transform:scale(0.98);}
+.meeting-big-btn.recording{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 24px rgba(239,68,68,0.4);animation:recPulse 1.5s infinite;}
+@keyframes recPulse{0%,100%{box-shadow:0 8px 24px rgba(239,68,68,0.4)}50%{box-shadow:0 8px 40px rgba(239,68,68,0.7),0 0 0 8px rgba(239,68,68,0.1)}}
+.meeting-transcript-box{margin:0 16px 14px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;min-height:160px;max-height:260px;overflow-y:auto;}
+.mtx-line{margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.mtx-line:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0;}
+.mtx-speaker{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.mtx-text{font-size:14px;color:var(--text);line-height:1.5;}
+.mtx-trans{font-size:12px;color:var(--accent);font-style:italic;margin-top:3px;}
+.mtx-partial{font-size:14px;color:#9ca3af;font-style:italic;min-height:20px;}
+.summary-box{margin:0 16px 14px;background:linear-gradient(135deg,rgba(79,142,247,0.06),rgba(124,92,252,0.06));border:1px solid rgba(79,142,247,0.2);border-radius:18px;padding:16px;}
+.summary-box h4{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;}
+.summary-box p{font-size:13px;color:var(--text);line-height:1.6;}
+.action-items-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.ai-item{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--text);}
+.ai-item::before{content:'☐';color:var(--accent);flex-shrink:0;margin-top:1px;}
+.export-row{display:flex;gap:8px;margin:0 16px 14px;}
+.export-btn{flex:1;padding:12px 8px;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:all .2s;}
+.export-btn:active{opacity:.7;}
+
+/* ── LOQUIVOX NUMBER ── */
+#lnumber.premium-screen{}
+.number-hero{margin:0 16px 16px;background:linear-gradient(135deg,rgba(79,142,247,0.1),rgba(124,92,252,0.1));border:1px solid rgba(124,92,252,0.2);border-radius:20px;padding:24px;text-align:center;}
+.number-display{font-size:28px;font-weight:800;letter-spacing:2px;color:var(--text);margin:10px 0;}
+.number-status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s infinite;}
+.call-log-item{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.call-log-item:last-child{border-bottom:none;}
+.call-log-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.call-log-icon.in{background:rgba(34,197,94,0.12);}
+.call-log-icon.out{background:rgba(79,142,247,0.12);}
+.call-log-icon.missed{background:rgba(239,68,68,0.12);}
+.call-log-info{flex:1;}
+.call-log-info strong{font-size:14px;}
+.call-log-info span{font-size:12px;color:var(--muted);display:block;margin-top:2px;}
+.call-log-time{font-size:11px;color:var(--muted);}
+.dept-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.2);border-radius:20px;padding:6px 12px;font-size:13px;color:var(--accent);cursor:pointer;transition:all .2s;}
+.dept-chip.active{background:rgba(79,142,247,0.2);border-color:var(--accent);}
+
+/* ── BUSINESS WORKSPACE ── */
+#workspace.premium-screen{}
+.ws-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 16px 14px;}
+.ws-stat{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;}
+.ws-stat-val{font-size:28px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ws-stat-label{font-size:12px;color:var(--muted);margin-top:4px;}
+.ws-member{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border);}
+.ws-member:last-child{border-bottom:none;}
+.ws-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.ws-member-info{flex:1;}
+.ws-member-info strong{font-size:14px;}
+.ws-member-info span{font-size:12px;color:var(--muted);display:block;margin-top:2px;}
+.ws-role{font-size:11px;padding:2px 8px;border-radius:8px;font-weight:600;}
+.ws-role.admin{background:rgba(245,158,11,0.15);color:#f59e0b;}
+.ws-role.member{background:rgba(79,142,247,0.12);color:var(--accent);}
+.ws-role.viewer{background:rgba(100,116,139,0.12);color:var(--muted);}
+.task-kanban{display:flex;gap:10px;overflow-x:auto;padding:0 16px 14px;}
+.kanban-col{min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;}
+.kanban-col h5{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.kanban-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;font-size:12px;color:var(--text);cursor:pointer;}
+.kanban-card:last-child{margin-bottom:0;}
+.int-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-size:13px;cursor:pointer;transition:all .2s;}
+.int-badge.connected{border-color:var(--green);background:rgba(34,197,94,0.07);}
+.integrations-row{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px 14px;}
+
+/* ── AMBIENT AI INTERPRETER ── */
+#ambient.premium-screen{}
+.ambient-hero{margin:0 16px 16px;border-radius:22px;overflow:hidden;position:relative;min-height:180px;background:linear-gradient(135deg,#0d1b38,#0a0e1a);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+.ambient-ring{width:100px;height:100px;border-radius:50%;border:3px solid rgba(79,142,247,0.3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative;}
+.ambient-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(79,142,247,0.15);}
+.ambient-ring.active{border-color:var(--accent);box-shadow:0 0 0 0 rgba(79,142,247,0.4);animation:ambientPulse 2s infinite;}
+.ambient-ring.active::after{border-color:rgba(79,142,247,0.3);animation:ambientRing 2s infinite;}
+@keyframes ambientPulse{0%{box-shadow:0 0 0 0 rgba(79,142,247,0.4)}70%{box-shadow:0 0 0 20px rgba(79,142,247,0)}100%{box-shadow:0 0 0 0 rgba(79,142,247,0)}}
+@keyframes ambientRing{0%{transform:scale(1);opacity:1}100%{transform:scale(1.3);opacity:0}}
+.ambient-icon-inner{font-size:38px;}
+.subtitle-display{margin:0 16px 14px;background:rgba(0,0,0,0.6);border:1px solid var(--border);border-radius:16px;padding:16px;min-height:80px;backdrop-filter:blur(12px);}
+.subtitle-partial{font-size:15px;color:#9ca3af;font-style:italic;min-height:22px;}
+.subtitle-final{font-size:16px;font-weight:600;color:var(--text);margin-top:6px;line-height:1.5;}
+.subtitle-trans{font-size:14px;color:var(--accent);font-style:italic;margin-top:4px;}
+.mode-chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 14px;}
+.mode-chip{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);font-size:13px;white-space:nowrap;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.mode-chip.active{border-color:var(--accent);background:rgba(79,142,247,0.12);color:var(--accent);}
+.ambient-big-btn{margin:0 16px 14px;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:18px;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(79,142,247,0.35);transition:all .2s;}
+.ambient-big-btn:active{transform:scale(0.98);}
+.ambient-big-btn.listening{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 24px rgba(239,68,68,0.4);}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -306,6 +412,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <h3>Quick Connect</h3>
           <p>Start translating instantly with last-used language pair</p>
           <span class="badge badge-blue">EN → FR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label" style="padding-top:24px;">✨ Premium Services</div>
+  <div class="mode-grid" style="margin-top:0;">
+    <div class="mode-card" onclick="showScreen('meeting')">
+      <div class="mode-icon">🤝</div>
+      <h3>AI Meeting</h3>
+      <p>Live transcription, summaries & action items</p>
+      <span class="badge badge-purple">AI-Powered</span>
+    </div>
+    <div class="mode-card" onclick="showScreen('ambient')">
+      <div class="mode-icon">👁️</div>
+      <h3>Ambient AI</h3>
+      <p>Always-on interpreter for any conversation</p>
+      <span class="badge badge-blue">Live</span>
+    </div>
+    <div class="mode-card wide" onclick="showScreen('lnumber')">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="mode-icon" style="margin-bottom:0;">📲</div>
+        <div>
+          <h3>Loquivox Number</h3>
+          <p>Virtual business number with AI receptionist, voicemail & smart routing</p>
+          <span class="badge badge-gold" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Business</span>
+        </div>
+      </div>
+    </div>
+    <div class="mode-card wide" onclick="showScreen('workspace')">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="mode-icon" style="margin-bottom:0;">🏢</div>
+        <div>
+          <h3>Business Workspace</h3>
+          <p>Teams, projects, analytics & integrations — all in one place</p>
+          <span class="badge badge-gold" style="background:rgba(245,158,11,0.15);color:#f59e0b;">Enterprise</span>
         </div>
       </div>
     </div>
@@ -1694,6 +1836,450 @@ window.addEventListener('load', () => {
 
 </script>
 
+<!-- ══════════════════ PREMIUM FEATURES — JavaScript ══════════════════ -->
+<script>
+/* ─────────────────────────────────────────────────────
+   SHARED HELPERS
+───────────────────────────────────────────────────── */
+// Generic Azure creds getter (re-use cp-remote fallback pattern)
+async function getPremiumAzureCreds() {
+  try {
+    const r = await fetch('https://cp-server-kdbg.onrender.com/api/token');
+    if (r.ok) { const d = await r.json(); return { ...d, isKey: false }; }
+  } catch (_) {}
+  const key = localStorage.getItem('cp_azure_key');
+  const region = localStorage.getItem('cp_azure_region') || 'westus2';
+  if (key) return { token: key, region, isKey: true };
+  throw new Error('Azure key not configured. Go to Settings → enter your Azure Speech key.');
+}
+
+function premSpeechTransConfig({ token, region, isKey }) {
+  return isKey
+    ? SpeechSDK.SpeechTranslationConfig.fromSubscription(token, region)
+    : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(token, region);
+}
+
+// Show a brief toast message
+function showToast(msg, duration = 2500) {
+  let t = document.getElementById('premToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'premToast';
+    t.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:#1e2d4a;color:#e8edf5;padding:10px 20px;border-radius:20px;font-size:14px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,0.5);transition:opacity .3s;pointer-events:none;';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, duration);
+}
+
+/* ─────────────────────────────────────────────────────
+   AI MEETING ASSISTANT
+───────────────────────────────────────────────────── */
+let meetRecognizer = null;
+let meetIsRecording = false;
+let meetStartTime = null;
+let meetTimerInterval = null;
+let meetTranscriptData = []; // [{speaker, text, trans, ts}]
+let meetWordCount = 0;
+let meetLang = { flag: '🇺🇸', name: 'English' };
+let meetTargetLang = { flag: '🇫🇷', name: 'French' };
+let meetPickingFor = null;
+
+function openMeetingLangPicker() { meetPickingFor = 'src'; openLangPicker('A'); }
+function openMeetingTargetPicker() { meetPickingFor = 'tgt'; openLangPicker('B'); }
+
+// Hook into existing selectLang to handle meeting screen context
+const _origSelectLang = window.selectLang;
+window.selectLang = function(idx) {
+  const screen = document.querySelector('.screen.active');
+  if (screen && screen.id === 'meeting' && meetPickingFor) {
+    const lang = LANGUAGES[idx];
+    if (meetPickingFor === 'src') {
+      meetLang = lang;
+      document.getElementById('meetLangFlag').textContent = lang.flag;
+      document.getElementById('meetLangName').textContent = lang.name;
+    } else {
+      meetTargetLang = lang;
+      document.getElementById('meetTargetFlag').textContent = lang.flag;
+      document.getElementById('meetTargetName').textContent = lang.name;
+    }
+    meetPickingFor = null;
+    closeLangPicker && closeLangPicker();
+    return;
+  }
+  if (screen && screen.id === 'ambient' && ambientPickingFor) {
+    const lang = LANGUAGES[idx];
+    if (ambientPickingFor === 'src') {
+      ambientSrc = lang;
+      document.getElementById('ambientSrcFlag').textContent = lang.flag;
+      document.getElementById('ambientSrcName').textContent = lang.name;
+    } else {
+      ambientTgt = lang;
+      document.getElementById('ambientTgtFlag').textContent = lang.flag;
+      document.getElementById('ambientTgtName').textContent = lang.name;
+    }
+    ambientPickingFor = null;
+    closeLangPicker && closeLangPicker();
+    return;
+  }
+  if (_origSelectLang) _origSelectLang(idx);
+};
+
+async function toggleMeetingRecording() {
+  if (meetIsRecording) {
+    await stopMeetingRecording();
+  } else {
+    await startMeetingRecording();
+  }
+}
+
+async function startMeetingRecording() {
+  const btn = document.getElementById('meetRecBtn');
+  btn.disabled = true;
+  btn.querySelector('#meetRecLabel').textContent = 'Starting…';
+  try {
+    const creds = await getPremiumAzureCreds();
+    const cfg = premSpeechTransConfig(creds);
+    cfg.speechRecognitionLanguage = LANG_SPEECH[meetLang.name] || 'en-US';
+    const tgtCode = LANG_TRANS[meetTargetLang.name] || 'fr';
+    cfg.addTargetLanguage(tgtCode);
+    const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    meetRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
+
+    meetRecognizer.recognizing = (_s, e) => {
+      document.getElementById('meetPartialText').textContent = e.result.text || '';
+    };
+
+    meetRecognizer.recognized = (_s, e) => {
+      if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech || !e.result.text) return;
+      const text = e.result.text;
+      const trans = e.result.translations.get(LANG_TRANS[meetTargetLang.name] || 'fr') || '';
+      const words = text.split(/\s+/).filter(Boolean).length;
+      meetWordCount += words;
+      document.getElementById('meetWordCount').textContent = meetWordCount;
+
+      const segment = { speaker: meetLang.flag + ' You', text, trans, ts: Date.now() };
+      meetTranscriptData.push(segment);
+      document.getElementById('meetSegCount').textContent = meetTranscriptData.length;
+
+      addMeetTranscriptLine(segment);
+      document.getElementById('meetPartialText').textContent = '';
+    };
+
+    meetRecognizer.startContinuousRecognitionAsync(
+      () => {
+        meetIsRecording = true;
+        meetStartTime = Date.now();
+        meetTranscriptData = [];
+        meetWordCount = 0;
+        document.getElementById('meetWordCount').textContent = '0';
+        document.getElementById('meetSegCount').textContent = '0';
+        document.getElementById('meetTranscriptLines').innerHTML = '';
+        document.getElementById('meetSummaryBox').style.display = 'none';
+        document.getElementById('meetExportRow').style.display = 'none';
+
+        btn.classList.add('recording');
+        btn.querySelector('#meetRecIcon').textContent = '⏹';
+        document.getElementById('meetRecLabel').textContent = 'Stop Recording';
+        btn.disabled = false;
+
+        meetTimerInterval = setInterval(() => {
+          const s = Math.floor((Date.now() - meetStartTime) / 1000);
+          const m = Math.floor(s / 60);
+          document.getElementById('meetTimer').textContent = m + ':' + String(s % 60).padStart(2, '0');
+        }, 1000);
+      },
+      err => {
+        btn.disabled = false;
+        btn.querySelector('#meetRecLabel').textContent = 'Start Recording';
+        showToast('⚠️ Mic error: ' + err);
+      }
+    );
+  } catch (err) {
+    btn.disabled = false;
+    btn.querySelector('#meetRecLabel').textContent = 'Start Recording';
+    showToast('⚠️ ' + err.message);
+  }
+}
+
+function addMeetTranscriptLine({ speaker, text, trans }) {
+  const box = document.getElementById('meetTranscriptLines');
+  const div = document.createElement('div');
+  div.className = 'mtx-line';
+  div.innerHTML = `<div class="mtx-speaker">${speaker}</div><div class="mtx-text">${text}</div>${trans ? `<div class="mtx-trans">${meetTargetLang.flag} ${trans}</div>` : ''}`;
+  box.appendChild(div);
+  const tb = document.getElementById('meetTranscriptBox');
+  tb.scrollTop = tb.scrollHeight;
+}
+
+async function stopMeetingRecording() {
+  clearInterval(meetTimerInterval);
+  if (meetRecognizer) {
+    meetRecognizer.stopContinuousRecognitionAsync(() => {
+      meetRecognizer.close();
+      meetRecognizer = null;
+    });
+  }
+  meetIsRecording = false;
+  const btn = document.getElementById('meetRecBtn');
+  btn.classList.remove('recording');
+  btn.querySelector('#meetRecIcon').textContent = '⏺';
+  document.getElementById('meetRecLabel').textContent = 'Start New Recording';
+  document.getElementById('meetPartialText').textContent = '';
+
+  // Generate AI summary from transcript
+  if (meetTranscriptData.length > 0) {
+    generateMeetingSummary();
+    document.getElementById('meetExportRow').style.display = 'flex';
+    saveMeetingToHistory();
+  }
+}
+
+function generateMeetingSummary() {
+  const allText = meetTranscriptData.map(s => s.text).join(' ');
+  const sentences = allText.match(/[^.!?]+[.!?]+/g) || [allText];
+
+  // Simple extractive summary: pick first + middle + last sentence
+  const sum = [];
+  if (sentences.length > 0) sum.push(sentences[0].trim());
+  if (sentences.length > 2) sum.push(sentences[Math.floor(sentences.length / 2)].trim());
+  if (sentences.length > 1) sum.push(sentences[sentences.length - 1].trim());
+  const summary = sum.join(' ');
+
+  // Simple action item extraction (sentences with action keywords)
+  const actionKws = /\b(need to|should|will|must|action|follow up|send|schedule|review|confirm|update|call|check|prepare|complete|finish|assign|create|make|set up)\b/i;
+  const actions = sentences.filter(s => actionKws.test(s)).slice(0, 4);
+
+  document.getElementById('meetSummaryText').textContent = summary || 'Meeting recorded. See transcript above for details.';
+  const aiList = document.getElementById('meetActionItems');
+  aiList.innerHTML = '';
+  if (actions.length === 0) {
+    actions.push('Review meeting transcript', 'Share summary with team');
+  }
+  actions.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'ai-item';
+    div.textContent = a.trim();
+    aiList.appendChild(div);
+  });
+  document.getElementById('meetSummaryBox').style.display = 'block';
+}
+
+function exportMeetingTxt() {
+  const lines = meetTranscriptData.map(s =>
+    `[${s.speaker}]\n${s.text}${s.trans ? '\n→ ' + meetTargetLang.name + ': ' + s.trans : ''}\n`
+  ).join('\n');
+  const header = `LOQUIVOX MEETING TRANSCRIPT\nDate: ${new Date().toLocaleString()}\n${meetLang.name} → ${meetTargetLang.name}\n${'─'.repeat(40)}\n\n`;
+  const blob = new Blob([header + lines], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'loquivox-meeting-' + Date.now() + '.txt'; a.click();
+  showToast('✅ Transcript exported as TXT');
+}
+
+function exportMeetingMd() {
+  const lines = meetTranscriptData.map(s =>
+    `**${s.speaker}:** ${s.text}${s.trans ? `\n> *${meetTargetLang.flag} ${s.trans}*` : ''}`
+  ).join('\n\n');
+  const header = `# Loquivox Meeting Transcript\n**Date:** ${new Date().toLocaleString()}  \n**Languages:** ${meetLang.flag} ${meetLang.name} → ${meetTargetLang.flag} ${meetTargetLang.name}\n\n---\n\n`;
+  const blob = new Blob([header + lines], { type: 'text/markdown' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'loquivox-meeting-' + Date.now() + '.md'; a.click();
+  showToast('✅ Transcript exported as Markdown');
+}
+
+function copyMeetingTranscript() {
+  const lines = meetTranscriptData.map(s => `${s.speaker}: ${s.text}${s.trans ? ' | ' + s.trans : ''}`).join('\n');
+  navigator.clipboard.writeText(lines).then(() => showToast('📋 Transcript copied!')).catch(() => showToast('⚠️ Copy failed'));
+}
+
+function saveMeetingToHistory() {
+  const hist = JSON.parse(localStorage.getItem('loquivox_meetings') || '[]');
+  const duration = Math.floor((Date.now() - meetStartTime) / 1000);
+  const m = Math.floor(duration / 60);
+  hist.unshift({
+    id: Date.now(),
+    date: new Date().toLocaleDateString(),
+    duration: m + ':' + String(duration % 60).padStart(2, '0'),
+    langs: meetLang.flag + ' → ' + meetTargetLang.flag,
+    segments: meetTranscriptData.length,
+    words: meetWordCount,
+    data: meetTranscriptData,
+  });
+  if (hist.length > 20) hist.length = 20;
+  localStorage.setItem('loquivox_meetings', JSON.stringify(hist));
+  renderMeetingHistory();
+}
+
+function renderMeetingHistory() {
+  const hist = JSON.parse(localStorage.getItem('loquivox_meetings') || '[]');
+  const box = document.getElementById('meetHistoryList');
+  if (hist.length === 0) {
+    box.innerHTML = '<div style="padding:20px 16px;text-align:center;color:var(--muted);font-size:13px;">No saved meetings yet.<br>Record your first meeting above.</div>';
+    return;
+  }
+  box.innerHTML = hist.slice(0, 5).map((h, i) => `
+    <div class="prem-row" style="cursor:pointer;" onclick="loadMeetingHistory(${i})">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);">🤝</div>
+      <div class="prem-row-info">
+        <strong>${h.langs} · ${h.duration}</strong>
+        <span>${h.date} · ${h.segments} segments · ${h.words} words</span>
+      </div>
+      <span style="color:var(--muted);font-size:16px;">›</span>
+    </div>
+  `).join('');
+}
+
+function loadMeetingHistory(idx) {
+  const hist = JSON.parse(localStorage.getItem('loquivox_meetings') || '[]');
+  const h = hist[idx];
+  if (!h) return;
+  meetTranscriptData = h.data || [];
+  const box = document.getElementById('meetTranscriptLines');
+  box.innerHTML = '';
+  meetTranscriptData.forEach(s => addMeetTranscriptLine(s));
+  document.getElementById('meetTimer').textContent = h.duration;
+  document.getElementById('meetWordCount').textContent = h.words;
+  document.getElementById('meetSegCount').textContent = h.segments;
+  document.getElementById('meetPartialText').textContent = '';
+  if (meetTranscriptData.length > 0) { generateMeetingSummary(); document.getElementById('meetExportRow').style.display = 'flex'; }
+  showToast('📂 Loaded: ' + h.date);
+}
+
+// Load history when screen is shown
+const _origShowScreen = window.showScreen;
+window.showScreen = function(id) {
+  _origShowScreen(id);
+  if (id === 'meeting') { renderMeetingHistory(); if (wsOwnerName) document.getElementById('wsOwnerName').textContent = getMyName() || 'You'; }
+  if (id === 'workspace') { const n = getMyName(); if (n) document.getElementById('wsOwnerName').textContent = n; }
+};
+
+/* ─────────────────────────────────────────────────────
+   LOQUIVOX NUMBER
+───────────────────────────────────────────────────── */
+function copyLnNumber() {
+  const num = document.getElementById('lnNumberDisplay').textContent;
+  navigator.clipboard.writeText(num).then(() => showToast('📋 Number copied: ' + num)).catch(() => showToast('Number: ' + num));
+}
+
+function shareLnNumber() {
+  const num = document.getElementById('lnNumberDisplay').textContent;
+  if (navigator.share) {
+    navigator.share({ title: 'My Loquivox Number', text: 'Call me on Loquivox: ' + num });
+  } else {
+    copyLnNumber();
+  }
+}
+
+/* ─────────────────────────────────────────────────────
+   AMBIENT AI INTERPRETER
+───────────────────────────────────────────────────── */
+let ambientRecognizer = null;
+let ambientActive = false;
+let ambientSrc = { flag: '🇺🇸', name: 'English' };
+let ambientTgt = { flag: '🇫🇷', name: 'French' };
+let ambientPickingFor = null;
+let ambientMode = 'General';
+
+function openAmbientSrcPicker() { ambientPickingFor = 'src'; openLangPicker('A'); }
+function openAmbientTgtPicker() { ambientPickingFor = 'tgt'; openLangPicker('B'); }
+
+function setAmbientMode(el, mode) {
+  ambientMode = mode;
+  document.querySelectorAll('#ambientModeChips .mode-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ambientStatus').textContent = 'Mode: ' + mode + ' · Tap to listen';
+}
+
+async function toggleAmbient() {
+  if (ambientActive) {
+    stopAmbient();
+  } else {
+    await startAmbient();
+  }
+}
+
+async function startAmbient() {
+  const btn = document.getElementById('ambientBtn');
+  btn.disabled = true;
+  document.getElementById('ambientBtnLabel').textContent = 'Starting…';
+  try {
+    const creds = await getPremiumAzureCreds();
+    const cfg = premSpeechTransConfig(creds);
+    cfg.speechRecognitionLanguage = LANG_SPEECH[ambientSrc.name] || 'en-US';
+    const tgt = LANG_TRANS[ambientTgt.name] || 'fr';
+    cfg.addTargetLanguage(tgt);
+    const audio = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+    ambientRecognizer = new SpeechSDK.TranslationRecognizer(cfg, audio);
+
+    ambientRecognizer.recognizing = (_s, e) => {
+      document.getElementById('ambientPartial').textContent = e.result.text || '';
+    };
+
+    ambientRecognizer.recognized = (_s, e) => {
+      if (e.result.reason !== SpeechSDK.ResultReason.TranslatedSpeech || !e.result.text) return;
+      const text = e.result.text;
+      const trans = e.result.translations.get(LANG_TRANS[ambientTgt.name] || 'fr') || '';
+      document.getElementById('ambientPartial').textContent = '';
+      document.getElementById('ambientFinal').textContent = text;
+      if (trans) document.getElementById('ambientTrans').textContent = ambientTgt.flag + ' ' + trans;
+    };
+
+    ambientRecognizer.startContinuousRecognitionAsync(
+      () => {
+        ambientActive = true;
+        const ring = document.getElementById('ambientRing');
+        ring.classList.add('active');
+        document.getElementById('ambientIcon').textContent = '🎤';
+        document.getElementById('ambientStatus').textContent = '● Listening · ' + ambientMode;
+        document.getElementById('ambientStatus').style.color = 'var(--green)';
+        document.getElementById('ambientDetectedLang').textContent = ambientSrc.flag + ' ' + ambientSrc.name + ' → ' + ambientTgt.flag + ' ' + ambientTgt.name;
+        btn.classList.add('listening');
+        document.getElementById('ambientBtnIcon').textContent = '🛑';
+        document.getElementById('ambientBtnLabel').textContent = 'Stop Listening';
+        btn.disabled = false;
+      },
+      err => {
+        btn.disabled = false;
+        document.getElementById('ambientBtnLabel').textContent = 'Start Listening';
+        showToast('⚠️ Mic error: ' + err);
+      }
+    );
+  } catch (err) {
+    btn.disabled = false;
+    document.getElementById('ambientBtnLabel').textContent = 'Start Listening';
+    showToast('⚠️ ' + err.message);
+  }
+}
+
+function stopAmbient() {
+  if (ambientRecognizer) {
+    ambientRecognizer.stopContinuousRecognitionAsync(() => {
+      ambientRecognizer.close();
+      ambientRecognizer = null;
+    });
+  }
+  ambientActive = false;
+  const ring = document.getElementById('ambientRing');
+  if (ring) ring.classList.remove('active');
+  const icon = document.getElementById('ambientIcon');
+  if (icon) icon.textContent = '👂';
+  const stat = document.getElementById('ambientStatus');
+  if (stat) { stat.textContent = 'Tap listen to start'; stat.style.color = ''; }
+  const det = document.getElementById('ambientDetectedLang');
+  if (det) det.textContent = '';
+  const btn = document.getElementById('ambientBtn');
+  if (btn) { btn.classList.remove('listening'); btn.disabled = false; }
+  const bi = document.getElementById('ambientBtnIcon');
+  if (bi) bi.textContent = '👂';
+  const bl = document.getElementById('ambientBtnLabel');
+  if (bl) bl.textContent = 'Start Listening';
+  const part = document.getElementById('ambientPartial');
+  if (part) part.textContent = 'Waiting for speech…';
+}
+</script>
+
 <!-- ══════════════════ SIGN-IN MODAL ══════════════════ -->
 <div id="nameEditorOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:20000;align-items:flex-end;">
   <div style="background:#131929;border-radius:24px 24px 0 0;width:100%;padding:28px 24px 44px;">
@@ -1765,6 +2351,405 @@ window.addEventListener('load', () => {
     <div id="confJoinStatus" style="font-size:13px;color:#64748b;text-align:center;min-height:18px;margin-bottom:12px;"></div>
     <button onclick="doJoinConference()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);border:none;color:#fff;border-radius:50px;font-size:16px;font-weight:600;cursor:pointer;">Join in my language</button>
     <button onclick="document.getElementById('confJoinPanel').style.display='none'" style="width:100%;padding:14px;background:none;border:none;color:#64748b;font-size:14px;cursor:pointer;margin-top:8px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════════ AI MEETING ASSISTANT ══════════════════ -->
+<div class="screen premium-screen" id="meeting">
+  <div class="premium-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <h2>AI Meeting Assistant</h2>
+    <span class="prem-pill">AI-Powered</span>
+  </div>
+
+  <!-- Language selector row -->
+  <div style="display:flex;align-items:center;gap:10px;padding:0 16px 14px;">
+    <div style="flex:1;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Transcribe from</div>
+      <div onclick="openMeetingLangPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <span id="meetLangFlag" style="font-size:22px;">🇺🇸</span>
+        <span id="meetLangName" style="font-size:14px;font-weight:600;">English</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:16px;">▾</span>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">Translate to</div>
+      <div onclick="openMeetingTargetPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+        <span id="meetTargetFlag" style="font-size:22px;">🇫🇷</span>
+        <span id="meetTargetName" style="font-size:14px;font-weight:600;">French</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:16px;">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Record Button -->
+  <button class="meeting-big-btn" id="meetRecBtn" onclick="toggleMeetingRecording()">
+    <span id="meetRecIcon">⏺</span> <span id="meetRecLabel">Start Recording</span>
+  </button>
+
+  <!-- Live transcript -->
+  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding:0 16px 8px;font-weight:600;">Live Transcript</div>
+  <div class="meeting-transcript-box" id="meetTranscriptBox">
+    <div class="mtx-partial" id="meetPartialText">Tap record to start the meeting…</div>
+    <div id="meetTranscriptLines"></div>
+  </div>
+
+  <!-- Timer + stats -->
+  <div style="display:flex;align-items:center;gap:12px;padding:0 16px 14px;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;flex:1;text-align:center;">
+      <div style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;" id="meetTimer">0:00</div>
+      <div style="font-size:11px;color:var(--muted);">Duration</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;flex:1;text-align:center;">
+      <div style="font-size:20px;font-weight:700;" id="meetWordCount">0</div>
+      <div style="font-size:11px;color:var(--muted);">Words</div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 16px;flex:1;text-align:center;">
+      <div style="font-size:20px;font-weight:700;" id="meetSegCount">0</div>
+      <div style="font-size:11px;color:var(--muted);">Segments</div>
+    </div>
+  </div>
+
+  <!-- AI Summary (shows after recording) -->
+  <div class="summary-box" id="meetSummaryBox" style="display:none;">
+    <h4>🤖 AI Summary</h4>
+    <p id="meetSummaryText"></p>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Action Items</div>
+    <div class="action-items-list" id="meetActionItems"></div>
+  </div>
+
+  <!-- Export buttons -->
+  <div class="export-row" id="meetExportRow" style="display:none;">
+    <button class="export-btn" onclick="exportMeetingTxt()">📄 TXT</button>
+    <button class="export-btn" onclick="exportMeetingMd()">📝 Markdown</button>
+    <button class="export-btn" onclick="copyMeetingTranscript()">📋 Copy</button>
+  </div>
+
+  <!-- Meeting history -->
+  <div class="section-label" style="padding-top:4px;">Meeting History</div>
+  <div class="prem-section" style="margin-bottom:0;" id="meetHistoryList">
+    <div style="padding:20px 16px;text-align:center;color:var(--muted);font-size:13px;">No saved meetings yet.<br>Record your first meeting above.</div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ LOQUIVOX NUMBER ══════════════════ -->
+<div class="screen premium-screen" id="lnumber">
+  <div class="premium-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <h2>Loquivox Number</h2>
+    <span class="prem-pill">Business</span>
+  </div>
+
+  <!-- Number hero -->
+  <div class="number-hero">
+    <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Your Virtual Number</div>
+    <div class="number-display" id="lnNumberDisplay">+1 (786) 555-0147</div>
+    <div style="font-size:13px;color:var(--green);margin-bottom:14px;"><span class="number-status-dot"></span>Active · AI Receptionist On</div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button onclick="copyLnNumber()" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3);color:var(--accent);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">📋 Copy</button>
+      <button onclick="shareLnNumber()" style="background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">↗ Share</button>
+    </div>
+  </div>
+
+  <!-- AI Receptionist -->
+  <div class="prem-section">
+    <div class="prem-section-title">AI Receptionist</div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🤖</div>
+      <div class="prem-row-info"><strong>Auto-Answer</strong><span>Greet callers in their language</span></div>
+      <button class="toggle on" id="aiReceptionistToggle" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">🌐</div>
+      <div class="prem-row-info"><strong>Language Detection</strong><span>Auto-detect caller's language</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">📝</div>
+      <div class="prem-row-info"><strong>Voicemail Transcription</strong><span>Voicemails converted to text</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">🕐</div>
+      <div class="prem-row-info"><strong>Business Hours</strong><span>Mon–Fri, 9am–6pm</span></div>
+      <span style="color:var(--muted);font-size:16px;">›</span>
+    </div>
+  </div>
+
+  <!-- Departments -->
+  <div class="prem-section">
+    <div class="prem-section-title">Departments & Extensions</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;">
+      <div class="dept-chip active">📞 Sales · Ext. 1</div>
+      <div class="dept-chip">🛠 Support · Ext. 2</div>
+      <div class="dept-chip">💼 Billing · Ext. 3</div>
+      <div class="dept-chip" onclick="alert('Add department — coming soon')">+ Add</div>
+    </div>
+  </div>
+
+  <!-- Smart Routing -->
+  <div class="prem-section">
+    <div class="prem-section-title">Smart Routing</div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">🔀</div>
+      <div class="prem-row-info"><strong>Language-Based Routing</strong><span>Route Spanish callers to bilingual agents</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🎵</div>
+      <div class="prem-row-info"><strong>Hold Music</strong><span>Multi-language on-hold messages</span></div>
+      <span style="color:var(--muted);font-size:16px;">›</span>
+    </div>
+  </div>
+
+  <!-- Call Log -->
+  <div class="section-label" style="padding-top:4px;">Recent Calls</div>
+  <div class="prem-section" style="margin-bottom:0;">
+    <div class="call-log-item">
+      <div class="call-log-icon in">📲</div>
+      <div class="call-log-info"><strong>🇫🇷 French caller · Sales</strong><span>Auto-translated to English · 3m 42s</span></div>
+      <div class="call-log-time">10:24 AM</div>
+    </div>
+    <div class="call-log-item">
+      <div class="call-log-icon missed">⛔</div>
+      <div class="call-log-info"><strong>🇪🇸 Spanish caller · Support</strong><span>Voicemail left — tap to read</span></div>
+      <div class="call-log-time">9:11 AM</div>
+    </div>
+    <div class="call-log-item">
+      <div class="call-log-icon in">📲</div>
+      <div class="call-log-info"><strong>🇩🇪 German caller · Billing</strong><span>Auto-translated to English · 6m 18s</span></div>
+      <div class="call-log-time">Yesterday</div>
+    </div>
+    <div class="call-log-item">
+      <div class="call-log-icon out">📤</div>
+      <div class="call-log-info"><strong>🇺🇸 Outbound · +1 305 555-0199</strong><span>Outgoing call · 2m 05s</span></div>
+      <div class="call-log-time">Yesterday</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ BUSINESS WORKSPACE ══════════════════ -->
+<div class="screen premium-screen" id="workspace">
+  <div class="premium-header">
+    <button class="back-btn" onclick="showScreen('home')">←</button>
+    <h2>Business Workspace</h2>
+    <span class="prem-pill">Enterprise</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="ws-stat-grid">
+    <div class="ws-stat">
+      <div class="ws-stat-val" id="wsStatMeetings">47</div>
+      <div class="ws-stat-label">Meetings this month</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">12</div>
+      <div class="ws-stat-label">Languages used</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">98%</div>
+      <div class="ws-stat-label">Translation accuracy</div>
+    </div>
+    <div class="ws-stat">
+      <div class="ws-stat-val">5</div>
+      <div class="ws-stat-label">Team members</div>
+    </div>
+  </div>
+
+  <!-- Team -->
+  <div class="prem-section">
+    <div class="prem-section-title">Team Members</div>
+    <div class="ws-member">
+      <div class="ws-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;">CP</div>
+      <div class="ws-member-info"><strong id="wsOwnerName">You</strong><span>English · Admin</span></div>
+      <span class="ws-role admin">Admin</span>
+    </div>
+    <div class="ws-member">
+      <div class="ws-avatar" style="background:rgba(34,197,94,0.15);color:var(--green);">ML</div>
+      <div class="ws-member-info"><strong>Marie Leclerc</strong><span>French · Member</span></div>
+      <span class="ws-role member">Member</span>
+    </div>
+    <div class="ws-member">
+      <div class="ws-avatar" style="background:rgba(245,158,11,0.15);color:#f59e0b;">JR</div>
+      <div class="ws-member-info"><strong>Juan Rodriguez</strong><span>Spanish · Member</span></div>
+      <span class="ws-role member">Member</span>
+    </div>
+    <div class="ws-member">
+      <div class="ws-avatar" style="background:rgba(124,92,252,0.15);color:var(--accent2);">AK</div>
+      <div class="ws-member-info"><strong>Aiko Kimura</strong><span>Japanese · Viewer</span></div>
+      <span class="ws-role viewer">Viewer</span>
+    </div>
+    <div class="prem-row" style="cursor:pointer;" onclick="alert('Invite member — coming soon')">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);color:var(--accent);">➕</div>
+      <div class="prem-row-info"><strong style="color:var(--accent);">Invite Team Member</strong><span>Send invite by email</span></div>
+    </div>
+  </div>
+
+  <!-- Projects & Tasks -->
+  <div class="section-label" style="padding-top:4px;">Projects &amp; Tasks</div>
+  <div class="task-kanban">
+    <div class="kanban-col">
+      <h5>📋 To Do</h5>
+      <div class="kanban-card">Translate client proposal EN→FR</div>
+      <div class="kanban-card">Set up Zoom integration</div>
+    </div>
+    <div class="kanban-col">
+      <h5>🔄 In Progress</h5>
+      <div class="kanban-card">Q3 multilingual report</div>
+      <div class="kanban-card">Staff training — FR team</div>
+    </div>
+    <div class="kanban-col">
+      <h5>✅ Done</h5>
+      <div class="kanban-card">Client call ES→EN 7/28</div>
+      <div class="kanban-card">Onboard JP team</div>
+    </div>
+  </div>
+
+  <!-- Analytics -->
+  <div class="prem-section">
+    <div class="prem-section-title">Analytics</div>
+    <div style="padding:14px 16px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;"><span>Most used languages</span><span>This month</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇺🇸 English</span><span style="color:var(--muted);">68%</span></div>
+          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:68%;height:100%;background:var(--accent);border-radius:3px;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇫🇷 French</span><span style="color:var(--muted);">45%</span></div>
+          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:45%;height:100%;background:var(--accent2);border-radius:3px;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇪🇸 Spanish</span><span style="color:var(--muted);">28%</span></div>
+          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:28%;height:100%;background:var(--green);border-radius:3px;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Integrations -->
+  <div class="section-label" style="padding-top:4px;">Integrations</div>
+  <div class="prem-section" style="margin-bottom:0;">
+    <div class="integrations-row">
+      <div class="int-badge connected">✅ Zoom</div>
+      <div class="int-badge connected">✅ Google Meet</div>
+      <div class="int-badge">+ Microsoft Teams</div>
+      <div class="int-badge">+ Slack</div>
+      <div class="int-badge">+ Google Workspace</div>
+      <div class="int-badge">+ Microsoft 365</div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
+  </div>
+</div>
+
+<!-- ══════════════════ AMBIENT AI INTERPRETER ══════════════════ -->
+<div class="screen premium-screen" id="ambient">
+  <div class="premium-header">
+    <button class="back-btn" onclick="stopAmbient();showScreen('home')">←</button>
+    <h2>Ambient AI</h2>
+    <span class="prem-pill">Always-On</span>
+  </div>
+
+  <!-- Mode chips -->
+  <div class="mode-chips" id="ambientModeChips">
+    <div class="mode-chip active" onclick="setAmbientMode(this,'General')">🌐 General</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Travel')">✈️ Travel</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Hospital')">🏥 Hospital</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Conference')">🎤 Conference</div>
+    <div class="mode-chip" onclick="setAmbientMode(this,'Airport')">🛫 Airport</div>
+  </div>
+
+  <!-- Ambient hero -->
+  <div class="ambient-hero">
+    <div class="ambient-ring" id="ambientRing">
+      <div class="ambient-icon-inner" id="ambientIcon">👂</div>
+    </div>
+    <div id="ambientStatus" style="font-size:14px;font-weight:600;color:var(--muted);">Tap listen to start</div>
+    <div id="ambientDetectedLang" style="font-size:12px;color:var(--muted);margin-top:4px;"></div>
+  </div>
+
+  <!-- Live subtitles -->
+  <div class="subtitle-display">
+    <div class="subtitle-partial" id="ambientPartial">Waiting for speech…</div>
+    <div class="subtitle-final" id="ambientFinal"></div>
+    <div class="subtitle-trans" id="ambientTrans"></div>
+  </div>
+
+  <!-- Language settings -->
+  <div style="display:flex;gap:10px;padding:0 16px 14px;">
+    <div style="flex:1;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Detect &amp; transcribe</div>
+      <div onclick="openAmbientSrcPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <span id="ambientSrcFlag" style="font-size:20px;">🇺🇸</span>
+        <span id="ambientSrcName" style="font-size:13px;font-weight:600;">English</span>
+        <span style="margin-left:auto;color:var(--muted);">▾</span>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Show translation</div>
+      <div onclick="openAmbientTgtPicker()" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+        <span id="ambientTgtFlag" style="font-size:20px;">🇫🇷</span>
+        <span id="ambientTgtName" style="font-size:13px;font-weight:600;">French</span>
+        <span style="margin-left:auto;color:var(--muted);">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main listen button -->
+  <button class="ambient-big-btn" id="ambientBtn" onclick="toggleAmbient()">
+    <span id="ambientBtnIcon">👂</span> <span id="ambientBtnLabel">Start Listening</span>
+  </button>
+
+  <!-- Settings -->
+  <div class="prem-section">
+    <div class="prem-section-title">Settings</div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">🔇</div>
+      <div class="prem-row-info"><strong>Noise Reduction</strong><span>Filter background sounds</span></div>
+      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🔒</div>
+      <div class="prem-row-info"><strong>Privacy Mode</strong><span>Don't save transcripts</span></div>
+      <button class="toggle" id="ambientPrivacyToggle" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">🎧</div>
+      <div class="prem-row-info"><strong>Earbud Audio</strong><span>Route translation to earbuds</span></div>
+      <button class="toggle" onclick="this.classList.toggle('on')"></button>
+    </div>
+    <div class="prem-row">
+      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">📴</div>
+      <div class="prem-row-info"><strong>Offline Mode</strong><span>Device-only processing</span></div>
+      <button class="toggle" onclick="alert('Offline mode — coming soon')"></button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-btn" onclick="stopAmbient();showScreen('home');navTo('home',this)"><span class="ni">🏠</span>Home</button>
+    <button class="nav-btn" onclick="showCall();navTo('call',this)"><span class="ni">📞</span>Call</button>
+    <button class="nav-btn" onclick="showScreen('conference');navTo('conference',this)"><span class="ni">👥</span>Group</button>
+    <button class="nav-btn" onclick="showScreen('settings');navTo('settings',this)"><span class="ni">⚙️</span>Settings</button>
   </div>
 </div>
 
