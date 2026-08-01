@@ -1118,7 +1118,10 @@ async function startListening(){
         : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
       speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
       const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
-      speechConfig.addTargetLanguage(targetLang);
+      // Azure Speech SDK doesn't support 'ht' (Haitian Creole) as a translation target
+      // Use French as the Azure target, then route TTS through ElevenLabs
+      const azureTargetLang = targetLang === 'ht' ? 'fr' : targetLang;
+      speechConfig.addTargetLanguage(azureTargetLang);
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
@@ -1130,30 +1133,31 @@ async function startListening(){
         }
       };
 
-      // Final result with translation + TTS playback
+      // Final result with translation + TTS playback — keep listening after each phrase
       azureRecognizer.recognized = (s, e) => {
         if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
           const original = e.result.text;
-          const translated = e.result.translations.get(targetLang);
+          const translated = e.result.translations.get(azureTargetLang);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
+          // Pass original targetLang so Haitian Creole routes to ElevenLabs TTS
           if(translated) speakCallTTS(translated, targetLang, tk);
-          stopListening();
+          // Do NOT stop listening — keep mic on until user taps to stop
         }
       };
 
-      azureRecognizer.canceled = () => {
-        stopListening();
-        runDemoTranslation();
+      azureRecognizer.canceled = (s, e) => {
+        // Only stop on actual errors, not normal end-of-speech pauses
+        if(e.reason === SpeechSDK.CancellationReason.Error){
+          stopListening();
+          runDemoTranslation();
+        }
       };
 
       azureRecognizer.startContinuousRecognitionAsync(
         ()=>{}, // success
         ()=>{ stopListening(); runDemoTranslation(); } // error → demo
       );
-
-      // Auto-stop after 10 seconds of silence
-      setTimeout(()=>{ if(isListening) stopListening(); }, 10000);
 
     } catch(err){
       stopListening();
