@@ -1132,6 +1132,7 @@ async function startListening(){
           const translated = e.result.translations.get(targetLang);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
+          if(translated) speakCallTTS(translated, targetLang, tk);
           stopListening();
         }
       };
@@ -1206,9 +1207,25 @@ function showMockTranslation(original, speaker, preTranslated){
   typeText('trans'+speaker, match[1]);
 }
 
+let callTtsEnabled = true;
+
 function toggleSpeaker(){
-  const btn=document.getElementById('speakerBtn');
-  btn.textContent=btn.textContent==='🔊'?'🔇':'🔊';
+  callTtsEnabled = !callTtsEnabled;
+  const btn = document.getElementById('speakerBtn');
+  btn.textContent = callTtsEnabled ? '🔊' : '🔇';
+}
+
+async function speakCallTTS(text, langCode, creds) {
+  if (!callTtsEnabled || !text || typeof SpeechSDK === 'undefined') return;
+  try {
+    const cfg = creds.isKey
+      ? SpeechSDK.SpeechConfig.fromSubscription(creds.token, creds.region)
+      : SpeechSDK.SpeechConfig.fromAuthorizationToken(creds.token, creds.region);
+    cfg.speechSynthesisVoiceName = CONF_VOICES[langCode] || 'en-US-GuyNeural';
+    const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+    const s = new SpeechSDK.SpeechSynthesizer(cfg, ac);
+    s.speakTextAsync(text, () => s.close(), () => s.close());
+  } catch(e) {}
 }
 
 // ── Fin d'appel (local ou distance) ───────────────────────────
