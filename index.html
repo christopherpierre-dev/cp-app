@@ -736,7 +736,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div id="qrCode" style="font-size:52px;font-weight:700;letter-spacing:10px;margin-top:22px;color:#7fb3e8;"></div>
   <div style="font-size:14px;color:#8b93a7;margin-top:4px;">or enter this code in the app</div>
   <div id="qrLink" style="font-size:12px;color:#5a6a85;margin-top:14px;word-break:break-all;max-width:90%;"></div>
-  <button onclick="hideQR()" style="margin-top:28px;background:#2b6cb8;color:#fff;border:0;border-radius:999px;padding:12px 32px;font-size:15px;cursor:pointer;">Close</button>
+  <button onclick="hideQR()" style="margin-top:28px;background:#2b6cb8;color:#fff;border:0;border-radius;999px;padding:12px 32px;font-size:15px;cursor:pointer;">Close</button>
 </div>
 
 <div class="modal-overlay" id="remoteModal" onclick="closeRemoteModal(event)">
@@ -818,6 +818,9 @@ function getMock(langA, langB){
 // ── Jetons Azure éphémères fournis par le serveur CP ──────────
 // (la clé Azure reste sur le serveur ; le client ne la voit jamais)
 const CP_TOKEN_URL = 'https://cp-app-rho.vercel.app/api/token';
+// Silently wake the server on load so it's ready when users speak
+fetch(CP_TOKEN_URL, { method: 'HEAD' }).catch(() => {});
+
 async function getCpToken(){
   // Fast path — server already awake
   try {
@@ -827,7 +830,7 @@ async function getCpToken(){
     clearTimeout(tid);
     if(r.ok) return { ...(await r.json()), isKey: false };
   } catch(_) {}
-  // Server may be waking (Render free tier) — retry with 45s window
+  // Server may be waking (Render free tier sleeps after 15 min) — retry with 45s window
   try {
     const ctrl2 = new AbortController();
     const tid2 = setTimeout(() => ctrl2.abort(), 45000);
@@ -1110,7 +1113,9 @@ async function startListening(){
   if(typeof SpeechSDK !== 'undefined'){
     try{
       const tk = await getCpToken();
-      const speechConfig = SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+      const speechConfig = tk.isKey
+        ? SpeechSDK.SpeechTranslationConfig.fromSubscription(tk.token, tk.region)
+        : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
       speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
       const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
       speechConfig.addTargetLanguage(targetLang);
@@ -1125,7 +1130,7 @@ async function startListening(){
         }
       };
 
-      // Final result with translation
+      // Final result with translation + TTS playback
       azureRecognizer.recognized = (s, e) => {
         if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
           const original = e.result.text;
@@ -1512,7 +1517,7 @@ function dismissIos() {
   document.getElementById('iosGuide').style.display = 'none';
 }
 
-// ── Service Worker registration ───────────────────────────────
+// ── Service Worker registration ──────────────────────────────
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
@@ -1754,38 +1759,41 @@ function selectAttLang(idx){
   });
 }
 
-async function doJoinConference(){
-  if(!confJoinCode) return;
-  const nameInput = document.getElementById('confJoinNameInput');
-  const attendeeName = (nameInput && nameInput.value.trim()) || '';
-  if(!attendeeName){
-    if(nameInput){ nameInput.style.borderColor = '#ef4444'; nameInput.placeholder = 'Please enter your name'; nameInput.focus(); }
-    return;
-  }
-  // Save for next time
-  localStorage.setItem('loquivox_name', attendeeName);
-  applyMyName();
-  document.getElementById('confJoinStatus').textContent = 'Connecting to room ' + confJoinCode + '…';
-  try {
-    await CPRemote.join(confJoinCode, {
-      name: attendeeName,
-      lang: confJoinLang.code,
-      speechLang: confJoinLang.speechCode,
-    });
-    document.getElementById('confJoinPanel').style.display = 'none';
-    showAttendeeView(attendeeName);
-  } catch(e) {
-    document.getElementById('confJoinStatus').textContent = '⚠️ ' + e.message;
-  }
+applyMyName();
+
+// ── Init ─────────────────────────────────────────────────────
+</script>
+
+<!-- ══════════════════ REMOTE CALL — logique (NOUVEAU) ══════════════════ -->
+<script src="cp-remote.js"></script>
+<script>
+function openRemoteModal(){ document.getElementById('remoteModal').classList.add('open'); }
+function closeRemoteModal(e){
+  if(e.target===document.getElementById('remoteModal'))
+    document.getElementById('remoteModal').classList.remove('open');
+}
+function setRemoteStatus(t){ document.getElementById('remoteStatus').textContent=t; }
+
+
+function roomLink(room){
+  return location.origin + location.pathname + '#join=' + room;
 }
 
-async function showAttendeeView(name){
-  confAttendeeActive = true;
-  document.getElementById('attRoomLabel').textContent = (name ? name + ' · ' : '') + 'Room ' + confJoinCode;
-  document.getElementById('attLangLabel').textContent = 'Receiving in ' + confJoinLang.flag + ' ' + confJoinLang.name + ' · TTS on';
-  document.getElementById('attFinalText').textContent = '';
-  document.getElementById('attPartialText').textContent = '';
-  const v = document.getElementById('confAttendeeView');
+function showQR(room){
+  if(!room) return;
+  const link = roomLink(room);
+  const box = document.getElementById('qrBox');
+  box.innerHTML = '';
+  try{
+    new QRCode(box, { text: link, width: 260, height: 260, correctLevel: QRCode.CorrectLevel.M });
+  }catch(e){
+    box.innerHTML = '<div style="color:#333;font-size:13px;padding:20px;width:220px;">QR unavailable — share the code below</div>';
+  }
+  document.getElementById('qrCode').textContent = room;
+  document.getElementById('qrLink').textContent = link;
+  const p = document.getElementById('qrPanel');
+  p.style.display = 'flex';
+}w');
   v.style.display = 'flex';
   v.style.flexDirection = 'column';
   // Pre-fetch Azure token so TTS works for attendees
@@ -2710,7 +2718,7 @@ function stopAmbient() {
 <div class="screen premium-screen" id="ambient">
   <div class="premium-header">
     <button class="back-btn" onclick="stopAmbient();showScreen('home')">←</button>
-    <h2>Ambient AI</h2>
+    <h2>Ambient Ai</h2>
     <span class="prem-pill">Always-On</span>
   </div>
 
