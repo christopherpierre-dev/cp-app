@@ -1156,11 +1156,10 @@ async function startListening(){
 
       azureRecognizer.startContinuousRecognitionAsync(
         ()=>{}, // success
-        ()=>{ stopListening(); runDemoTranslation(); } // error → demo
+        ()=>{ runDemoTranslation(); } // error → demo, keep mic on
       );
 
     } catch(err){
-      stopListening();
       runDemoTranslation();
     }
   } else {
@@ -1204,7 +1203,6 @@ function runDemoTranslation(){
     i++;
     if(i>pair[0].length){
       clearInterval(typeOrig);
-      stopListening();
       setTimeout(()=>typeText('transA', pair[1]),600);
     }
   },45);
