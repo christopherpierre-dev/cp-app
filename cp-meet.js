@@ -43,6 +43,8 @@
     tab: 'chat',
     unread: 0,
     booted: false,
+    sessionStart: null,      // horodatage de début d'appel (historique réel)
+    rosterMax: 0,            // nombre maximal de participants vus pendant l'appel
   };
 
   const ICE = {
@@ -54,6 +56,92 @@
   const esc = (s) => String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+
+  // ── Historique réel des conversations ────────────────────────────────
+  // L'écran d'accueil affichait trois conversations fictives (« Client call ·
+  // 14 min »…). Une donnée inventée qui ne mène nulle part est signalée en
+  // revue par Apple et Google, et trompe l'utilisateur. On la remplace par
+  // l'historique réel des appels de cet appareil — vide au premier lancement,
+  // ce qui est la vérité.
+  const HIST_KEY = 'loquivox_sessions';
+  const FLAGS = {
+    en:'🇺🇸', fr:'🇫🇷', es:'🇪🇸', de:'🇩🇪', pt:'🇵🇹', ar:'🇸🇦', zh:'🇨🇳',
+    ja:'🇯🇵', ko:'🇰🇷', ru:'🇷🇺', hi:'🇮🇳', it:'🇮🇹', nl:'🇳🇱', pl:'🇵🇱',
+    sv:'🇸🇪', tr:'🇹🇷', ht:'🇭🇹', sw:'🇰🇪', el:'🇬🇷', vi:'🇻🇳',
+  };
+  const LANG_NAMES = {
+    en:'English', fr:'French', es:'Spanish', de:'German', pt:'Portuguese',
+    ar:'Arabic', zh:'Chinese', ja:'Japanese', ko:'Korean', ru:'Russian',
+    hi:'Hindi', it:'Italian', nl:'Dutch', pl:'Polish', sv:'Swedish',
+    tr:'Turkish', ht:'Haitian Creole', sw:'Swahili', el:'Greek', vi:'Vietnamese',
+  };
+
+  function loadHist() {
+    try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveHist(list) {
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(list.slice(0, 10))); } catch (e) {}
+  }
+
+  // Ma langue telle que le serveur la connaît : plus fiable que la valeur par
+  // défaut du module, car l'utilisateur a pu la changer par un chemin que nous
+  // n'interceptons pas.
+  function myLangFromRoster() {
+    const me = S.roster.find(p => p.id === S.selfId);
+    return (me && me.lang) || S.myLang;
+  }
+
+  function recordSessionEnd() {
+    if (!S.sessionStart) return;
+    const mins = Math.round((Date.now() - S.sessionStart) / 60000);
+    const others = [...new Set(S.roster.filter(p => p.id !== S.selfId).map(p => p.lang))].filter(Boolean);
+    S.sessionStart = null;
+    if (!others.length && mins < 1) return; // appel avorté : ne rien inscrire
+    const list = loadHist();
+    list.unshift({
+      from: myLangFromRoster(), to: others[0] || null,
+      peers: Math.max(S.rosterMax - 1, 0), mins, at: Date.now(),
+    });
+    saveHist(list);
+    renderRecent();
+  }
+
+  function whenLabel(ts) {
+    const d = Math.floor((Date.now() - ts) / 86400000);
+    if (d <= 0) return 'Today';
+    if (d === 1) return 'Yesterday';
+    if (d < 7) return new Date(ts).toLocaleDateString(undefined, { weekday: 'short' });
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderRecent() {
+    const el = document.querySelector('.recent-list');
+    if (!el) return;
+    const list = loadHist();
+
+    if (!list.length) {
+      el.innerHTML = '<div style="padding:18px 6px;color:#7f8db0;font-size:13px;'
+        + 'line-height:1.5;text-align:center">No conversations yet.<br>'
+        + 'Your calls will appear here.</div>';
+      return;
+    }
+
+    el.innerHTML = list.map(s => {
+      const f = FLAGS[s.from] || '🌐';
+      const t = s.to ? (FLAGS[s.to] || '🌐') : '';
+      const names = LANG_NAMES[s.from] || (s.from || '').toUpperCase();
+      const title = s.to ? `${names} → ${LANG_NAMES[s.to] || s.to.toUpperCase()}` : names;
+      const dur = s.mins < 1 ? 'under a minute' : `${s.mins} min`;
+      const detail = s.peers > 1
+        ? `Conference · ${s.peers + 1} participants · ${dur}`
+        : `Call · ${dur}`;
+      return `<div class="recent-item">
+        <div class="lang-flags">${f}${t ? '&nbsp;→&nbsp;' + t : ''}</div>
+        <div class="recent-info"><strong>${esc(title)}</strong><span>${esc(detail)}</span></div>
+        <div class="recent-time">${whenLabel(s.at)}</div>
+      </div>`;
+    }).join('');
+  }
 
   const send = (obj) => {
     try {
@@ -141,9 +229,9 @@
     fab.className = 'cpm-fab';
     fab.id = 'cpmFab';
     fab.innerHTML = `
-      <button class="cpm-btn" id="cpmCam"  title="Caméra">🎥</button>
-      <button class="cpm-btn" id="cpmHand" title="Lever la main">✋</button>
-      <button class="cpm-btn" id="cpmChat" title="Clavardage">💬<span class="cpm-badge" id="cpmUnread" style="display:none">0</span></button>`;
+      <button class="cpm-btn" id="cpmCam"  title="Camera">🎥</button>
+      <button class="cpm-btn" id="cpmHand" title="Raise hand">✋</button>
+      <button class="cpm-btn" id="cpmChat" title="Chat">💬<span class="cpm-badge" id="cpmUnread" style="display:none">0</span></button>`;
     document.body.appendChild(fab);
 
     const panel = document.createElement('div');
@@ -152,13 +240,13 @@
     panel.innerHTML = `
       <div class="cpm-head">
         <button class="cpm-tab sel" id="cpmTabChat">💬 Chat</button>
-        <button class="cpm-tab"     id="cpmTabPeople">👥 Participants</button>
-        <button class="cpm-x"       id="cpmClose" aria-label="Fermer">×</button>
+        <button class="cpm-tab"     id="cpmTabPeople">👥 People</button>
+        <button class="cpm-x"       id="cpmClose" aria-label="Close">×</button>
       </div>
       <div class="cpm-body" id="cpmBody"></div>
       <div class="cpm-foot" id="cpmFoot">
-        <input class="cpm-in" id="cpmInput" placeholder="Écrire un message…" autocomplete="off">
-        <button class="cpm-send" id="cpmSend">Envoyer</button>
+        <input class="cpm-in" id="cpmInput" placeholder="Type a message…" autocomplete="off">
+        <button class="cpm-send" id="cpmSend">Send</button>
       </div>`;
     document.body.appendChild(panel);
 
@@ -212,7 +300,7 @@
       }
       body.innerHTML = chat.map(m => `
         <div class="cpm-msg${m.mine ? ' me' : ''}">
-          <div class="who">${esc(m.mine ? 'Vous' : m.from)}</div>
+          <div class="who">${esc(m.mine ? 'You' : m.from)}</div>
           <div class="tx">${esc(m.shown)}</div>
           ${m.orig && m.orig !== m.shown ? `<div class="orig">« ${esc(m.orig)} »</div>` : ''}
         </div>`).join('');
@@ -233,7 +321,7 @@
       if (p.video) tags.push('<span class="cpm-tag">🎥</span>');
       if (p.lang) tags.push(`<span class="cpm-tag">${esc(String(p.lang).toUpperCase())}</span>`);
       return `<div class="cpm-row"><div class="cpm-av">${esc(ini)}</div>
-        <div class="cpm-nm">${esc(p.name)}${p.id === S.selfId ? ' (vous)' : ''}</div>
+        <div class="cpm-nm">${esc(p.name)}${p.id === S.selfId ? ' (you)' : ''}</div>
         ${tags.join(' ')}</div>`;
     }).join('');
   }
@@ -245,7 +333,7 @@
     if (!text) return;
     input.value = '';
 
-    chat.push({ mine: true, from: 'Vous', shown: text, orig: '' });
+    chat.push({ mine: true, from: 'You', shown: text, orig: '' });
     render();
 
     // Traduire vers les langues présentes dans la salle
@@ -298,7 +386,7 @@
         audio: { echoCancellation: true, noiseSuppression: true },
       });
     } catch (e) {
-      alert("Caméra ou micro inaccessible. Vérifiez l'autorisation du navigateur.");
+      alert("Camera or microphone unavailable. Check your browser permissions.");
       return;
     }
     S.videoOn = true;
@@ -418,10 +506,13 @@
     if (type === 'joined') {
       S.selfId = data.selfId || null;
       S.roster = data.participants || [];
+      S.rosterMax = S.roster.length;
+      S.sessionStart = Date.now();
       document.getElementById('cpmFab').classList.add('on');
       render();
     } else if (type === 'roster') {
       S.roster = data.participants || [];
+      S.rosterMax = Math.max(S.rosterMax || 0, S.roster.length);
       // Nouveau venu pendant que ma caméra tourne : je lui propose la connexion
       if (S.videoOn) {
         for (const p of S.roster) {
@@ -441,6 +532,7 @@
     } else if (type === 'signal') {
       onSignal(data);
     } else if (type === 'closed') {
+      recordSessionEnd();
       stopCam();
       document.getElementById('cpmFab').classList.remove('on');
       toggle(false);
@@ -453,6 +545,12 @@
     S.booted = true;
     injectStyles();
     buildUI();
+    // Remplace immédiatement les exemples fictifs de l'écran d'accueil par
+    // l'historique réel (vide au premier lancement).
+    renderRecent();
+    // L'accueil peut être rendu après nous : on repasse une fois la page stable.
+    setTimeout(renderRecent, 600);
+    window.addEventListener('pageshow', renderRecent);
 
     // Enveloppe CPRemote.on : le gestionnaire de l'application reste intact
     const _on = R.on;
