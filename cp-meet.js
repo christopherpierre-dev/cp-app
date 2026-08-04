@@ -35,7 +35,8 @@
     peers: new Map(),        // peerId -> RTCPeerConnection
     streams: new Map(),      // peerId -> MediaStream distant
     roster: [],
-    localStream: null,
+    localStream: null,       // caméra + micro (vidéo)
+    voiceStream: null,       // micro seul (vraie voix par WebRTC)
     videoOn: false,
     micMuted: false,
     handUp: false,
@@ -230,6 +231,7 @@
             const finish = () => {
               if (done) return;
               done = true;
+              duckVoices(false);                    // la vraie voix reprend son volume
               try { URL.revokeObjectURL(url); } catch (_) {}
               clearTimeout(guard);
               resolve();
@@ -239,6 +241,7 @@
               finish();
             }, 30000);
 
+            duckVoices(true);                       // la vraie voix passe dessous
             a.src = url;
             a.onended = finish;
             a.onerror = finish;
@@ -617,6 +620,81 @@
     if (t) t.remove();
     const wrap = document.getElementById('cpmVideos');
     if (wrap && !wrap.children.length) wrap.classList.remove('on');
+    dropVoice(id);
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * VRAIE VOIX — transport WebRTC
+   *
+   * L'ancien mécanisme découpait la voix en morceaux de 200 ms, les faisait
+   * transiter par le serveur et les recollait avec MediaSource. Safari iOS
+   * n'implémente pas MediaSource pour cet usage : un iPhone pouvait envoyer
+   * sa vraie voix mais jamais la recevoir.
+   *
+   * La connexion directe WebRTC — déjà en place pour la vidéo — transporte
+   * l'audio nativement et fonctionne sur tous les navigateurs, iOS compris.
+   * On réutilise donc exactement la même machinerie, en audio seul.
+   * ──────────────────────────────────────────────────────────────────── */
+  const DUCK_VOL = 0.35;      // volume de la vraie voix pendant la traduction parlée
+
+  function attachVoice(id, stream) {
+    let el = document.getElementById('cpmV_' + id);
+    if (!el) {
+      el = document.createElement('audio');
+      el.id = 'cpmV_' + id;
+      el.autoplay = true;
+      el.setAttribute('playsinline', '');
+      document.body.appendChild(el);
+    }
+    if (el.srcObject !== stream) {
+      el.srcObject = stream;
+      el.volume = ttsSpeaking ? DUCK_VOL : 1.0;
+      el.play().catch(() => {}); // le geste de déverrouillage a déjà eu lieu
+    }
+  }
+
+  function dropVoice(id) {
+    const el = document.getElementById('cpmV_' + id);
+    if (el) { try { el.srcObject = null; } catch (_) {} el.remove(); }
+  }
+
+  // Atténue la vraie voix pendant que la traduction parle — comme une cabine
+  // d'interprétation — puis rétablit le volume.
+  let ttsSpeaking = false;
+  function duckVoices(on) {
+    ttsSpeaking = !!on;
+    const v = (on && !S.ttsMuted) ? DUCK_VOL : 1.0;
+    document.querySelectorAll('audio[id^="cpmV_"]').forEach(el => { el.volume = v; });
+  }
+
+  async function startVoice() {
+    if (S.voiceStream) return true;
+    try {
+      S.voiceStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+    } catch (e) {
+      console.warn('[cp-meet] micro refusé pour la vraie voix :', e && e.name);
+      return false;
+    }
+    // Proposer la connexion à tous les participants déjà présents
+    for (const p of S.roster) {
+      if (p.id && p.id !== S.selfId) {
+        const pc = S.peers.get(p.id);
+        if (pc) S.voiceStream.getTracks().forEach(t => pc.addTrack(t, S.voiceStream));
+        startOffer(p.id);   // renégocie avec la nouvelle piste
+      }
+    }
+    send({ type: 'state', voice: true });
+    return true;
+  }
+
+  function stopVoice() {
+    if (!S.voiceStream) return;
+    S.voiceStream.getTracks().forEach(t => t.stop());
+    S.voiceStream = null;
+    for (const id of S.peers.keys()) startOffer(id);  // renégocie sans la piste
+    send({ type: 'state', voice: false });
   }
 
   function peer(id) {
@@ -625,6 +703,9 @@
 
     if (S.localStream) {
       S.localStream.getTracks().forEach(t => pc.addTrack(t, S.localStream));
+    }
+    if (S.voiceStream) {
+      S.voiceStream.getTracks().forEach(t => pc.addTrack(t, S.voiceStream));
     }
 
     pc.onicecandidate = (e) => {
@@ -635,7 +716,12 @@
       const st = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
       S.streams.set(id, st);
       const p = S.roster.find(x => x.id === id);
-      addTile(id, (p && p.name) || 'Participant', st, false);
+      const name = (p && p.name) || 'Participant';
+      // Un flux sans piste vidéo est une vraie voix : pas de vignette, un
+      // simple lecteur audio (indispensable sur iPhone, où l'ancien transport
+      // MediaSource ne fonctionnait pas).
+      if (st.getVideoTracks().length === 0) attachVoice(id, st);
+      else addTile(id, name, st, false);
     };
 
     pc.onconnectionstatechange = () => {
@@ -785,6 +871,30 @@
     // Déverrouillage audio au premier geste de l'utilisateur (obligatoire iOS)
     ['touchend', 'click', 'keydown'].forEach(ev =>
       document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+
+    // ── Vraie voix : on détourne le bouton existant de l'application vers
+    // WebRTC. L'ancien transport (morceaux relayés par le serveur, recollés
+    // avec MediaSource) ne peut pas être reçu sur iPhone ; la connexion
+    // directe, elle, fonctionne partout. L'utilisateur ne change rien à ses
+    // habitudes : c'est le même bouton.
+    const _startStream = R.startAudioStream;
+    if (typeof _startStream === 'function') {
+      R.startAudioStream = function () {
+        startVoice().then(ok => {
+          if (!ok) {
+            console.warn('[cp-meet] repli sur l\'ancien transport');
+            try { _startStream.call(R); } catch (e) {}
+          }
+        });
+      };
+    }
+    const _stopStream = R.stopAudioStream;
+    if (typeof _stopStream === 'function') {
+      R.stopAudioStream = function () {
+        stopVoice();
+        try { _stopStream.call(R); } catch (e) {}   // coupe aussi l'ancien, par sûreté
+      };
+    }
 
     // Moteur audio unique pour Two-Way, Conference et Remote Call.
     // Les fonctions visées sont définies plus bas dans index.html : on
