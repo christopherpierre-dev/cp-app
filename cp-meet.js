@@ -45,6 +45,7 @@
     booted: false,
     sessionStart: null,      // horodatage de début d'appel (historique réel)
     rosterMax: 0,            // nombre maximal de participants vus pendant l'appel
+    ttsMuted: false,         // l'utilisateur a coupé la voix de traduction (🔇)
   };
 
   const ICE = {
@@ -149,6 +150,103 @@
       if (R && typeof R.sendRaw === 'function') R.sendRaw(obj);
     } catch (e) {}
   };
+
+  /* ────────────────────────────────────────────────────────────────────
+   * VOIX DE TRADUCTION — reprise en main
+   *
+   * Le module de base fait parler Azure via
+   * AudioConfig.fromDefaultSpeakerOutput(). Safari iOS refuse cette sortie
+   * directe tant qu'aucun geste utilisateur n'a débloqué l'audio : le texte
+   * s'affiche, aucun son ne sort. C'est la panne « Remote Call ne parle pas ».
+   *
+   * Contournement éprouvé : on demande à Azure l'audio *en données* (MP3),
+   * puis on le joue dans UN élément <audio> déverrouillé au premier toucher.
+   * Ce même élément, une fois autorisé, joue tout le reste de la session.
+   *
+   * On désactive la voix du module de base pour éviter de parler deux fois.
+   * ──────────────────────────────────────────────────────────────────── */
+  const TTS_VOICES = {
+    fr:'fr-CA-JeanNeural',   en:'en-US-GuyNeural',    es:'es-MX-JorgeNeural',
+    de:'de-DE-ConradNeural', pt:'pt-BR-AntonioNeural', ar:'ar-SA-HamedNeural',
+    zh:'zh-CN-YunxiNeural',  ja:'ja-JP-KeitaNeural',   ko:'ko-KR-InJoonNeural',
+    ru:'ru-RU-DmitryNeural', hi:'hi-IN-MadhurNeural',  it:'it-IT-DiegoNeural',
+    nl:'nl-NL-MaartenNeural',pl:'pl-PL-MarekNeural',   sv:'sv-SE-MattiasNeural',
+    tr:'tr-TR-AhmetNeural',  ht:'fr-CA-JeanNeural',    sw:'sw-KE-RafikiNeural',
+    el:'el-GR-NestorasNeural', vi:'vi-VN-NamMinhNeural',
+  };
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+
+  let ttsAudio = null, ttsUnlocked = false, ttsQueue = Promise.resolve(), ttsOwned = false;
+
+  function ensureAudioEl() {
+    if (!ttsAudio) {
+      ttsAudio = new Audio();
+      ttsAudio.setAttribute('playsinline', '');
+      ttsAudio.autoplay = false;
+    }
+    return ttsAudio;
+  }
+
+  // Doit être appelé DEPUIS un geste utilisateur (toucher, clic).
+  function unlockAudio() {
+    if (ttsUnlocked) return;            // ne jamais couper une voix en cours
+    try {
+      const a = ensureAudioEl();
+      a.src = SILENT_WAV;
+      a.play().then(() => { ttsUnlocked = true; }).catch(() => {});
+    } catch (_) {}
+  }
+
+  async function azureCreds() {
+    const base = (window.CP_SERVER || SERVER).replace(/\/+$/, '');
+    const r = await fetch(base + '/api/token');
+    if (!r.ok) throw new Error('token ' + r.status);
+    return r.json();                     // {token, region}
+  }
+
+  function speakText(text, lang) {
+    if (!text || !window.SpeechSDK) return;
+    ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
+      try {
+        const { token, region } = await azureCreds();
+        const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+        cfg.speechSynthesisVoiceName = TTS_VOICES[lang] || 'en-US-GuyNeural';
+        cfg.speechSynthesisOutputFormat =
+          SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
+
+        // audioConfig = null : Azure renvoie les octets au lieu de jouer
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
+        synth.speakTextAsync(text, (r) => {
+          synth.close();
+          try {
+            if (!r || !r.audioData || !r.audioData.byteLength) return resolve();
+            const a = ensureAudioEl();
+            const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+            a.src = url;
+            a.onended = () => { URL.revokeObjectURL(url); resolve(); };
+            a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+            a.play().catch((e) => {
+              console.warn('[cp-meet] lecture bloquée :', e && e.name,
+                           '— l\'audio n\'a pas été déverrouillé par un geste');
+              resolve();
+            });
+          } catch (_) { resolve(); }
+        }, (err) => { console.warn('[cp-meet] TTS:', err); synth.close(); resolve(); });
+      } catch (err) {
+        console.warn('[cp-meet] TTS init:', err && err.message);
+        resolve();
+      }
+    }));
+  }
+
+  // Prononce la traduction reçue, dans la langue d'écoute de cet appareil
+  function speakIncoming(m) {
+    if (!ttsOwned) return;
+    if (S.ttsMuted) return;
+    const lang = myLangFromRoster();
+    const text = m && m.translations ? m.translations[lang] : null;
+    if (text) speakText(text, lang);
+  }
 
   // ── Styles ────────────────────────────────────────────────────────────
   function injectStyles() {
@@ -527,6 +625,8 @@
         }
       }
       render();
+    } else if (type === 'utterance') {
+      speakIncoming(data);   // voix de traduction (chemin compatible iOS)
     } else if (type === 'chat') {
       onChat(data);
     } else if (type === 'signal') {
@@ -570,11 +670,38 @@
       };
     }
 
-    // Suivre l'état du micro
+    // Suivre l'état du micro et de la voix
     const _setMuted = R.setTtsMuted;
     if (typeof _setMuted === 'function') {
-      R.setTtsMuted = function (b) { send({ type: 'state', muted: !!b }); return _setMuted.call(R, b); };
+      R.setTtsMuted = function (b) {
+        S.ttsMuted = !!b;
+        send({ type: 'state', muted: !!b });
+        return _setMuted.call(R, b);
+      };
     }
+    // Certaines versions n'exposent que setTTS(v) — v = true signifie « voix active »
+    const _setTTS = R.setTTS;
+    if (typeof _setTTS === 'function') {
+      R.setTTS = function (v) { S.ttsMuted = !v; return _setTTS.call(R, v); };
+    }
+
+    // ── Reprise en main de la voix de traduction ──
+    // On coupe la voix du module de base (sortie directe bloquée par Safari)
+    // et on la produit ici par un chemin qui fonctionne sur tous les appareils.
+    if (typeof _setTTS === 'function') {
+      try { _setTTS.call(R, false); ttsOwned = true; } catch (e) {}
+    }
+    if (!ttsOwned && typeof _setMuted === 'function') {
+      try { _setMuted.call(R, true); ttsOwned = true; } catch (e) {}
+    }
+    if (!ttsOwned) {
+      console.warn('[cp-meet] impossible de couper la voix du module de base : '
+                 + 'voix laissée telle quelle pour éviter un double son');
+    }
+
+    // Déverrouillage audio au premier geste de l'utilisateur (obligatoire iOS)
+    ['touchend', 'click', 'keydown'].forEach(ev =>
+      document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
     window.CPMeet = {
       openChat: () => toggle(true, 'chat'),
