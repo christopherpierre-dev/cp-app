@@ -222,13 +222,30 @@
             if (!r || !r.audioData || !r.audioData.byteLength) return resolve();
             const a = ensureAudioEl();
             const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+
+            // Garde-fou : si la fin de lecture n'est jamais signalée, la file
+            // resterait bloquée et plus aucune phrase ne serait prononcée du
+            // reste de la session. On libère au plus tard après 30 secondes.
+            let done = false;
+            const finish = () => {
+              if (done) return;
+              done = true;
+              try { URL.revokeObjectURL(url); } catch (_) {}
+              clearTimeout(guard);
+              resolve();
+            };
+            const guard = setTimeout(() => {
+              console.warn('[cp-meet] fin de lecture non signalée — file libérée');
+              finish();
+            }, 30000);
+
             a.src = url;
-            a.onended = () => { URL.revokeObjectURL(url); resolve(); };
-            a.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+            a.onended = finish;
+            a.onerror = finish;
             a.play().catch((e) => {
               console.warn('[cp-meet] lecture bloquée :', e && e.name,
                            '— l\'audio n\'a pas été déverrouillé par un geste');
-              resolve();
+              finish();
             });
           } catch (_) { resolve(); }
         }, (err) => { console.warn('[cp-meet] TTS:', err); synth.close(); resolve(); });
@@ -246,6 +263,72 @@
     const lang = myLangFromRoster();
     const text = m && m.translations ? m.translations[lang] : null;
     if (text) speakText(text, lang);
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * MOTEUR AUDIO UNIQUE POUR LES TROIS MODES
+   *
+   * Two-Way Call, Conference et Remote Call avaient chacun leur propre code
+   * de synthèse, et tous les trois utilisaient
+   * AudioConfig.fromDefaultSpeakerOutput() — la sortie que Safari iOS bloque.
+   * Trois copies du même défaut, d'où « aucun son nulle part ».
+   *
+   * On remplace ici les fonctions globales de l'application par une seule
+   * implémentation, celle qui fonctionne sur tous les appareils. Aucun
+   * fichier n'est modifié : les fonctions concernées sont globales, on les
+   * réassigne.
+   * ──────────────────────────────────────────────────────────────────── */
+  function installAudioEngine() {
+    // Langue → code court, pour retrouver la voix Azure
+    const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
+
+    // Two-Way Call — speakCallTTS(text, langCode)
+    if (typeof window.speakCallTTS === 'function') {
+      window.speakCallTTS = function (text, langCode) {
+        try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
+      };
+    }
+
+    // Conference — speakConf(text, langCode)
+    if (typeof window.speakConf === 'function') {
+      window.speakConf = function (text, langCode) {
+        try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
+      };
+    }
+
+    /* ── Fin des fausses traductions ────────────────────────────────────
+     * runDemoTranslation() affichait, caractère par caractère, une phrase
+     * inventée (« Welcome, how may I assist you? ») comme s'il s'agissait
+     * d'une vraie traduction. Elle était déclenchée notamment en cas
+     * d'ERREUR de reconnaissance vocale — ce qui masquait la panne réelle
+     * derrière une démonstration convaincante. C'est ce qui « déclenche un
+     * message tout seul » à l'ouverture de Two-Way Call.
+     *
+     * On la remplace par un message honnête. L'utilisateur doit savoir que
+     * rien n'a été entendu ; un examinateur de boutique aussi.
+     * ────────────────────────────────────────────────────────────────── */
+    if (typeof window.runDemoTranslation === 'function') {
+      window.runDemoTranslation = function () {
+        try {
+          const o = document.getElementById('origA');
+          const t = document.getElementById('transA');
+          if (o) o.textContent = '';
+          if (t) {
+            t.textContent = 'No speech detected — check the microphone permission '
+                          + 'and your connection, then try again.';
+            t.style.opacity = '.75';
+          }
+        } catch (e) {}
+      };
+    }
+    if (typeof window.showMockTranslation === 'function') {
+      window.showMockTranslation = function (original) {
+        try {
+          const o = document.getElementById('origA');
+          if (o && original) o.textContent = original;
+        } catch (e) {}
+      };
+    }
   }
 
   // ── Styles ────────────────────────────────────────────────────────────
@@ -702,6 +785,24 @@
     // Déverrouillage audio au premier geste de l'utilisateur (obligatoire iOS)
     ['touchend', 'click', 'keydown'].forEach(ev =>
       document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+
+    // Moteur audio unique pour Two-Way, Conference et Remote Call.
+    // Les fonctions visées sont définies plus bas dans index.html : on
+    // réessaie brièvement le temps que le script principal s'exécute.
+    installAudioEngine();
+    let tries = 0;
+    const t = setInterval(() => {
+      installAudioEngine();
+      if (++tries > 20) clearInterval(t);   // ~4 s au maximum
+    }, 200);
+
+    // Exposé pour diagnostic et pour un usage externe éventuel
+    window.CPAudio = {
+      speak: speakText,
+      unlock: unlockAudio,
+      get ready() { return ttsUnlocked; },
+      get owned() { return ttsOwned; },
+    };
 
     window.CPMeet = {
       openChat: () => toggle(true, 'chat'),
