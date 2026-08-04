@@ -264,7 +264,18 @@
     }
   }
 
+  // ── Shared AudioContext (unlocked on first user interaction) ────
+  let _audioCtx = null;
+  function getAudioCtx() {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
+    return _audioCtx;
+  }
+  window._getRemoteAudioCtx = getAudioCtx;
+
   // ── TTS: play received translation through speakers ──────────────
+  const HT_TTS_URL = 'https://cp-app-rho.vercel.app/api/ht-tts';
+
   const TTS_VOICES = {
     fr: 'fr-CA-JeanNeural',     en: 'en-US-GuyNeural',
     es: 'es-MX-JorgeNeural',   de: 'de-DE-ConradNeural',
@@ -274,7 +285,7 @@
     hi: 'hi-IN-MadhurNeural',   it: 'it-IT-DiegoNeural',
     nl: 'nl-NL-MaartenNeural',  pl: 'pl-PL-MarekNeural',
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
-    ht: 'fr-CA-JeanNeural',     sw: 'sw-KE-RafikiNeural',
+    sw: 'sw-KE-RafikiNeural',   // ht routed to ElevenLabs below
     el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
   };
 
@@ -283,22 +294,32 @@
     const text = m.translations?.[state.myLang];
     if (!text) return;
 
-    // Queue TTS so overlapping utterances play in order
     state.ttsQueue = state.ttsQueue.then(() => new Promise(async (resolve) => {
       try {
-        const creds = await getAzureToken();
-        const cfg = makeSpeechConfig(creds);
-        cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
-
-        // ✅ Route audio to the default speaker
-        const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-        const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
-
-        synth.speakTextAsync(
-          text,
-          () => { synth.close(); resolve(); },
-          (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
-        );
+        if (state.myLang === 'ht') {
+          // Haitian Creole → ElevenLabs multilingual_v2 via proxy
+          const r = await fetch(HT_TTS_URL + '?text=' + encodeURIComponent(text));
+          if (!r.ok) { resolve(); return; }
+          const buf = await r.arrayBuffer();
+          const ctx = getAudioCtx();
+          const decoded = await ctx.decodeAudioData(buf);
+          const src = ctx.createBufferSource();
+          src.buffer = decoded;
+          src.connect(ctx.destination);
+          src.onended = resolve;
+          src.start();
+        } else {
+          const creds = await getAzureToken();
+          const cfg = makeSpeechConfig(creds);
+          cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
+          const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+          const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
+          synth.speakTextAsync(
+            text,
+            () => { synth.close(); resolve(); },
+            (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
+          );
+        }
       } catch (err) {
         console.warn('[CPRemote] TTS setup error:', err);
         resolve();
