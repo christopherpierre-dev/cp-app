@@ -874,8 +874,12 @@ let azureRecognizer = null;
 let remoteMode = false; // NOUVEAU : mode appel à distance
 // ── Original Voice state (Remote Call) ───────────────────────
 let remoteOriginalVoice = false;
-let rcAudioEl = null, rcAudioMS = null, rcAudioSB = null;
-let rcAudioQueue = [], rcAudioBusy = false;
+let _rcAudioCtx = null;
+function getRCAudioCtx() {
+  if (!_rcAudioCtx) _rcAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_rcAudioCtx.state === 'suspended') _rcAudioCtx.resume().catch(() => {});
+  return _rcAudioCtx;
+}
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
@@ -1030,48 +1034,28 @@ function toggleOriginalVoice(){
 }
 
 function stopRCAudio(){
-  if(rcAudioEl){ rcAudioEl.pause(); rcAudioEl.src=''; rcAudioEl=null; }
-  rcAudioMS=null; rcAudioSB=null; rcAudioQueue=[]; rcAudioBusy=false;
+  if(_rcAudioCtx){ _rcAudioCtx.close().catch(()=>{}); _rcAudioCtx=null; }
 }
 
-function handleRemoteAudioChunk({ data, mimeType, isFirst }){
-  // Decode base64 → ArrayBuffer
+function handleRemoteAudioChunk({ data }){
   const bin = atob(data);
   const buf = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
   const ab = buf.buffer;
-
-  if(isFirst || !rcAudioEl){
-    // Start a fresh MediaSource stream for each new speaking burst
-    if(rcAudioEl){ rcAudioEl.pause(); rcAudioEl.src=''; }
-    rcAudioSB=null; rcAudioQueue=[ab]; rcAudioBusy=false;
-    rcAudioEl = new Audio();
-    rcAudioMS = new MediaSource();
-    rcAudioEl.src = URL.createObjectURL(rcAudioMS);
-    rcAudioMS.addEventListener('sourceopen', ()=>{
-      try{
-        const mt = mimeType || 'audio/webm;codecs=opus';
-        rcAudioSB = rcAudioMS.addSourceBuffer(mt);
-        rcAudioSB.mode = 'sequence';
-        rcAudioSB.addEventListener('updateend', ()=>{ rcAudioBusy=false; flushRCAudio(); });
-        flushRCAudio();
-      }catch(e){ console.warn('[RC Audio]',e); }
-    },{once:true});
-    rcAudioEl.play().catch(()=>{});
-  } else {
-    rcAudioQueue.push(ab);
-    flushRCAudio();
-  }
-}
-
-function flushRCAudio(){
-  if(!rcAudioSB || rcAudioBusy || rcAudioQueue.length===0) return;
-  rcAudioBusy=true;
-  try{ rcAudioSB.appendBuffer(rcAudioQueue.shift()); }
-  catch(e){ rcAudioBusy=false; console.warn('[RC Audio flush]',e); }
+  try{
+    const ctx = getRCAudioCtx();
+    ctx.decodeAudioData(ab).then(decoded=>{
+      const src = ctx.createBufferSource();
+      src.buffer = decoded;
+      src.connect(ctx.destination);
+      src.start();
+    }).catch(()=>{});
+  }catch(e){ console.warn('[RC Audio]',e); }
 }
 
 function toggleMic(){
+  try{ getRCAudioCtx(); }catch(e){}
+  try{ if(window._getRemoteAudioCtx) window._getRemoteAudioCtx(); }catch(e){}
   // NOUVEAU : en mode distance, le micro passe par CPRemote
   if(remoteMode){
     if(isListening){
