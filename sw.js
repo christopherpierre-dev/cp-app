@@ -3,7 +3,7 @@
 // chaque déploiement atteigne immédiatement tous les appareils ; le cache ne
 // sert qu'en secours hors-ligne. Les icônes/manifest restent cache d'abord.
 // Changer CACHE_NAME invalide les caches des anciennes versions.
-const CACHE_NAME = 'loquivox-v3';
+const CACHE_NAME = 'loquivox-v4';
 const PRECACHE = [
   './',
   './index.html',
