@@ -205,8 +205,43 @@
     return r.json();                     // {token, region}
   }
 
+  // Créole haïtien : aucune voix Azure n'existe pour cette langue. L'application
+  // utilise ElevenLabs via un point d'accès dédié. On récupère le MP3 et on le
+  // joue dans le même élément déverrouillé que le reste — la version d'origine
+  // passait par AudioContext, qui souffre du même blocage iOS que le SDK.
+  const HT_TTS = 'https://cp-app-rho.vercel.app/api/ht-tts?text=';
+
+  function speakCreole(text) {
+    ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
+      try {
+        const r = await fetch(HT_TTS + encodeURIComponent(text));
+        if (!r.ok) { console.warn('[cp-meet] voix créole indisponible :', r.status); return resolve(); }
+        const buf = await r.arrayBuffer();
+        const a = ensureAudioEl();
+        const url = URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
+        let done = false;
+        const finish = () => {
+          if (done) return; done = true;
+          duckVoices(false);
+          try { URL.revokeObjectURL(url); } catch (_) {}
+          clearTimeout(g); resolve();
+        };
+        const g = setTimeout(finish, 30000);
+        duckVoices(true);
+        a.src = url;
+        a.onended = finish; a.onerror = finish;
+        a.play().catch(() => finish());
+      } catch (e) {
+        console.warn('[cp-meet] voix créole :', e && e.message);
+        resolve();
+      }
+    }));
+  }
+
   function speakText(text, lang) {
-    if (!text || !window.SpeechSDK) return;
+    if (!text) return;
+    if (String(lang || '').toLowerCase().split('-')[0] === 'ht') return speakCreole(text);
+    if (!window.SpeechSDK) return;
     ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
       try {
         const { token, region } = await azureCreds();
@@ -285,18 +320,28 @@
     // Langue → code court, pour retrouver la voix Azure
     const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
 
-    // Two-Way Call — speakCallTTS(text, langCode)
-    if (typeof window.speakCallTTS === 'function') {
-      window.speakCallTTS = function (text, langCode) {
+    // Le créole haïtien ne dispose d'aucune voix Azure : l'application le fait
+    // passer par ElevenLabs. Cette voix-là fonctionne et doit être préservée —
+    // on délègue donc le créole à la fonction d'origine plutôt que de le
+    // rediriger vers une voix française approchée.
+    // Two-Way Call — signature réelle : speakCallTTS(text, langCode, creds).
+    // Le troisième paramètre n'est plus nécessaire : le moteur obtient son
+    // propre jeton. Le créole est géré par speakText (voie ElevenLabs).
+    if (typeof window.speakCallTTS === 'function' && !window.speakCallTTS.__cpm) {
+      const patched = function (text, langCode) {
         try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
       };
+      patched.__cpm = true;
+      window.speakCallTTS = patched;
     }
 
     // Conference — speakConf(text, langCode)
-    if (typeof window.speakConf === 'function') {
-      window.speakConf = function (text, langCode) {
+    if (typeof window.speakConf === 'function' && !window.speakConf.__cpm) {
+      const patched = function (text, langCode) {
         try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
       };
+      patched.__cpm = true;
+      window.speakConf = patched;
     }
 
     /* ── Fin des fausses traductions ────────────────────────────────────
