@@ -35,7 +35,8 @@
     peers: new Map(),        // peerId -> RTCPeerConnection
     streams: new Map(),      // peerId -> MediaStream distant
     roster: [],
-    localStream: null,
+    localStream: null,       // caméra + micro (vidéo)
+    voiceStream: null,       // micro seul (vraie voix par WebRTC)
     videoOn: false,
     micMuted: false,
     handUp: false,
@@ -43,6 +44,9 @@
     tab: 'chat',
     unread: 0,
     booted: false,
+    sessionStart: null,      // horodatage de début d'appel (historique réel)
+    rosterMax: 0,            // nombre maximal de participants vus pendant l'appel
+    ttsMuted: false,         // l'utilisateur a coupé la voix de traduction (🔇)
   };
 
   const ICE = {
@@ -55,12 +59,325 @@
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 
+  // ── Historique réel des conversations ────────────────────────────────
+  // L'écran d'accueil affichait trois conversations fictives (« Client call ·
+  // 14 min »…). Une donnée inventée qui ne mène nulle part est signalée en
+  // revue par Apple et Google, et trompe l'utilisateur. On la remplace par
+  // l'historique réel des appels de cet appareil — vide au premier lancement,
+  // ce qui est la vérité.
+  const HIST_KEY = 'loquivox_sessions';
+  const FLAGS = {
+    en:'🇺🇸', fr:'🇫🇷', es:'🇪🇸', de:'🇩🇪', pt:'🇵🇹', ar:'🇸🇦', zh:'🇨🇳',
+    ja:'🇯🇵', ko:'🇰🇷', ru:'🇷🇺', hi:'🇮🇳', it:'🇮🇹', nl:'🇳🇱', pl:'🇵🇱',
+    sv:'🇸🇪', tr:'🇹🇷', ht:'🇭🇹', sw:'🇰🇪', el:'🇬🇷', vi:'🇻🇳',
+  };
+  const LANG_NAMES = {
+    en:'English', fr:'French', es:'Spanish', de:'German', pt:'Portuguese',
+    ar:'Arabic', zh:'Chinese', ja:'Japanese', ko:'Korean', ru:'Russian',
+    hi:'Hindi', it:'Italian', nl:'Dutch', pl:'Polish', sv:'Swedish',
+    tr:'Turkish', ht:'Haitian Creole', sw:'Swahili', el:'Greek', vi:'Vietnamese',
+  };
+
+  function loadHist() {
+    try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveHist(list) {
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(list.slice(0, 10))); } catch (e) {}
+  }
+
+  // Ma langue telle que le serveur la connaît : plus fiable que la valeur par
+  // défaut du module, car l'utilisateur a pu la changer par un chemin que nous
+  // n'interceptons pas.
+  function myLangFromRoster() {
+    const me = S.roster.find(p => p.id === S.selfId);
+    return (me && me.lang) || S.myLang;
+  }
+
+  function recordSessionEnd() {
+    if (!S.sessionStart) return;
+    const mins = Math.round((Date.now() - S.sessionStart) / 60000);
+    const others = [...new Set(S.roster.filter(p => p.id !== S.selfId).map(p => p.lang))].filter(Boolean);
+    S.sessionStart = null;
+    if (!others.length && mins < 1) return; // appel avorté : ne rien inscrire
+    const list = loadHist();
+    list.unshift({
+      from: myLangFromRoster(), to: others[0] || null,
+      peers: Math.max(S.rosterMax - 1, 0), mins, at: Date.now(),
+    });
+    saveHist(list);
+    renderRecent();
+  }
+
+  function whenLabel(ts) {
+    const d = Math.floor((Date.now() - ts) / 86400000);
+    if (d <= 0) return 'Today';
+    if (d === 1) return 'Yesterday';
+    if (d < 7) return new Date(ts).toLocaleDateString(undefined, { weekday: 'short' });
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  function renderRecent() {
+    const el = document.querySelector('.recent-list');
+    if (!el) return;
+    const list = loadHist();
+
+    if (!list.length) {
+      el.innerHTML = '<div style="padding:18px 6px;color:#7f8db0;font-size:13px;'
+        + 'line-height:1.5;text-align:center">No conversations yet.<br>'
+        + 'Your calls will appear here.</div>';
+      return;
+    }
+
+    el.innerHTML = list.map(s => {
+      const f = FLAGS[s.from] || '🌐';
+      const t = s.to ? (FLAGS[s.to] || '🌐') : '';
+      const names = LANG_NAMES[s.from] || (s.from || '').toUpperCase();
+      const title = s.to ? `${names} → ${LANG_NAMES[s.to] || s.to.toUpperCase()}` : names;
+      const dur = s.mins < 1 ? 'under a minute' : `${s.mins} min`;
+      const detail = s.peers > 1
+        ? `Conference · ${s.peers + 1} participants · ${dur}`
+        : `Call · ${dur}`;
+      return `<div class="recent-item">
+        <div class="lang-flags">${f}${t ? '&nbsp;→&nbsp;' + t : ''}</div>
+        <div class="recent-info"><strong>${esc(title)}</strong><span>${esc(detail)}</span></div>
+        <div class="recent-time">${whenLabel(s.at)}</div>
+      </div>`;
+    }).join('');
+  }
+
   const send = (obj) => {
     try {
       const R = window.CPRemote;
       if (R && typeof R.sendRaw === 'function') R.sendRaw(obj);
     } catch (e) {}
   };
+
+  /* ────────────────────────────────────────────────────────────────────
+   * VOIX DE TRADUCTION — reprise en main
+   *
+   * Le module de base fait parler Azure via
+   * AudioConfig.fromDefaultSpeakerOutput(). Safari iOS refuse cette sortie
+   * directe tant qu'aucun geste utilisateur n'a débloqué l'audio : le texte
+   * s'affiche, aucun son ne sort. C'est la panne « Remote Call ne parle pas ».
+   *
+   * Contournement éprouvé : on demande à Azure l'audio *en données* (MP3),
+   * puis on le joue dans UN élément <audio> déverrouillé au premier toucher.
+   * Ce même élément, une fois autorisé, joue tout le reste de la session.
+   *
+   * On désactive la voix du module de base pour éviter de parler deux fois.
+   * ──────────────────────────────────────────────────────────────────── */
+  const TTS_VOICES = {
+    fr:'fr-CA-JeanNeural',   en:'en-US-GuyNeural',    es:'es-MX-JorgeNeural',
+    de:'de-DE-ConradNeural', pt:'pt-BR-AntonioNeural', ar:'ar-SA-HamedNeural',
+    zh:'zh-CN-YunxiNeural',  ja:'ja-JP-KeitaNeural',   ko:'ko-KR-InJoonNeural',
+    ru:'ru-RU-DmitryNeural', hi:'hi-IN-MadhurNeural',  it:'it-IT-DiegoNeural',
+    nl:'nl-NL-MaartenNeural',pl:'pl-PL-MarekNeural',   sv:'sv-SE-MattiasNeural',
+    tr:'tr-TR-AhmetNeural',  ht:'fr-CA-JeanNeural',    sw:'sw-KE-RafikiNeural',
+    el:'el-GR-NestorasNeural', vi:'vi-VN-NamMinhNeural',
+  };
+  const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+
+  let ttsAudio = null, ttsUnlocked = false, ttsQueue = Promise.resolve(), ttsOwned = false;
+
+  function ensureAudioEl() {
+    if (!ttsAudio) {
+      ttsAudio = new Audio();
+      ttsAudio.setAttribute('playsinline', '');
+      ttsAudio.autoplay = false;
+    }
+    return ttsAudio;
+  }
+
+  // Doit être appelé DEPUIS un geste utilisateur (toucher, clic).
+  function unlockAudio() {
+    if (ttsUnlocked) return;            // ne jamais couper une voix en cours
+    try {
+      const a = ensureAudioEl();
+      a.src = SILENT_WAV;
+      a.play().then(() => { ttsUnlocked = true; }).catch(() => {});
+    } catch (_) {}
+  }
+
+  async function azureCreds() {
+    const base = (window.CP_SERVER || SERVER).replace(/\/+$/, '');
+    const r = await fetch(base + '/api/token');
+    if (!r.ok) throw new Error('token ' + r.status);
+    return r.json();                     // {token, region}
+  }
+
+  // Créole haïtien : aucune voix Azure n'existe pour cette langue. L'application
+  // utilise ElevenLabs via un point d'accès dédié. On récupère le MP3 et on le
+  // joue dans le même élément déverrouillé que le reste — la version d'origine
+  // passait par AudioContext, qui souffre du même blocage iOS que le SDK.
+  const HT_TTS = 'https://cp-app-rho.vercel.app/api/ht-tts?text=';
+
+  function speakCreole(text) {
+    ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
+      try {
+        const r = await fetch(HT_TTS + encodeURIComponent(text));
+        if (!r.ok) { console.warn('[cp-meet] voix créole indisponible :', r.status); return resolve(); }
+        const buf = await r.arrayBuffer();
+        const a = ensureAudioEl();
+        const url = URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
+        let done = false;
+        const finish = () => {
+          if (done) return; done = true;
+          duckVoices(false);
+          try { URL.revokeObjectURL(url); } catch (_) {}
+          clearTimeout(g); resolve();
+        };
+        const g = setTimeout(finish, 30000);
+        duckVoices(true);
+        a.src = url;
+        a.onended = finish; a.onerror = finish;
+        a.play().catch(() => finish());
+      } catch (e) {
+        console.warn('[cp-meet] voix créole :', e && e.message);
+        resolve();
+      }
+    }));
+  }
+
+  function speakText(text, lang) {
+    if (!text) return;
+    if (String(lang || '').toLowerCase().split('-')[0] === 'ht') return speakCreole(text);
+    if (!window.SpeechSDK) return;
+    ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
+      try {
+        const { token, region } = await azureCreds();
+        const cfg = SpeechSDK.SpeechConfig.fromAuthorizationToken(token, region);
+        cfg.speechSynthesisVoiceName = TTS_VOICES[lang] || 'en-US-GuyNeural';
+        cfg.speechSynthesisOutputFormat =
+          SpeechSDK.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
+
+        // audioConfig = null : Azure renvoie les octets au lieu de jouer
+        const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
+        synth.speakTextAsync(text, (r) => {
+          synth.close();
+          try {
+            if (!r || !r.audioData || !r.audioData.byteLength) return resolve();
+            const a = ensureAudioEl();
+            const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
+
+            // Garde-fou : si la fin de lecture n'est jamais signalée, la file
+            // resterait bloquée et plus aucune phrase ne serait prononcée du
+            // reste de la session. On libère au plus tard après 30 secondes.
+            let done = false;
+            const finish = () => {
+              if (done) return;
+              done = true;
+              duckVoices(false);                    // la vraie voix reprend son volume
+              try { URL.revokeObjectURL(url); } catch (_) {}
+              clearTimeout(guard);
+              resolve();
+            };
+            const guard = setTimeout(() => {
+              console.warn('[cp-meet] fin de lecture non signalée — file libérée');
+              finish();
+            }, 30000);
+
+            duckVoices(true);                       // la vraie voix passe dessous
+            a.src = url;
+            a.onended = finish;
+            a.onerror = finish;
+            a.play().catch((e) => {
+              console.warn('[cp-meet] lecture bloquée :', e && e.name,
+                           '— l\'audio n\'a pas été déverrouillé par un geste');
+              finish();
+            });
+          } catch (_) { resolve(); }
+        }, (err) => { console.warn('[cp-meet] TTS:', err); synth.close(); resolve(); });
+      } catch (err) {
+        console.warn('[cp-meet] TTS init:', err && err.message);
+        resolve();
+      }
+    }));
+  }
+
+  // Prononce la traduction reçue, dans la langue d'écoute de cet appareil
+  function speakIncoming(m) {
+    if (!ttsOwned) return;
+    if (S.ttsMuted) return;
+    const lang = myLangFromRoster();
+    const text = m && m.translations ? m.translations[lang] : null;
+    if (text) speakText(text, lang);
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * MOTEUR AUDIO UNIQUE POUR LES TROIS MODES
+   *
+   * Two-Way Call, Conference et Remote Call avaient chacun leur propre code
+   * de synthèse, et tous les trois utilisaient
+   * AudioConfig.fromDefaultSpeakerOutput() — la sortie que Safari iOS bloque.
+   * Trois copies du même défaut, d'où « aucun son nulle part ».
+   *
+   * On remplace ici les fonctions globales de l'application par une seule
+   * implémentation, celle qui fonctionne sur tous les appareils. Aucun
+   * fichier n'est modifié : les fonctions concernées sont globales, on les
+   * réassigne.
+   * ──────────────────────────────────────────────────────────────────── */
+  function installAudioEngine() {
+    // Langue → code court, pour retrouver la voix Azure
+    const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
+
+    // Le créole haïtien ne dispose d'aucune voix Azure : l'application le fait
+    // passer par ElevenLabs. Cette voix-là fonctionne et doit être préservée —
+    // on délègue donc le créole à la fonction d'origine plutôt que de le
+    // rediriger vers une voix française approchée.
+    // Two-Way Call — signature réelle : speakCallTTS(text, langCode, creds).
+    // Le troisième paramètre n'est plus nécessaire : le moteur obtient son
+    // propre jeton. Le créole est géré par speakText (voie ElevenLabs).
+    if (typeof window.speakCallTTS === 'function' && !window.speakCallTTS.__cpm) {
+      const patched = function (text, langCode) {
+        try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
+      };
+      patched.__cpm = true;
+      window.speakCallTTS = patched;
+    }
+
+    // Conference — speakConf(text, langCode)
+    if (typeof window.speakConf === 'function' && !window.speakConf.__cpm) {
+      const patched = function (text, langCode) {
+        try { speakText(text, shortCode(langCode)); } catch (e) { console.warn('[cp-meet]', e); }
+      };
+      patched.__cpm = true;
+      window.speakConf = patched;
+    }
+
+    /* ── Fin des fausses traductions ────────────────────────────────────
+     * runDemoTranslation() affichait, caractère par caractère, une phrase
+     * inventée (« Welcome, how may I assist you? ») comme s'il s'agissait
+     * d'une vraie traduction. Elle était déclenchée notamment en cas
+     * d'ERREUR de reconnaissance vocale — ce qui masquait la panne réelle
+     * derrière une démonstration convaincante. C'est ce qui « déclenche un
+     * message tout seul » à l'ouverture de Two-Way Call.
+     *
+     * On la remplace par un message honnête. L'utilisateur doit savoir que
+     * rien n'a été entendu ; un examinateur de boutique aussi.
+     * ────────────────────────────────────────────────────────────────── */
+    if (typeof window.runDemoTranslation === 'function') {
+      window.runDemoTranslation = function () {
+        try {
+          const o = document.getElementById('origA');
+          const t = document.getElementById('transA');
+          if (o) o.textContent = '';
+          if (t) {
+            t.textContent = 'No speech detected — check the microphone permission '
+                          + 'and your connection, then try again.';
+            t.style.opacity = '.75';
+          }
+        } catch (e) {}
+      };
+    }
+    if (typeof window.showMockTranslation === 'function') {
+      window.showMockTranslation = function (original) {
+        try {
+          const o = document.getElementById('origA');
+          if (o && original) o.textContent = original;
+        } catch (e) {}
+      };
+    }
+  }
 
   // ── Styles ────────────────────────────────────────────────────────────
   function injectStyles() {
@@ -141,9 +458,9 @@
     fab.className = 'cpm-fab';
     fab.id = 'cpmFab';
     fab.innerHTML = `
-      <button class="cpm-btn" id="cpmCam"  title="Caméra">🎥</button>
-      <button class="cpm-btn" id="cpmHand" title="Lever la main">✋</button>
-      <button class="cpm-btn" id="cpmChat" title="Clavardage">💬<span class="cpm-badge" id="cpmUnread" style="display:none">0</span></button>`;
+      <button class="cpm-btn" id="cpmCam"  title="Camera">🎥</button>
+      <button class="cpm-btn" id="cpmHand" title="Raise hand">✋</button>
+      <button class="cpm-btn" id="cpmChat" title="Chat">💬<span class="cpm-badge" id="cpmUnread" style="display:none">0</span></button>`;
     document.body.appendChild(fab);
 
     const panel = document.createElement('div');
@@ -152,13 +469,13 @@
     panel.innerHTML = `
       <div class="cpm-head">
         <button class="cpm-tab sel" id="cpmTabChat">💬 Chat</button>
-        <button class="cpm-tab"     id="cpmTabPeople">👥 Participants</button>
-        <button class="cpm-x"       id="cpmClose" aria-label="Fermer">×</button>
+        <button class="cpm-tab"     id="cpmTabPeople">👥 People</button>
+        <button class="cpm-x"       id="cpmClose" aria-label="Close">×</button>
       </div>
       <div class="cpm-body" id="cpmBody"></div>
       <div class="cpm-foot" id="cpmFoot">
-        <input class="cpm-in" id="cpmInput" placeholder="Écrire un message…" autocomplete="off">
-        <button class="cpm-send" id="cpmSend">Envoyer</button>
+        <input class="cpm-in" id="cpmInput" placeholder="Type a message…" autocomplete="off">
+        <button class="cpm-send" id="cpmSend">Send</button>
       </div>`;
     document.body.appendChild(panel);
 
@@ -212,7 +529,7 @@
       }
       body.innerHTML = chat.map(m => `
         <div class="cpm-msg${m.mine ? ' me' : ''}">
-          <div class="who">${esc(m.mine ? 'Vous' : m.from)}</div>
+          <div class="who">${esc(m.mine ? 'You' : m.from)}</div>
           <div class="tx">${esc(m.shown)}</div>
           ${m.orig && m.orig !== m.shown ? `<div class="orig">« ${esc(m.orig)} »</div>` : ''}
         </div>`).join('');
@@ -233,7 +550,7 @@
       if (p.video) tags.push('<span class="cpm-tag">🎥</span>');
       if (p.lang) tags.push(`<span class="cpm-tag">${esc(String(p.lang).toUpperCase())}</span>`);
       return `<div class="cpm-row"><div class="cpm-av">${esc(ini)}</div>
-        <div class="cpm-nm">${esc(p.name)}${p.id === S.selfId ? ' (vous)' : ''}</div>
+        <div class="cpm-nm">${esc(p.name)}${p.id === S.selfId ? ' (you)' : ''}</div>
         ${tags.join(' ')}</div>`;
     }).join('');
   }
@@ -245,7 +562,7 @@
     if (!text) return;
     input.value = '';
 
-    chat.push({ mine: true, from: 'Vous', shown: text, orig: '' });
+    chat.push({ mine: true, from: 'You', shown: text, orig: '' });
     render();
 
     // Traduire vers les langues présentes dans la salle
@@ -298,7 +615,7 @@
         audio: { echoCancellation: true, noiseSuppression: true },
       });
     } catch (e) {
-      alert("Caméra ou micro inaccessible. Vérifiez l'autorisation du navigateur.");
+      alert("Camera or microphone unavailable. Check your browser permissions.");
       return;
     }
     S.videoOn = true;
@@ -348,6 +665,81 @@
     if (t) t.remove();
     const wrap = document.getElementById('cpmVideos');
     if (wrap && !wrap.children.length) wrap.classList.remove('on');
+    dropVoice(id);
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * VRAIE VOIX — transport WebRTC
+   *
+   * L'ancien mécanisme découpait la voix en morceaux de 200 ms, les faisait
+   * transiter par le serveur et les recollait avec MediaSource. Safari iOS
+   * n'implémente pas MediaSource pour cet usage : un iPhone pouvait envoyer
+   * sa vraie voix mais jamais la recevoir.
+   *
+   * La connexion directe WebRTC — déjà en place pour la vidéo — transporte
+   * l'audio nativement et fonctionne sur tous les navigateurs, iOS compris.
+   * On réutilise donc exactement la même machinerie, en audio seul.
+   * ──────────────────────────────────────────────────────────────────── */
+  const DUCK_VOL = 0.35;      // volume de la vraie voix pendant la traduction parlée
+
+  function attachVoice(id, stream) {
+    let el = document.getElementById('cpmV_' + id);
+    if (!el) {
+      el = document.createElement('audio');
+      el.id = 'cpmV_' + id;
+      el.autoplay = true;
+      el.setAttribute('playsinline', '');
+      document.body.appendChild(el);
+    }
+    if (el.srcObject !== stream) {
+      el.srcObject = stream;
+      el.volume = ttsSpeaking ? DUCK_VOL : 1.0;
+      el.play().catch(() => {}); // le geste de déverrouillage a déjà eu lieu
+    }
+  }
+
+  function dropVoice(id) {
+    const el = document.getElementById('cpmV_' + id);
+    if (el) { try { el.srcObject = null; } catch (_) {} el.remove(); }
+  }
+
+  // Atténue la vraie voix pendant que la traduction parle — comme une cabine
+  // d'interprétation — puis rétablit le volume.
+  let ttsSpeaking = false;
+  function duckVoices(on) {
+    ttsSpeaking = !!on;
+    const v = (on && !S.ttsMuted) ? DUCK_VOL : 1.0;
+    document.querySelectorAll('audio[id^="cpmV_"]').forEach(el => { el.volume = v; });
+  }
+
+  async function startVoice() {
+    if (S.voiceStream) return true;
+    try {
+      S.voiceStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
+    } catch (e) {
+      console.warn('[cp-meet] micro refusé pour la vraie voix :', e && e.name);
+      return false;
+    }
+    // Proposer la connexion à tous les participants déjà présents
+    for (const p of S.roster) {
+      if (p.id && p.id !== S.selfId) {
+        const pc = S.peers.get(p.id);
+        if (pc) S.voiceStream.getTracks().forEach(t => pc.addTrack(t, S.voiceStream));
+        startOffer(p.id);   // renégocie avec la nouvelle piste
+      }
+    }
+    send({ type: 'state', voice: true });
+    return true;
+  }
+
+  function stopVoice() {
+    if (!S.voiceStream) return;
+    S.voiceStream.getTracks().forEach(t => t.stop());
+    S.voiceStream = null;
+    for (const id of S.peers.keys()) startOffer(id);  // renégocie sans la piste
+    send({ type: 'state', voice: false });
   }
 
   function peer(id) {
@@ -356,6 +748,9 @@
 
     if (S.localStream) {
       S.localStream.getTracks().forEach(t => pc.addTrack(t, S.localStream));
+    }
+    if (S.voiceStream) {
+      S.voiceStream.getTracks().forEach(t => pc.addTrack(t, S.voiceStream));
     }
 
     pc.onicecandidate = (e) => {
@@ -366,7 +761,12 @@
       const st = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
       S.streams.set(id, st);
       const p = S.roster.find(x => x.id === id);
-      addTile(id, (p && p.name) || 'Participant', st, false);
+      const name = (p && p.name) || 'Participant';
+      // Un flux sans piste vidéo est une vraie voix : pas de vignette, un
+      // simple lecteur audio (indispensable sur iPhone, où l'ancien transport
+      // MediaSource ne fonctionnait pas).
+      if (st.getVideoTracks().length === 0) attachVoice(id, st);
+      else addTile(id, name, st, false);
     };
 
     pc.onconnectionstatechange = () => {
@@ -418,10 +818,13 @@
     if (type === 'joined') {
       S.selfId = data.selfId || null;
       S.roster = data.participants || [];
+      S.rosterMax = S.roster.length;
+      S.sessionStart = Date.now();
       document.getElementById('cpmFab').classList.add('on');
       render();
     } else if (type === 'roster') {
       S.roster = data.participants || [];
+      S.rosterMax = Math.max(S.rosterMax || 0, S.roster.length);
       // Nouveau venu pendant que ma caméra tourne : je lui propose la connexion
       if (S.videoOn) {
         for (const p of S.roster) {
@@ -436,11 +839,14 @@
         }
       }
       render();
+    } else if (type === 'utterance') {
+      speakIncoming(data);   // voix de traduction (chemin compatible iOS)
     } else if (type === 'chat') {
       onChat(data);
     } else if (type === 'signal') {
       onSignal(data);
     } else if (type === 'closed') {
+      recordSessionEnd();
       stopCam();
       document.getElementById('cpmFab').classList.remove('on');
       toggle(false);
@@ -453,6 +859,12 @@
     S.booted = true;
     injectStyles();
     buildUI();
+    // Remplace immédiatement les exemples fictifs de l'écran d'accueil par
+    // l'historique réel (vide au premier lancement).
+    renderRecent();
+    // L'accueil peut être rendu après nous : on repasse une fois la page stable.
+    setTimeout(renderRecent, 600);
+    window.addEventListener('pageshow', renderRecent);
 
     // Enveloppe CPRemote.on : le gestionnaire de l'application reste intact
     const _on = R.on;
@@ -472,11 +884,80 @@
       };
     }
 
-    // Suivre l'état du micro
+    // Suivre l'état du micro et de la voix
     const _setMuted = R.setTtsMuted;
     if (typeof _setMuted === 'function') {
-      R.setTtsMuted = function (b) { send({ type: 'state', muted: !!b }); return _setMuted.call(R, b); };
+      R.setTtsMuted = function (b) {
+        S.ttsMuted = !!b;
+        send({ type: 'state', muted: !!b });
+        return _setMuted.call(R, b);
+      };
     }
+    // Certaines versions n'exposent que setTTS(v) — v = true signifie « voix active »
+    const _setTTS = R.setTTS;
+    if (typeof _setTTS === 'function') {
+      R.setTTS = function (v) { S.ttsMuted = !v; return _setTTS.call(R, v); };
+    }
+
+    // ── Reprise en main de la voix de traduction ──
+    // On coupe la voix du module de base (sortie directe bloquée par Safari)
+    // et on la produit ici par un chemin qui fonctionne sur tous les appareils.
+    if (typeof _setTTS === 'function') {
+      try { _setTTS.call(R, false); ttsOwned = true; } catch (e) {}
+    }
+    if (!ttsOwned && typeof _setMuted === 'function') {
+      try { _setMuted.call(R, true); ttsOwned = true; } catch (e) {}
+    }
+    if (!ttsOwned) {
+      console.warn('[cp-meet] impossible de couper la voix du module de base : '
+                 + 'voix laissée telle quelle pour éviter un double son');
+    }
+
+    // Déverrouillage audio au premier geste de l'utilisateur (obligatoire iOS)
+    ['touchend', 'click', 'keydown'].forEach(ev =>
+      document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+
+    // ── Vraie voix : on détourne le bouton existant de l'application vers
+    // WebRTC. L'ancien transport (morceaux relayés par le serveur, recollés
+    // avec MediaSource) ne peut pas être reçu sur iPhone ; la connexion
+    // directe, elle, fonctionne partout. L'utilisateur ne change rien à ses
+    // habitudes : c'est le même bouton.
+    const _startStream = R.startAudioStream;
+    if (typeof _startStream === 'function') {
+      R.startAudioStream = function () {
+        startVoice().then(ok => {
+          if (!ok) {
+            console.warn('[cp-meet] repli sur l\'ancien transport');
+            try { _startStream.call(R); } catch (e) {}
+          }
+        });
+      };
+    }
+    const _stopStream = R.stopAudioStream;
+    if (typeof _stopStream === 'function') {
+      R.stopAudioStream = function () {
+        stopVoice();
+        try { _stopStream.call(R); } catch (e) {}   // coupe aussi l'ancien, par sûreté
+      };
+    }
+
+    // Moteur audio unique pour Two-Way, Conference et Remote Call.
+    // Les fonctions visées sont définies plus bas dans index.html : on
+    // réessaie brièvement le temps que le script principal s'exécute.
+    installAudioEngine();
+    let tries = 0;
+    const t = setInterval(() => {
+      installAudioEngine();
+      if (++tries > 20) clearInterval(t);   // ~4 s au maximum
+    }, 200);
+
+    // Exposé pour diagnostic et pour un usage externe éventuel
+    window.CPAudio = {
+      speak: speakText,
+      unlock: unlockAudio,
+      get ready() { return ttsUnlocked; },
+      get owned() { return ttsOwned; },
+    };
 
     window.CPMeet = {
       openChat: () => toggle(true, 'chat'),
