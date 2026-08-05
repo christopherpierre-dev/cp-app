@@ -1046,6 +1046,7 @@ function stopRCAudio(){
     }
   });
   _rcStreams.clear();
+  window._rcAudioPool = [];
   if(_rcAudioCtx){ _rcAudioCtx.close().catch(()=>{}); _rcAudioCtx=null; }
 }
 
@@ -1077,7 +1078,11 @@ function handleRemoteAudioChunk({ from, data, mimeType, isFirst }){
       }
       st.mediaSource=null; st.sourceBuffer=null; st.pendingBufs=[];
     } else {
-      st = { audioEl: new Audio(), mediaSource: null, sourceBuffer: null, pendingBufs: [], initBuf: null, mimeType: mime };
+      // Take from pre-unlocked pool (created during user gesture in enterRemoteCall)
+      // so play() won't be blocked by autoplay policy.
+      const _poolEl = (window._rcAudioPool && window._rcAudioPool.length > 0)
+        ? window._rcAudioPool.shift() : new Audio();
+      st = { audioEl: _poolEl, mediaSource: null, sourceBuffer: null, pendingBufs: [], initBuf: null, mimeType: mime };
       _rcStreams.set(sender, st);
     }
     st.initBuf = ab;
@@ -1712,9 +1717,19 @@ function enterRemoteCall(room, isHost){
   remoteMode = true;
   remoteOriginalVoice = false;
   stopRCAudio();
-  // Pre-unlock audio during user gesture so Real Voice can autoplay on receiver side
+  // Pre-unlock audio during user gesture so Real Voice can autoplay on receiver side.
+  // We pre-create a pool of Audio elements here (during the user gesture) so that
+  // handleRemoteAudioChunk can assign them to new speakers without hitting the
+  // autoplay policy block (new Audio().play() outside a gesture is blocked on mobile/strict browsers).
   try { getRCAudioCtx(); } catch(e){}
-  try { const _preUnlock = new Audio(); _preUnlock.play().catch(()=>{}); } catch(e){}
+  try {
+    window._rcAudioPool = [];
+    for(let _i=0; _i<10; _i++){
+      const _a = new Audio();
+      _a.play().catch(()=>{});
+      window._rcAudioPool.push(_a);
+    }
+  } catch(e){}
   CPRemote.setTTS(true);
   // Auto-restore Real Voice preference
   if(localStorage.getItem('lq_realVoice') === '1'){
