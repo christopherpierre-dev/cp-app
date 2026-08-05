@@ -412,9 +412,172 @@
     return true;
   }
 
+  /* ────────────────────────────────────────────────────────────────────
+   * TRADUCTION QUASI SIMULTANÉE (Two-Way Call)
+   *
+   * La restauration du 4 août a effacé l'affichage de la traduction
+   * pendant la parole : l'utilisateur ne voyait plus la traduction
+   * qu'après avoir fini sa phrase. Azure fournit pourtant des traductions
+   * partielles dans chaque événement « recognizing ».
+   *
+   * On intervient au même niveau que le collecteur de synthèse : toute
+   * construction d'un TranslationRecognizer est enveloppée, et son
+   * gestionnaire « recognizing » est enrichi pour afficher la traduction
+   * partielle au fil de la parole. La protection vit ici, pas dans
+   * index.html — une réécriture de ce dernier ne peut plus l'effacer.
+   * ──────────────────────────────────────────────────────────────────── */
+  function partialTranslationOf(e) {
+    try {
+      const r = e && e.result;
+      if (!r || !r.translations) return null;
+      const langs = r.translations.languages || [];
+      for (const l of langs) { const v = r.translations.get(l); if (v) return v; }
+    } catch (_) {}
+    return null;
+  }
+
+  function showLivePartial(e) {
+    const call = document.getElementById('call');
+    if (!call || !call.classList.contains('active')) return;   // Two-Way seulement
+    const txt = partialTranslationOf(e);
+    if (!txt) return;
+    const el = document.getElementById('transA');
+    if (el) { el.textContent = txt; el.style.opacity = '.8'; }
+  }
+
+  function installRecognizerFunnel() {
+    const SDK = window.SpeechSDK;
+    if (!SDK || typeof SDK.TranslationRecognizer !== 'function') return false;
+    if (SDK.TranslationRecognizer.__cpm) return true;
+
+    const Orig = SDK.TranslationRecognizer;
+    function Wrapped(...args) {
+      const inst = new Orig(...args);
+      let userFn = null;
+      try {
+        Object.defineProperty(inst, 'recognizing', {
+          configurable: true,
+          get() { return userFn; },
+          set(fn) {
+            userFn = function (s, e) {
+              try { showLivePartial(e); } catch (_) {}
+              if (typeof fn === 'function') fn(s, e);
+            };
+          },
+        });
+      } catch (_) {}
+      return inst;
+    }
+    Wrapped.prototype = Orig.prototype;
+    Wrapped.__cpm = true;
+    Wrapped.__orig = Orig;
+    try { SDK.TranslationRecognizer = Wrapped; } catch (_) { return false; }
+    return true;
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * DEUX RÉPARATIONS D'INTERFACE effacées par la restauration du 4 août
+   *
+   * 1. Conference : les sélecteurs de langue étaient repassés SOUS le
+   *    transcript. On les remonte au-dessus, par déplacement du DOM —
+   *    aucun contenu n'est modifié, seulement l'ordre.
+   *
+   * 2. Remote Call : le choix « je parle » avait disparu du modal. On y
+   *    réinjecte un sélecteur complet, et le choix est transmis à
+   *    CPRemote au moment de créer ou de rejoindre une salle.
+   * ──────────────────────────────────────────────────────────────────── */
+  function fixConferenceLayout() {
+    const tr = document.getElementById('confTranscript');
+    if (!tr || !tr.parentElement) return;
+    const p = tr.parentElement;
+    const lift = (id) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let b = el;
+      while (b && b.parentElement !== p) b = b.parentElement;   // bloc frère du transcript
+      if (b && b !== tr && b.parentElement === p) p.insertBefore(b, tr);
+    };
+    lift('confSrcLang');
+    lift('confVoiceSel');
+  }
+
+  const SPEAK_LANGS = [
+    ['fr','fr-FR','Français'],       ['en','en-US','English'],
+    ['ht','fr-HT','Kreyòl ayisyen'], ['es','es-ES','Español'],
+    ['de','de-DE','Deutsch'],        ['pt','pt-BR','Português'],
+    ['ar','ar-SA','العربية'],        ['zh-Hans','zh-CN','中文'],
+    ['ru','ru-RU','Русский'],        ['it','it-IT','Italiano'],
+    ['ja','ja-JP','日本語'],          ['ko','ko-KR','한국어'],
+    ['sw','sw-KE','Kiswahili'],      ['nl','nl-NL','Nederlands'],
+    ['pl','pl-PL','Polski'],         ['tr','tr-TR','Türkçe'],
+    ['vi','vi-VN','Tiếng Việt'],     ['hi','hi-IN','हिन्दी'],
+  ];
+  const SPEAK_KEY = 'loquivox_my_lang';
+
+  function chosenSpeak() {
+    const sel = document.getElementById('cpmSpeakSel');
+    const code = (sel && sel.value) || localStorage.getItem(SPEAK_KEY) || 'fr';
+    const row = SPEAK_LANGS.find(r => r[0] === code) || SPEAK_LANGS[0];
+    return { lang: row[0], speechLang: row[1] };
+  }
+
+  function installSpeakPicker() {
+    const modal = document.getElementById('remoteModal');
+    const anchor = document.getElementById('joinCodeInput');
+    if (!modal || !anchor || document.getElementById('cpmSpeakSel')) return;
+    const saved = localStorage.getItem(SPEAK_KEY) || 'fr';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'margin:10px 0 4px;';
+    wrap.innerHTML =
+      '<label style="display:block;font-size:12px;color:#8fa0bd;margin-bottom:5px;">'
+      + 'Je parle / I speak</label>'
+      + '<select id="cpmSpeakSel" style="width:100%;padding:10px 12px;border-radius:10px;'
+      + 'background:rgba(255,255,255,.05);border:1px solid #1e2d4a;color:#e8edf5;font-size:14px;">'
+      + SPEAK_LANGS.map(r =>
+          '<option value="' + r[0] + '"' + (r[0] === saved ? ' selected' : '') + '>'
+          + r[2] + '</option>').join('')
+      + '</select>';
+    anchor.parentElement.insertBefore(wrap, anchor.nextSibling);
+    wrap.querySelector('select').addEventListener('change', (ev) => {
+      localStorage.setItem(SPEAK_KEY, ev.target.value);
+      const c = chosenSpeak();
+      try { window.CPRemote && CPRemote.setLanguage && CPRemote.setLanguage(c.lang, c.speechLang); } catch (_) {}
+    });
+  }
+
+  // Le choix ne s'applique que lorsque l'utilisateur passe par le modal
+  // Remote Call — le panneau Conference garde son propre choix de langue.
+  function remoteModalOpen() {
+    const m = document.getElementById('remoteModal');
+    return !!(m && (m.classList.contains('open') || m.style.display === 'flex'));
+  }
+
+  function installLangOnJoin(R) {
+    const _create = R.create, _join = R.join;
+    if (typeof _create === 'function') {
+      R.create = function (o) {
+        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
+        if (o2 && o2.lang) S.myLang = o2.lang;
+        return _create.call(R, o2);
+      };
+    }
+    if (typeof _join === 'function') {
+      R.join = function (code, o) {
+        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
+        if (o2 && o2.lang) S.myLang = o2.lang;
+        return _join.call(R, code, o2);
+      };
+    }
+  }
+
   function installAudioEngine() {
     // Toute synthèse, d'où qu'elle vienne, passe par le canal unique.
     installSynthFunnel();
+    // Traduction partielle pendant la parole (Two-Way).
+    installRecognizerFunnel();
+    // Réparations d'interface effacées par la restauration.
+    fixConferenceLayout();
+    installSpeakPicker();
 
     // Langue → code court, pour retrouver la voix Azure
     const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
@@ -997,6 +1160,9 @@
     if (typeof _setTTS === 'function') {
       R.setTTS = function (v) { S.ttsMuted = !v; return _setTTS.call(R, v); };
     }
+
+    // Langue choisie transmise à la création/jonction d'une salle (Remote Call)
+    installLangOnJoin(R);
 
     // ── Reprise en main de la voix de traduction ──
     // On coupe la voix du module de base (sortie directe bloquée par Safari)
