@@ -874,6 +874,13 @@ let azureRecognizer = null;
 let remoteMode = false; // NOUVEAU : mode appel à distance
 // ── Original Voice state (Remote Call) ───────────────────────
 let remoteOriginalVoice = false;
+// MediaSource streaming (Chrome/Firefox) + Web Audio fallback (Safari/iOS)
+let _rcMediaSource = null;
+let _rcSourceBuffer = null;
+let _rcAudioEl = null;
+let _rcPendingBufs = [];   // queue while SourceBuffer is updating
+let _rcMimeType = 'audio/webm;codecs=opus';
+let _rcInitBuf = null;     // first chunk saved for prepend-decode fallback
 let _rcAudioCtx = null;
 function getRCAudioCtx() {
   if (!_rcAudioCtx) _rcAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1034,23 +1041,54 @@ function toggleOriginalVoice(){
 }
 
 function stopRCAudio(){
+  if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; _rcAudioEl=null; }
+  if(_rcMediaSource && _rcMediaSource.readyState==='open'){
+    try{ _rcMediaSource.endOfStream(); }catch(e){}
+  }
+  _rcMediaSource=null; _rcSourceBuffer=null; _rcPendingBufs=[];
   if(_rcAudioCtx){ _rcAudioCtx.close().catch(()=>{}); _rcAudioCtx=null; }
+  _rcInitBuf=null;
 }
-
-function handleRemoteAudioChunk({ data }){
+function _rcFlushPending(){
+  if(_rcSourceBuffer && !_rcSourceBuffer.updating && _rcPendingBufs.length>0){
+    try{ _rcSourceBuffer.appendBuffer(_rcPendingBufs.shift()); }
+    catch(e){ console.warn('[RC Audio] appendBuffer',e); }
+  }
+}
+function handleRemoteAudioChunk({ data, mimeType, isFirst }){
   const bin = atob(data);
-  const buf = new Uint8Array(bin.length);
-  for(let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
-  const ab = buf.buffer;
-  try{
-    const ctx = getRCAudioCtx();
-    ctx.decodeAudioData(ab).then(decoded=>{
-      const src = ctx.createBufferSource();
-      src.buffer = decoded;
-      src.connect(ctx.destination);
-      src.start();
-    }).catch(()=>{});
-  }catch(e){ console.warn('[RC Audio]',e); }
+  const ab = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) ab[i]=bin.charCodeAt(i);
+  const buf = ab.buffer;
+  const mime = mimeType || _rcMimeType;
+  if(isFirst){
+    _rcInitBuf = ab; _rcPendingBufs = []; _rcSourceBuffer = null;
+    if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; _rcAudioEl=null; }
+    if(_rcMediaSource && _rcMediaSource.readyState==='open'){ try{ _rcMediaSource.endOfStream(); }catch(e){} }
+    _rcMediaSource=null;
+    if(window.MediaSource && MediaSource.isTypeSupported(mime)){
+      _rcMimeType=mime; _rcMediaSource=new MediaSource(); _rcAudioEl=new Audio();
+      _rcAudioEl.src=URL.createObjectURL(_rcMediaSource); _rcAudioEl.volume=1; _rcAudioEl.play().catch(()=>{});
+      _rcMediaSource.addEventListener('sourceopen',()=>{
+        try{
+          _rcSourceBuffer=_rcMediaSource.addSourceBuffer(mime);
+          _rcSourceBuffer.mode='sequence';
+          _rcSourceBuffer.addEventListener('updateend',_rcFlushPending);
+          _rcPendingBufs.push(buf); _rcFlushPending();
+        }catch(e){ console.warn('[RC Audio] SourceBuffer init',e); _rcSourceBuffer=null; }
+      },{once:true});
+      return;
+    }
+  }
+  if(_rcSourceBuffer){
+    if(_rcSourceBuffer.updating||_rcPendingBufs.length>0){ _rcPendingBufs.push(buf); }
+    else{ try{ _rcSourceBuffer.appendBuffer(buf); }catch(e){ _rcPendingBufs.push(buf); } }
+    return;
+  }
+  if(!isFirst&&!_rcInitBuf) return;
+  let decodeBuf=buf;
+  if(!isFirst&&_rcInitBuf){ const m=new Uint8Array(_rcInitBuf.length+ab.length); m.set(_rcInitBuf,0); m.set(ab,_rcInitBuf.length); decodeBuf=m.buffer; }
+  try{ const c=getRCAudioCtx(); c.decodeAudioData(decodeBuf).then(d=>{const s=c.createBufferSource();s.buffer=d;s.connect(c.destination);s.start();}).catch(()=>{}); }catch(e){}
 }
 
 function toggleMic(){
