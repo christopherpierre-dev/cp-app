@@ -1878,7 +1878,7 @@ CPRemote.on((type, data) => {
     const txt = data.translations?.[myLang] || data.original || '';
     if(txt) document.getElementById('origB').innerHTML = txt + '<span class="cursor-blink"></span>';
   }
-  if(type === 'audio_chunk' && remoteMode && remoteOriginalVoice){
+  if(type === 'audio_chunk' && remoteMode){
     handleRemoteAudioChunk(data);
   }
   if(type === 'roster'){
