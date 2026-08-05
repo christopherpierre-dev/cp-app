@@ -82,14 +82,17 @@ jobs:
       #    désormais ces appels — mais mieux vaut ne pas en écrire d'autres.
       - name: Plafond — sorties audio directes
         run: |
-          N=$(grep -ro "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" . | wc -l)
+          # cp-meet.js est exclu : c'est la couche de protection, elle cite les
+          # défauts dans ses commentaires pour les documenter.
+          N=$(grep -ro "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" \
+              --exclude="cp-meet.js" . | wc -l)
           echo "sorties directes : $N (plafond $MAX_SORTIE_DIRECTE)"
           if [ "$N" -gt "$MAX_SORTIE_DIRECTE" ]; then
             echo ""
             echo "ÉCHEC — nouvelle sortie audio directe."
             echo "Utiliser CPAudio.speak(texte, langue), ou construire le"
             echo "synthétiseur avec audioConfig = null."
-            grep -rn "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" .
+            grep -rn "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" --exclude="cp-meet.js" .
             exit 1
           fi
           if [ "$N" -lt "$MAX_SORTIE_DIRECTE" ]; then
@@ -106,7 +109,8 @@ jobs:
         run: |
           # Compter des LIGNES, pas des occurrences : la ligne de définition
           # et celle du remplacement doivent pouvoir être reconnues et exclues.
-          N=$(grep -rn "runDemoTranslation()" --include="*.html" --include="*.js" . \
+          N=$(grep -rn "runDemoTranslation()" --include="*.html" --include="*.js" \
+              --exclude="cp-meet.js" . \
               | grep -v "function runDemoTranslation" \
               | grep -v "window.runDemoTranslation" | wc -l)
           echo "appels simulés : $N (plafond $MAX_DEMO)"
@@ -126,7 +130,7 @@ jobs:
       - name: Plafond — conversations fictives
         run: |
           N=$(grep -rn "Client call · 14 min\|Conference · 5 speakers\|Bilateral meeting · 8 min" \
-              --include="*.html" . | wc -l)
+              --include="*.html" --exclude="cp-meet.js" . | wc -l)
           echo "conversations fictives : $N (plafond $MAX_FICTIF)"
           if [ "$N" -gt "$MAX_FICTIF" ]; then
             echo ""
