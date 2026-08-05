@@ -1,0 +1,139 @@
+# Garde-fous Loquivox
+#
+# Ce contrôle s'exécute à chaque proposition de modification et à chaque envoi
+# sur main. Il existe parce que le même correctif audio a été écrit puis perdu
+# trois fois en deux semaines — par des personnes différentes, chacune de bonne
+# foi, aucune n'ayant eu de raison de savoir.
+#
+# Deux niveaux :
+#
+#   BLOQUANT   — la protection elle-même doit rester en place.
+#   PLAFOND    — les défauts connus existent encore dans le code ; ils sont
+#                neutralisés au chargement par cp-meet.js. On refuse qu'ils
+#                se multiplient, en attendant leur retrait coordonné.
+#
+# Le plafond doit descendre, jamais monter. Quand un nombre tombe à zéro,
+# baissez le plafond dans ce fichier : c'est acquis.
+
+name: Garde-fous
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  # Relevé sur main le 4 août 2026 (commit 8b1a382). Objectif : 0 partout.
+  MAX_SORTIE_DIRECTE: 3      # index.html ×2, cp-remote.js ×1
+  MAX_DEMO: 4                # appels à la traduction simulée, hors définition
+  MAX_FICTIF: 2              # conversations inventées sur l'accueil
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Syntaxe JavaScript
+        run: |
+          for f in cp-remote.js cp-meet.js; do
+            if [ -f "$f" ]; then node --check "$f" && echo "OK  $f"; fi
+          done
+
+      # ══ BLOQUANT ═════════════════════════════════════════════════════
+      # cp-meet.js porte le canal de sortie audio unique, le collecteur de
+      # synthèse, l'historique réel et le remplacement des fausses
+      # traductions. Sans lui, les trois défauts ci-dessous redeviennent
+      # visibles d'un coup, et l'application redevient muette sur iPhone.
+      # Sa balise a déjà été oubliée une fois : tout était livré, rien ne
+      # fonctionnait.
+      - name: cp-meet.js chargé par index.html
+        run: |
+          if [ ! -f cp-meet.js ]; then echo "OK  (cp-meet.js absent du dépôt)"; exit 0; fi
+          if ! grep -q 'src="cp-meet.js"' index.html; then
+            echo ""
+            echo "BLOQUANT — cp-meet.js existe mais index.html ne le charge pas."
+            echo "Ajouter <script src=\"cp-meet.js\"></script> après cp-remote.js"
+            echo "et AVANT l'appel à CPRemote.on()."
+            exit 1
+          fi
+          echo "OK  cp-meet.js chargé"
+
+      - name: Ordre de chargement correct
+        run: |
+          grep -q 'src="cp-meet.js"' index.html || exit 0
+          M=$(grep -n 'src="cp-meet.js"' index.html | head -1 | cut -d: -f1)
+          O=$(grep -n 'CPRemote\.on' index.html | head -1 | cut -d: -f1)
+          if [ -n "$O" ] && [ "$M" -gt "$O" ]; then
+            echo ""
+            echo "BLOQUANT — cp-meet.js est chargé APRÈS CPRemote.on() (lignes $M et $O)."
+            echo "Le module ne peut alors plus envelopper le gestionnaire d'événements :"
+            echo "il se charge, mais ne protège plus rien."
+            exit 1
+          fi
+          echo "OK  ordre de chargement correct (ligne $M avant $O)"
+
+      # ══ PLAFONDS ═════════════════════════════════════════════════════
+      # 1. Sortie audio directe.
+      #    Safari iOS refuse toute lecture qui ne découle pas d'un geste de
+      #    l'utilisateur. AudioConfig.fromDefaultSpeakerOutput() demande au
+      #    SDK Azure de jouer lui-même : sur iPhone, le texte s'affiche et
+      #    aucun son ne sort. Le collecteur de cp-meet.js intercepte
+      #    désormais ces appels — mais mieux vaut ne pas en écrire d'autres.
+      - name: Plafond — sorties audio directes
+        run: |
+          N=$(grep -ro "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" . | wc -l)
+          echo "sorties directes : $N (plafond $MAX_SORTIE_DIRECTE)"
+          if [ "$N" -gt "$MAX_SORTIE_DIRECTE" ]; then
+            echo ""
+            echo "ÉCHEC — nouvelle sortie audio directe."
+            echo "Utiliser CPAudio.speak(texte, langue), ou construire le"
+            echo "synthétiseur avec audioConfig = null."
+            grep -rn "fromDefaultSpeakerOutput" --include="*.js" --include="*.html" .
+            exit 1
+          fi
+          if [ "$N" -lt "$MAX_SORTIE_DIRECTE" ]; then
+            echo "Progrès — abaissez MAX_SORTIE_DIRECTE à $N dans ce fichier."
+          fi
+
+      # 2. Traductions fabriquées.
+      #    runDemoTranslation() affiche une phrase inventée comme s'il
+      #    s'agissait d'une traduction — y compris depuis le gestionnaire
+      #    d'erreur, ce qui transformait chaque panne en fausse réussite et
+      #    a rendu les vraies pannes invisibles pendant des semaines.
+      #    Apple et Google refusent les fonctionnalités simulées.
+      - name: Plafond — traductions fabriquées
+        run: |
+          # Compter des LIGNES, pas des occurrences : la ligne de définition
+          # et celle du remplacement doivent pouvoir être reconnues et exclues.
+          N=$(grep -rn "runDemoTranslation()" --include="*.html" --include="*.js" . \
+              | grep -v "function runDemoTranslation" \
+              | grep -v "window.runDemoTranslation" | wc -l)
+          echo "appels simulés : $N (plafond $MAX_DEMO)"
+          if [ "$N" -gt "$MAX_DEMO" ]; then
+            echo ""
+            echo "ÉCHEC — nouvel appel à une traduction simulée."
+            echo "En cas d'échec, afficher ce qui a échoué. Jamais un faux résultat."
+            exit 1
+          fi
+          if [ "$N" -lt "$MAX_DEMO" ]; then
+            echo "Progrès — abaissez MAX_DEMO à $N dans ce fichier."
+          fi
+
+      # 3. Conversations inventées sur l'écran d'accueil.
+      #    Un examinateur qui ouvre une application neuve et y trouve un
+      #    historique d'appels conclut à une démonstration truquée.
+      - name: Plafond — conversations fictives
+        run: |
+          N=$(grep -rn "Client call · 14 min\|Conference · 5 speakers\|Bilateral meeting · 8 min" \
+              --include="*.html" . | wc -l)
+          echo "conversations fictives : $N (plafond $MAX_FICTIF)"
+          if [ "$N" -gt "$MAX_FICTIF" ]; then
+            echo ""
+            echo "ÉCHEC — nouvelle conversation inventée sur l'accueil."
+            echo "L'historique doit venir des appels réels (cp-meet.js, renderRecent)."
+            exit 1
+          fi
+          if [ "$N" -lt "$MAX_FICTIF" ]; then
+            echo "Progrès — abaissez MAX_FICTIF à $N dans ce fichier."
+          fi
