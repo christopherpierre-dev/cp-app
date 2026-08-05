@@ -205,6 +205,83 @@
     return r.json();                     // {token, region}
   }
 
+  /* ────────────────────────────────────────────────────────────────────
+   * CANAL DE SORTIE UNIQUE
+   *
+   * Tout son produit par l'application est joué ici, dans l'élément
+   * déverrouillé au premier geste de l'utilisateur. Une seule fonction, un
+   * seul élément : c'est ce qui rend le son audible sur iPhone, et c'est
+   * aussi ce qui garantit qu'on ne parle jamais deux fois en même temps.
+   * ──────────────────────────────────────────────────────────────────── */
+  function playBytes(buf, mime) {
+    return new Promise((resolve) => {
+      try {
+        if (!buf || !buf.byteLength) return resolve();
+        const a = ensureAudioEl();
+        const url = URL.createObjectURL(new Blob([buf], { type: mime || 'audio/mpeg' }));
+
+        // Garde-fou : si la fin de lecture n'est jamais signalée, la file
+        // resterait bloquée et plus aucune phrase ne serait prononcée du
+        // reste de la session. On libère au plus tard après 30 secondes.
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          duckVoices(false);                      // la vraie voix reprend son volume
+          try { URL.revokeObjectURL(url); } catch (_) {}
+          clearTimeout(guard);
+          resolve();
+        };
+        const guard = setTimeout(() => {
+          console.warn('[cp-meet] fin de lecture non signalée — file libérée');
+          finish();
+        }, 30000);
+
+        duckVoices(true);                         // la vraie voix passe dessous
+        a.src = url;
+        a.onended = finish;
+        a.onerror = finish;
+        a.play().catch((e) => {
+          console.warn('[cp-meet] lecture bloquée :', e && e.name,
+                       '— l\'audio n\'a pas été déverrouillé par un geste');
+          finish();
+        });
+      } catch (_) { resolve(); }
+    });
+  }
+
+  /* ── Anti-doublon ─────────────────────────────────────────────────────
+   * Deux moteurs de synthèse ont coexisté dans le projet : celui de ce
+   * fichier et celui réécrit ensuite dans cp-remote.js. Quand les deux
+   * demandent la même phrase, l'utilisateur l'entend deux fois — c'est
+   * l'écho signalé en Remote Call.
+   *
+   * Plutôt que de traquer chaque appelant, on refuse simplement de
+   * prononcer deux fois la même phrase dans la même langue à quelques
+   * secondes d'intervalle. La règle ne dépend d'aucun fichier : elle tient
+   * même si le code d'en face est réécrit demain.
+   * ──────────────────────────────────────────────────────────────────── */
+  // La clé ne retient QUE le texte : les deux moteurs n'étiquettent pas la
+  // langue de la même façon, et comparer sur la langue laisserait passer le
+  // doublon. La fenêtre est courte — un écho est simultané, les deux moteurs
+  // réagissant au même événement. Deux personnes qui disent « merci » à trois
+  // secondes d'intervalle restent donc bien entendues toutes les deux.
+  const DEDUPE_MS = 2500;
+  const spokenAt = new Map();
+
+  function alreadySpoken(text) {
+    const key = String(text).trim().toLowerCase().replace(/\s+/g, ' ');
+    if (!key) return false;
+    const now = Date.now();
+    for (const [k, t] of spokenAt) if (now - t > DEDUPE_MS) spokenAt.delete(k);
+    if (spokenAt.has(key)) {
+      console.info('[cp-meet] doublon ignoré — phrase déjà prononcée à l\'instant');
+      return true;
+    }
+    spokenAt.set(key, now);
+    return false;
+  }
+
   // Créole haïtien : aucune voix Azure n'existe pour cette langue. L'application
   // utilise ElevenLabs via un point d'accès dédié. On récupère le MP3 et on le
   // joue dans le même élément déverrouillé que le reste — la version d'origine
@@ -212,34 +289,21 @@
   const HT_TTS = 'https://cp-app-rho.vercel.app/api/ht-tts?text=';
 
   function speakCreole(text) {
-    ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
+    ttsQueue = ttsQueue.then(async () => {
       try {
         const r = await fetch(HT_TTS + encodeURIComponent(text));
-        if (!r.ok) { console.warn('[cp-meet] voix créole indisponible :', r.status); return resolve(); }
-        const buf = await r.arrayBuffer();
-        const a = ensureAudioEl();
-        const url = URL.createObjectURL(new Blob([buf], { type: 'audio/mpeg' }));
-        let done = false;
-        const finish = () => {
-          if (done) return; done = true;
-          duckVoices(false);
-          try { URL.revokeObjectURL(url); } catch (_) {}
-          clearTimeout(g); resolve();
-        };
-        const g = setTimeout(finish, 30000);
-        duckVoices(true);
-        a.src = url;
-        a.onended = finish; a.onerror = finish;
-        a.play().catch(() => finish());
+        if (!r.ok) { console.warn('[cp-meet] voix créole indisponible :', r.status); return; }
+        await playBytes(await r.arrayBuffer());
       } catch (e) {
         console.warn('[cp-meet] voix créole :', e && e.message);
-        resolve();
       }
-    }));
+    });
+    return ttsQueue;
   }
 
   function speakText(text, lang) {
     if (!text) return;
+    if (alreadySpoken(text)) return;
     if (String(lang || '').toLowerCase().split('-')[0] === 'ht') return speakCreole(text);
     if (!window.SpeechSDK) return;
     ttsQueue = ttsQueue.then(() => new Promise(async (resolve) => {
@@ -254,38 +318,7 @@
         const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
         synth.speakTextAsync(text, (r) => {
           synth.close();
-          try {
-            if (!r || !r.audioData || !r.audioData.byteLength) return resolve();
-            const a = ensureAudioEl();
-            const url = URL.createObjectURL(new Blob([r.audioData], { type: 'audio/mpeg' }));
-
-            // Garde-fou : si la fin de lecture n'est jamais signalée, la file
-            // resterait bloquée et plus aucune phrase ne serait prononcée du
-            // reste de la session. On libère au plus tard après 30 secondes.
-            let done = false;
-            const finish = () => {
-              if (done) return;
-              done = true;
-              duckVoices(false);                    // la vraie voix reprend son volume
-              try { URL.revokeObjectURL(url); } catch (_) {}
-              clearTimeout(guard);
-              resolve();
-            };
-            const guard = setTimeout(() => {
-              console.warn('[cp-meet] fin de lecture non signalée — file libérée');
-              finish();
-            }, 30000);
-
-            duckVoices(true);                       // la vraie voix passe dessous
-            a.src = url;
-            a.onended = finish;
-            a.onerror = finish;
-            a.play().catch((e) => {
-              console.warn('[cp-meet] lecture bloquée :', e && e.name,
-                           '— l\'audio n\'a pas été déverrouillé par un geste');
-              finish();
-            });
-          } catch (_) { resolve(); }
+          playBytes(r && r.audioData).then(resolve);
         }, (err) => { console.warn('[cp-meet] TTS:', err); synth.close(); resolve(); });
       } catch (err) {
         console.warn('[cp-meet] TTS init:', err && err.message);
@@ -316,7 +349,73 @@
    * fichier n'est modifié : les fonctions concernées sont globales, on les
    * réassigne.
    * ──────────────────────────────────────────────────────────────────── */
+  /* ────────────────────────────────────────────────────────────────────
+   * COLLECTEUR DE SYNTHÈSE — la protection qui ne dépend de personne
+   *
+   * Remplacer les fonctions de l'application une par une ne protège que
+   * les fonctions qu'on connaît. À chaque réécriture, une nouvelle
+   * apparaît, redemande la sortie directe, et l'iPhone redevient muet :
+   * c'est arrivé trois fois.
+   *
+   * On intervient donc une couche plus bas. Toute construction d'un
+   * synthétiseur Azure passe désormais par ici. Si l'appelant demande le
+   * haut-parleur — explicitement, ou en omettant le second paramètre, ce
+   * qui revient au même — on le lui refuse et on joue nous-mêmes les
+   * octets dans le canal déverrouillé.
+   *
+   * Conséquence : le code écrit demain, par qui que ce soit, produit du
+   * son sur iPhone sans avoir à connaître cette contrainte.
+   * ──────────────────────────────────────────────────────────────────── */
+  function installSynthFunnel() {
+    const SDK = window.SpeechSDK;
+    if (!SDK || typeof SDK.SpeechSynthesizer !== 'function') return false;
+    if (SDK.SpeechSynthesizer.__cpm) return true;
+
+    const Orig = SDK.SpeechSynthesizer;
+
+    function Funnelled(cfg, audioCfg) {
+      // Un seul argument = haut-parleur par défaut dans le SDK Azure.
+      const wantsSpeaker = (arguments.length < 2) || (audioCfg !== null && audioCfg !== undefined);
+      const inst = new Orig(cfg, null);
+      if (!wantsSpeaker) return inst;
+
+      console.info('[cp-meet] sortie audio directe interceptée — '
+                 + 'lecture redirigée vers le canal déverrouillé');
+
+      const orig = inst.speakTextAsync.bind(inst);
+      inst.speakTextAsync = function (text, cb, errCb) {
+        if (alreadySpoken(text)) {
+          if (typeof cb === 'function') cb({ audioData: new ArrayBuffer(0) });
+          return;
+        }
+        return orig(text, (r) => {
+          ttsQueue = ttsQueue.then(() => playBytes(r && r.audioData));
+          if (typeof cb === 'function') { try { cb(r); } catch (_) {} }
+        }, errCb);
+      };
+      if (typeof inst.speakSsmlAsync === 'function') {
+        const origSsml = inst.speakSsmlAsync.bind(inst);
+        inst.speakSsmlAsync = function (ssml, cb, errCb) {
+          return origSsml(ssml, (r) => {
+            ttsQueue = ttsQueue.then(() => playBytes(r && r.audioData));
+            if (typeof cb === 'function') { try { cb(r); } catch (_) {} }
+          }, errCb);
+        };
+      }
+      return inst;
+    }
+
+    Funnelled.prototype = Orig.prototype;
+    Funnelled.__cpm = true;
+    Funnelled.__orig = Orig;
+    try { SDK.SpeechSynthesizer = Funnelled; } catch (_) { return false; }
+    return true;
+  }
+
   function installAudioEngine() {
+    // Toute synthèse, d'où qu'elle vienne, passe par le canal unique.
+    installSynthFunnel();
+
     // Langue → code court, pour retrouver la voix Azure
     const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
 
@@ -944,11 +1043,20 @@
     // Moteur audio unique pour Two-Way, Conference et Remote Call.
     // Les fonctions visées sont définies plus bas dans index.html : on
     // réessaie brièvement le temps que le script principal s'exécute.
+    // Le SDK Azure est chargé depuis un domaine externe et peut arriver
+    // après nous ; on réessaie jusqu'à ce que le collecteur soit en place.
     installAudioEngine();
     let tries = 0;
     const t = setInterval(() => {
       installAudioEngine();
-      if (++tries > 20) clearInterval(t);   // ~4 s au maximum
+      if (++tries > 50) {                   // ~10 s au maximum
+        clearInterval(t);
+        if (!(window.SpeechSDK && window.SpeechSDK.SpeechSynthesizer
+              && window.SpeechSDK.SpeechSynthesizer.__cpm)) {
+          console.warn('[cp-meet] collecteur de synthèse non installé — '
+                     + 'le SDK Azure n\'a pas été chargé');
+        }
+      }
     }, 200);
 
     // Exposé pour diagnostic et pour un usage externe éventuel
@@ -957,6 +1065,10 @@
       unlock: unlockAudio,
       get ready() { return ttsUnlocked; },
       get owned() { return ttsOwned; },
+      get funnelled() {
+        return !!(window.SpeechSDK && window.SpeechSDK.SpeechSynthesizer
+                  && window.SpeechSDK.SpeechSynthesizer.__cpm);
+      },
     };
 
     window.CPMeet = {
