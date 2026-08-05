@@ -147,8 +147,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ctrl-gray{background:rgba(255,255,255,0.08);}
 .ctrl-red{background:var(--red);}
 .ctrl-mic{width:70px;height:70px;font-size:24px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 8px 24px rgba(79,142,247,0.4);}
-.ctrl-mic.listening{animation:micPulse 1.5s infinite;}
-@keyframes micPulse{0%,100%{box-shadow:0 8px 24px rgba(79,142,247,0.4)}50%{box-shadow:0 8px 40px rgba(79,142,247,0.7),0 0 0 12px rgba(79,142,247,0.1)}}
+.ctrl-mic.listening{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 24px rgba(239,68,68,0.4);animation:micPulse 1.5s infinite;}
+@keyframes micPulse{0%,100%{box-shadow:0 8px 24px rgba(239,68,68,0.4)}50%{box-shadow:0 8px 40px rgba(239,68,68,0.7),0 0 0 12px rgba(239,68,68,0.1)}}
 .ctrl-mic.muted{background:rgba(239,68,68,0.2);box-shadow:none;border:2px solid var(--red);}
 
 /* ── CONFERENCE SCREEN ── */
@@ -1020,6 +1020,7 @@ function showMicError(msg){
 function toggleOriginalVoice(){
   if(!remoteMode) return;
   remoteOriginalVoice = !remoteOriginalVoice;
+  localStorage.setItem('lq_realVoice', remoteOriginalVoice ? '1' : '0');
   const btn = document.getElementById('voiceBtn');
   const lbl = document.getElementById('voiceLabel');
   if(remoteOriginalVoice){
@@ -1070,17 +1071,18 @@ function handleRemoteAudioChunk({ data, mimeType, isFirst }){
     _rcInitBuf = ab;
     _rcPendingBufs = [];
     _rcSourceBuffer = null;
-    // Tear down any previous MediaSource
-    if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; _rcAudioEl=null; }
+    // Tear down any previous MediaSource but keep the pre-unlocked audio element
+    if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; }
     if(_rcMediaSource && _rcMediaSource.readyState==='open'){
       try{ _rcMediaSource.endOfStream(); }catch(e){}
     }
     _rcMediaSource=null;
+    _rcSourceBuffer=null;
 
     if(window.MediaSource && MediaSource.isTypeSupported(mime)){
       _rcMimeType = mime;
       _rcMediaSource = new MediaSource();
-      _rcAudioEl = new Audio();
+      if(!_rcAudioEl) _rcAudioEl = new Audio(); // reuse pre-unlocked element if available
       _rcAudioEl.src = URL.createObjectURL(_rcMediaSource);
       _rcAudioEl.volume = 1;
       _rcAudioEl.play().catch(()=>{});
@@ -1714,7 +1716,14 @@ function enterRemoteCall(room, isHost){
   remoteMode = true;
   remoteOriginalVoice = false;
   stopRCAudio();
+  // Pre-unlock audio during user gesture so Real Voice can autoplay on receiver side
+  try { getRCAudioCtx(); } catch(e){}
+  try { if(!_rcAudioEl){ _rcAudioEl = new Audio(); } _rcAudioEl.play().catch(()=>{}); } catch(e){}
   CPRemote.setTTS(true);
+  // Auto-restore Real Voice preference
+  if(localStorage.getItem('lq_realVoice') === '1'){
+    setTimeout(()=>{ if(remoteMode && !remoteOriginalVoice) toggleOriginalVoice(); }, 800);
+  }
   document.getElementById('remoteModal').classList.remove('open');
   showCall();
   document.getElementById('callTitle').textContent = 'Remote Call · ' + room;
