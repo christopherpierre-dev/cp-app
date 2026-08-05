@@ -34,7 +34,7 @@
 (function () {
   const CP_SERVER_URL = 'https://cp-server-kdbg.onrender.com';
   const WS_URL = CP_SERVER_URL.replace(/^http/, 'ws') + '/ws';
-  // CORS proxy on Vercel
+  // CORS proxy on Vercel — browser can fetch this without CORS errors
   const CP_TOKEN_URL = 'https://cp-app-rho.vercel.app/api/token';
 
   const state = {
@@ -51,23 +51,28 @@
   };
 
   // ── Azure token ──────────────────────────────────────────────────
-  // Returns {token, region, isKey} where isKey=true means subscription key, false means JWT auth token
+  // Returns {token, region, isKey:false} — token is always served by the CP server.
+  // Everyone shares the same Azure key via the server; no per-user key required.
   async function getAzureToken() {
-    // 1. Try server (JWT auth token — works when CORS allows this origin)
+    // Fast path — server already awake
     try {
-      const r = await fetch(CP_TOKEN_URL);
-      if (r.ok) {
-        const data = await r.json(); // {token, region}
-        return { ...data, isKey: false };
-      }
-    } catch (_) { /* CORS or network — fall through */ }
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 5000);
+      const r = await fetch(CP_TOKEN_URL, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (r.ok) return { ...(await r.json()), isKey: false };
+    } catch (_) {}
 
-    // 2. Fall back to user's own Azure subscription key stored in Settings
-    const key = localStorage.getItem('cp_azure_key');
-    const region = localStorage.getItem('cp_azure_region') || 'westus2';
-    if (key) return { token: key, region, isKey: true };
+    // Server may be waking (Render free tier sleeps after 15 min) — retry with 45s window
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 45000);
+      const r = await fetch(CP_TOKEN_URL, { signal: ctrl.signal });
+      clearTimeout(tid);
+      if (r.ok) return { ...(await r.json()), isKey: false };
+    } catch (_) {}
 
-    throw new Error('Azure key not configured. Go to Settings and enter your Azure Speech key.');
+    throw new Error('Translation service unavailable. Please try again in a moment.');
   }
 
   function makeSpeechTranslationConfig({ token, region, isKey }) {
@@ -213,6 +218,7 @@
   // ── Original voice streaming ─────────────────────────────────────
   let mediaRecorder = null;
   let audioStream = null;
+  let _rekeyInterval = null;   // periodic MediaRecorder restart for late joiners
 
   async function startAudioStream() {
     try {
@@ -223,30 +229,49 @@
       const mimeType = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus']
         .find(t => MediaRecorder.isTypeSupported(t)) || 'audio/webm';
 
-      let chunkIndex = 0;
-      mediaRecorder = new MediaRecorder(audioStream, { mimeType, audioBitsPerSecond: 24000 });
+      // Starts (or restarts) the MediaRecorder — chunkIndex resets to 0 so
+      // receivers get a fresh isFirst=true init segment with every re-key.
+      function startRecorder() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+          mediaRecorder.stop();
+        }
+        let chunkIndex = 0;
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType, audioBitsPerSecond: 24000 });
 
-      mediaRecorder.ondataavailable = async (e) => {
-        if (e.data.size === 0 || state.ws?.readyState !== WebSocket.OPEN) return;
-        const buf = await e.data.arrayBuffer();
-        const bytes = new Uint8Array(buf);
-        // Encode as base64 in chunks to avoid large strings
-        let binary = '';
-        bytes.forEach(b => { binary += String.fromCharCode(b); });
-        const base64 = btoa(binary);
+        mediaRecorder.ondataavailable = async (e) => {
+          if (e.data.size === 0 || state.ws?.readyState !== WebSocket.OPEN) return;
+          const buf = await e.data.arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          let binary = '';
+          bytes.forEach(b => { binary += String.fromCharCode(b); });
+          const base64 = btoa(binary);
 
-        state.ws.send(JSON.stringify({
-          type: 'audio_chunk',
-          data: base64,
-          mimeType,
-          isFirst: chunkIndex === 0,
-          seq: chunkIndex,
-        }));
-        chunkIndex++;
-      };
+          state.ws.send(JSON.stringify({
+            type: 'audio_chunk',
+            from: state.myName,   // sender identity so receivers route per-speaker
+            data: base64,
+            mimeType,
+            isFirst: chunkIndex === 0,
+            seq: chunkIndex,
+          }));
+          chunkIndex++;
+        };
 
-      mediaRecorder.start(200); // 200ms chunks → ~4 per second, low latency
+        mediaRecorder.start(200); // 200ms chunks → ~4 per second, low latency
+      }
+
+      startRecorder();
       state.onEvent('audio_started', { mimeType });
+
+      // Re-key every 10 s: restarts the recorder so a new isFirst=true init
+      // segment is broadcast — any device that joined in the last 10 s will
+      // receive the codec header and can begin decoding immediately.
+      _rekeyInterval = setInterval(() => {
+        if (state.ws?.readyState === WebSocket.OPEN && audioStream?.active) {
+          startRecorder();
+        }
+      }, 10000);
+
     } catch (err) {
       console.warn('[CPRemote] Audio stream error:', err);
       state.onEvent('audio_error', { error: err.message });
@@ -254,6 +279,7 @@
   }
 
   function stopAudioStream() {
+    if (_rekeyInterval) { clearInterval(_rekeyInterval); _rekeyInterval = null; }
     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
       mediaRecorder.stop();
       mediaRecorder = null;
@@ -265,12 +291,15 @@
   }
 
   // ── Shared AudioContext (unlocked on first user interaction) ────
+  // iOS/Android block audio until a user gesture — this context is
+  // created on first use and exposed so index.html can unlock it too.
   let _audioCtx = null;
   function getAudioCtx() {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (_audioCtx.state === 'suspended') _audioCtx.resume().catch(() => {});
     return _audioCtx;
   }
+  // Expose for index.html to pre-unlock on first tap
   window._getRemoteAudioCtx = getAudioCtx;
 
   // ── TTS: play received translation through speakers ──────────────
@@ -285,8 +314,9 @@
     hi: 'hi-IN-MadhurNeural',   it: 'it-IT-DiegoNeural',
     nl: 'nl-NL-MaartenNeural',  pl: 'pl-PL-MarekNeural',
     sv: 'sv-SE-MattiasNeural',  tr: 'tr-TR-AhmetNeural',
-    sw: 'sw-KE-RafikiNeural',   // ht routed to ElevenLabs below
-    el: 'el-GR-NestorasNeural', vi: 'vi-VN-NamMinhNeural',
+    sw: 'sw-KE-RafikiNeural',   el: 'el-GR-NestorasNeural',
+    vi: 'vi-VN-NamMinhNeural',
+    // ht intentionally omitted — routed to ElevenLabs below
   };
 
   function speakTranslation(m) {
@@ -294,10 +324,11 @@
     const text = m.translations?.[state.myLang];
     if (!text) return;
 
+    // Queue TTS so overlapping utterances play in order
     state.ttsQueue = state.ttsQueue.then(() => new Promise(async (resolve) => {
       try {
         if (state.myLang === 'ht') {
-          // Haitian Creole → ElevenLabs multilingual_v2 via proxy
+          // Haitian Creole → ElevenLabs multilingual_v2 via proxy (Azure doesn't support ht)
           const r = await fetch(HT_TTS_URL + '?text=' + encodeURIComponent(text));
           if (!r.ok) { resolve(); return; }
           const buf = await r.arrayBuffer();

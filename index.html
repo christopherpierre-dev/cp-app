@@ -874,13 +874,10 @@ let azureRecognizer = null;
 let remoteMode = false; // NOUVEAU : mode appel à distance
 // ── Original Voice state (Remote Call) ───────────────────────
 let remoteOriginalVoice = false;
-// MediaSource streaming (Chrome/Firefox) + Web Audio fallback (Safari/iOS)
-let _rcMediaSource = null;
-let _rcSourceBuffer = null;
-let _rcAudioEl = null;
-let _rcPendingBufs = [];   // queue while SourceBuffer is updating
-let _rcMimeType = 'audio/webm;codecs=opus';
-let _rcInitBuf = null;     // first chunk saved for prepend-decode fallback
+// Per-sender audio streams: Map<senderName → {audioEl,mediaSource,sourceBuffer,pendingBufs,initBuf,mimeType}>
+// Supports unlimited simultaneous speakers without conflict.
+let _rcStreams = new Map();
+let _rcPrevPeerCount = 0;  // for detecting new joiners in roster
 let _rcAudioCtx = null;
 function getRCAudioCtx() {
   if (!_rcAudioCtx) _rcAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1042,85 +1039,83 @@ function toggleOriginalVoice(){
 }
 
 function stopRCAudio(){
-  if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; _rcAudioEl=null; }
-  if(_rcMediaSource && _rcMediaSource.readyState==='open'){
-    try{ _rcMediaSource.endOfStream(); }catch(e){}
-  }
-  _rcMediaSource=null; _rcSourceBuffer=null; _rcPendingBufs=[];
+  _rcStreams.forEach(st => {
+    if(st.audioEl){ st.audioEl.pause(); st.audioEl.src=''; }
+    if(st.mediaSource && st.mediaSource.readyState==='open'){
+      try{ st.mediaSource.endOfStream(); }catch(e){}
+    }
+  });
+  _rcStreams.clear();
   if(_rcAudioCtx){ _rcAudioCtx.close().catch(()=>{}); _rcAudioCtx=null; }
-  _rcInitBuf=null;
 }
 
-function _rcFlushPending(){
-  if(_rcSourceBuffer && !_rcSourceBuffer.updating && _rcPendingBufs.length>0){
-    try{ _rcSourceBuffer.appendBuffer(_rcPendingBufs.shift()); }
+function _rcFlushPending(st){
+  if(st && st.sourceBuffer && !st.sourceBuffer.updating && st.pendingBufs.length>0){
+    try{ st.sourceBuffer.appendBuffer(st.pendingBufs.shift()); }
     catch(e){ console.warn('[RC Audio] appendBuffer',e); }
   }
 }
 
-function handleRemoteAudioChunk({ data, mimeType, isFirst }){
-  // Decode base64 → ArrayBuffer
+// handleRemoteAudioChunk — supports unlimited simultaneous speakers.
+// Each sender gets their own audio element + MediaSource pipeline.
+// isFirst=true is sent by the speaker every ~10 s (re-key), so late joiners
+// are never stuck without a codec header.
+function handleRemoteAudioChunk({ from, data, mimeType, isFirst }){
+  const sender = from || 'default';
   const bin = atob(data);
   const ab = new Uint8Array(bin.length);
   for(let i=0;i<bin.length;i++) ab[i]=bin.charCodeAt(i);
   const buf = ab.buffer;
-  const mime = mimeType || _rcMimeType;
+  const mime = mimeType || 'audio/webm;codecs=opus';
 
   if(isFirst){
-    // Save init segment for Web Audio fallback path
-    _rcInitBuf = ab;
-    _rcPendingBufs = [];
-    _rcSourceBuffer = null;
-    // Tear down any previous MediaSource but keep the pre-unlocked audio element
-    if(_rcAudioEl){ _rcAudioEl.pause(); _rcAudioEl.src=''; }
-    if(_rcMediaSource && _rcMediaSource.readyState==='open'){
-      try{ _rcMediaSource.endOfStream(); }catch(e){}
+    let st = _rcStreams.get(sender);
+    if(st){
+      if(st.audioEl){ st.audioEl.pause(); st.audioEl.src=''; }
+      if(st.mediaSource && st.mediaSource.readyState==='open'){
+        try{ st.mediaSource.endOfStream(); }catch(e){}
+      }
+      st.mediaSource=null; st.sourceBuffer=null; st.pendingBufs=[];
+    } else {
+      st = { audioEl: new Audio(), mediaSource: null, sourceBuffer: null, pendingBufs: [], initBuf: null, mimeType: mime };
+      _rcStreams.set(sender, st);
     }
-    _rcMediaSource=null;
-    _rcSourceBuffer=null;
+    st.initBuf = ab;
+    st.mimeType = mime;
 
     if(window.MediaSource && MediaSource.isTypeSupported(mime)){
-      _rcMimeType = mime;
-      _rcMediaSource = new MediaSource();
-      if(!_rcAudioEl) _rcAudioEl = new Audio(); // reuse pre-unlocked element if available
-      _rcAudioEl.src = URL.createObjectURL(_rcMediaSource);
-      _rcAudioEl.volume = 1;
-      _rcAudioEl.play().catch(()=>{});
-      _rcMediaSource.addEventListener('sourceopen', ()=>{
+      st.mediaSource = new MediaSource();
+      st.audioEl.src = URL.createObjectURL(st.mediaSource);
+      st.audioEl.volume = 1;
+      st.audioEl.play().catch(()=>{});
+      st.mediaSource.addEventListener('sourceopen', ()=>{
         try{
-          _rcSourceBuffer = _rcMediaSource.addSourceBuffer(mime);
-          _rcSourceBuffer.mode = 'sequence'; // ignore embedded timestamps, play in order
-          _rcSourceBuffer.addEventListener('updateend', _rcFlushPending);
-          _rcPendingBufs.push(buf);
-          _rcFlushPending();
-        }catch(e){
-          console.warn('[RC Audio] SourceBuffer init',e);
-          _rcSourceBuffer=null;
-        }
+          st.sourceBuffer = st.mediaSource.addSourceBuffer(mime);
+          st.sourceBuffer.mode = 'sequence';
+          st.sourceBuffer.addEventListener('updateend', ()=>_rcFlushPending(st));
+          st.pendingBufs.push(buf);
+          _rcFlushPending(st);
+        }catch(e){ console.warn('[RC Audio] SourceBuffer init',e); st.sourceBuffer=null; }
       },{once:true});
       return;
     }
-    // MediaSource not available — fall through to Web Audio
+    // Fall through to Web Audio (Safari/iOS)
   }
 
-  // MediaSource path — queue chunk
-  if(_rcSourceBuffer){
-    if(_rcSourceBuffer.updating || _rcPendingBufs.length>0){
-      _rcPendingBufs.push(buf);
-    } else {
-      try{ _rcSourceBuffer.appendBuffer(buf); }
-      catch(e){ _rcPendingBufs.push(buf); }
-    }
+  // MediaSource path — route chunk to the right sender's stream
+  const st = _rcStreams.get(sender);
+  if(st && st.sourceBuffer){
+    if(st.sourceBuffer.updating || st.pendingBufs.length>0){ st.pendingBufs.push(buf); }
+    else{ try{ st.sourceBuffer.appendBuffer(buf); }catch(e){ st.pendingBufs.push(buf); } }
     return;
   }
 
   // Web Audio fallback (Safari/iOS): prepend init segment to make chunk decodable
-  if(!isFirst && !_rcInitBuf) return;
+  if(!isFirst && (!st || !st.initBuf)) return;
   let decodeBuf = buf;
-  if(!isFirst && _rcInitBuf){
-    const merged = new Uint8Array(_rcInitBuf.length + ab.length);
-    merged.set(_rcInitBuf, 0);
-    merged.set(ab, _rcInitBuf.length);
+  if(!isFirst && st && st.initBuf){
+    const merged = new Uint8Array(st.initBuf.length + ab.length);
+    merged.set(st.initBuf, 0); merged.set(ab, st.initBuf.length);
     decodeBuf = merged.buffer;
   }
   try{
@@ -1719,7 +1714,7 @@ function enterRemoteCall(room, isHost){
   stopRCAudio();
   // Pre-unlock audio during user gesture so Real Voice can autoplay on receiver side
   try { getRCAudioCtx(); } catch(e){}
-  try { if(!_rcAudioEl){ _rcAudioEl = new Audio(); } _rcAudioEl.play().catch(()=>{}); } catch(e){}
+  try { const _preUnlock = new Audio(); _preUnlock.play().catch(()=>{}); } catch(e){}
   CPRemote.setTTS(true);
   // Auto-restore Real Voice preference
   if(localStorage.getItem('lq_realVoice') === '1'){
@@ -1944,6 +1939,13 @@ CPRemote.on((type, data) => {
       if(document.getElementById('origB').textContent.startsWith('Waiting'))
         document.getElementById('origB').textContent = (other.name||'Participant') + ' joined — both can now speak.';
     }
+    // If a new device joins and we're streaming Real Voice, restart to send a fresh
+    // init segment — this ensures late joiners receive the codec header and can play.
+    if(remoteOriginalVoice && peers.length > _rcPrevPeerCount){
+      CPRemote.stopAudioStream();
+      setTimeout(()=>{ if(remoteOriginalVoice) CPRemote.startAudioStream(); }, 300);
+    }
+    _rcPrevPeerCount = peers.length;
   }
   if(type === 'invite'){
     openRemoteModal();
