@@ -1012,6 +1012,24 @@
     return p ? (p.name || 'Participant') : 'Participant';
   }
 
+  // Message passager (conseils, notifications) — distinct du bandeau de parole
+  function toast(msg, ms) {
+    let el = document.getElementById('cpmToast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'cpmToast';
+      el.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);top:14px;'
+        + 'z-index:9200;padding:9px 16px;border-radius:14px;font-size:13px;'
+        + 'background:#1b2233;color:#e8ecf6;border:1px solid rgba(255,255,255,.18);'
+        + 'box-shadow:0 4px 14px rgba(0,0,0,.35);max-width:88vw;text-align:center';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.style.display = 'block';
+    clearTimeout(el.__t);
+    el.__t = setTimeout(() => { el.style.display = 'none'; }, ms || 6000);
+  }
+
   function floorBar(msg, mine) {
     let bar = document.getElementById('cpmFloorBar');
     if (!msg) { if (bar) bar.remove(); return; }
@@ -1274,8 +1292,24 @@
       S.rosterMax = S.roster.length;
       S.sessionStart = Date.now();
       document.getElementById('cpmFab').classList.add('on');
+      // Conseil affiché une fois par session : évite la boucle audio quand
+      // plusieurs appareils partagent la même pièce.
+      if (!S.hintShown) {
+        S.hintShown = true;
+        toast('🎧 Plusieurs appareils dans la même pièce ? Écouteurs recommandés — '
+            + 'un seul micro ouvert par pièce.', 8000);
+      }
       render();
     } else if (type === 'roster') {
+      // Le président est prévenu des nouvelles mains levées
+      if (S.isChair) {
+        const before = new Set((S.roster || []).filter(p => p.hand).map(p => p.id));
+        for (const p of (data.participants || [])) {
+          if (p.hand && p.id !== S.selfId && !before.has(p.id)) {
+            toast('✋ ' + (p.name || 'Un participant') + ' demande la parole', 5000);
+          }
+        }
+      }
       S.roster = data.participants || [];
       S.rosterMax = Math.max(S.rosterMax || 0, S.roster.length);
       // Le président informe les arrivants de l'état de la séance
