@@ -558,6 +558,7 @@
       R.create = function (o) {
         const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
         if (o2 && o2.lang) S.myLang = o2.lang;
+        S.isChair = true;          // qui crée la salle préside la séance
         return _create.call(R, o2);
       };
     }
@@ -804,17 +805,31 @@
       body.innerHTML = '<div class="cpm-empty">Personne d\'autre dans la salle.</div>';
       return;
     }
-    body.innerHTML = S.roster.map(p => {
+    // Mains levées d'abord — c'est la file d'attente de parole du président.
+    const chairId = S.isChair ? S.selfId : S.chairId;
+    const ordered = [...S.roster].sort((a, b) => (b.hand ? 1 : 0) - (a.hand ? 1 : 0));
+    body.innerHTML = ordered.map(p => {
       const ini = (p.name || '?').trim().charAt(0).toUpperCase() || '?';
       const tags = [];
+      if (p.id === chairId) tags.push('<span class="cpm-tag">🪑 préside</span>');
+      if (p.id === S.floor) tags.push('<span class="cpm-tag" style="border-color:#57c46b">🎤 a la parole</span>');
       if (p.hand) tags.push('<span class="cpm-tag">✋ main levée</span>');
       if (p.muted) tags.push('<span class="cpm-tag">🔇</span>');
       if (p.video) tags.push('<span class="cpm-tag">🎥</span>');
       if (p.lang) tags.push(`<span class="cpm-tag">${esc(String(p.lang).toUpperCase())}</span>`);
+      // Boutons du président : donner ou reprendre la parole
+      const give = (S.isChair && p.id && p.id !== S.selfId)
+        ? `<button class="cpm-give" data-id="${esc(p.id)}" style="margin-left:auto;border:1px solid rgba(255,255,255,.2);
+             background:${p.id === S.floor ? '#5b3131' : '#28304a'};color:#e8ecf6;border-radius:12px;
+             padding:4px 10px;font-size:12px;cursor:pointer">${p.id === S.floor ? '⏸ Reprendre' : '🎤 Donner la parole'}</button>`
+        : '';
       return `<div class="cpm-row"><div class="cpm-av">${esc(ini)}</div>
         <div class="cpm-nm">${esc(p.name)}${p.id === S.selfId ? ' (you)' : ''}</div>
-        ${tags.join(' ')}</div>`;
+        ${tags.join(' ')}${give}</div>`;
     }).join('');
+    body.querySelectorAll('.cpm-give').forEach(b => {
+      b.onclick = () => setFloor(b.dataset.id === S.floor ? null : b.dataset.id);
+    });
   }
 
   // ── Clavardage ────────────────────────────────────────────────────────
@@ -866,6 +881,81 @@
     S.handUp = !S.handUp;
     document.getElementById('cpmHand').classList.toggle('active', S.handUp);
     send({ type: 'state', hand: S.handUp });
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * PRÉSIDENT DE SÉANCE (Remote Call)
+   *
+   * Le modèle des réunions multilatérales : la personne qui crée la salle
+   * préside. Les participants demandent la parole en levant la main ; le
+   * président la donne et la reprend depuis la liste des participants.
+   * Quand la parole est attribuée, seul son détenteur (et le président)
+   * peut ouvrir le micro. Quand elle n'est attribuée à personne, la
+   * discussion est libre — comportement actuel inchangé.
+   *
+   * Transport : le relais « signal » du serveur, déjà déployé, achemine
+   * des messages ciblés ; aucun changement serveur n'est nécessaire. Le
+   * président rediffuse l'état (président + parole) à chaque évolution de
+   * la salle, si bien qu'un retardataire est informé dès son arrivée.
+   * ──────────────────────────────────────────────────────────────────── */
+  function broadcastMeet() {
+    if (!S.isChair) return;
+    for (const p of S.roster) {
+      if (p.id && p.id !== S.selfId) {
+        send({ type: 'signal', to: p.id, kind: 'meet',
+               payload: { chair: S.selfId, floor: S.floor || null } });
+      }
+    }
+  }
+
+  function nameOf(id) {
+    const p = S.roster.find(x => x.id === id);
+    return p ? (p.name || 'Participant') : 'Participant';
+  }
+
+  function floorBar(msg, mine) {
+    let bar = document.getElementById('cpmFloorBar');
+    if (!msg) { if (bar) bar.remove(); return; }
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'cpmFloorBar';
+      bar.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:148px;'
+        + 'z-index:9100;padding:8px 16px;border-radius:20px;font-size:13px;'
+        + 'background:#1b2233;color:#e8ecf6;border:1px solid rgba(255,255,255,.18);'
+        + 'box-shadow:0 4px 14px rgba(0,0,0,.35);max-width:86vw;text-align:center';
+      document.body.appendChild(bar);
+    }
+    bar.style.borderColor = mine ? '#57c46b' : 'rgba(255,255,255,.18)';
+    bar.textContent = msg;
+  }
+
+  function onFloorChange(prev) {
+    // La parole vient de m'être donnée : je baisse la main automatiquement.
+    if (S.floor === S.selfId && S.handUp) toggleHand();
+    // Elle vient de m'être reprise pendant que je parlais : je m'arrête.
+    if (prev === S.selfId && S.floor !== S.selfId) {
+      try { window.CPRemote && CPRemote.stopSpeaking && CPRemote.stopSpeaking(); } catch (_) {}
+    }
+    if (!S.floor) floorBar(null);
+    else if (S.floor === S.selfId) floorBar('🎤 Vous avez la parole', true);
+    else floorBar('🎤 La parole est à ' + nameOf(S.floor) + ' — levez la main ✋ pour la demander', false);
+    render();
+  }
+
+  function setFloor(id) {
+    if (!S.isChair) return;
+    const prev = S.floor || null;
+    S.floor = id || null;
+    onFloorChange(prev);
+    broadcastMeet();
+  }
+
+  function onMeetSignal(data) {
+    const p = (data && data.payload) || {};
+    const prev = S.floor || null;
+    S.chairId = p.chair || null;
+    S.floor = p.floor || null;
+    if (prev !== S.floor) onFloorChange(prev); else render();
   }
 
   // ── Vidéo WebRTC ──────────────────────────────────────────────────────
@@ -1051,6 +1141,8 @@
   }
 
   async function onSignal(m) {
+    // Messages de séance (président, parole) — avant la signalisation WebRTC
+    if (m && m.kind === 'meet') return onMeetSignal(m);
     const id = m.from;
     if (!id) return;
     try {
@@ -1087,6 +1179,10 @@
     } else if (type === 'roster') {
       S.roster = data.participants || [];
       S.rosterMax = Math.max(S.rosterMax || 0, S.roster.length);
+      // Le président informe les arrivants de l'état de la séance
+      broadcastMeet();
+      // Le détenteur de la parole est parti : la discussion redevient libre
+      if (S.isChair && S.floor && !S.roster.some(p => p.id === S.floor)) setFloor(null);
       // Nouveau venu pendant que ma caméra tourne : je lui propose la connexion
       if (S.videoOn) {
         for (const p of S.roster) {
@@ -1163,6 +1259,20 @@
 
     // Langue choisie transmise à la création/jonction d'une salle (Remote Call)
     installLangOnJoin(R);
+
+    // ── Discipline de séance : le micro respecte la parole attribuée ──
+    // Quand le président a donné la parole à quelqu'un, les autres micros
+    // refusent poliment de s'ouvrir. Sans parole attribuée, rien ne change.
+    const _startSpeak = R.startSpeaking;
+    if (typeof _startSpeak === 'function') {
+      R.startSpeaking = function () {
+        if (S.floor && S.floor !== S.selfId && !S.isChair) {
+          floorBar('🎤 La parole est à ' + nameOf(S.floor) + ' — levez la main ✋ pour la demander', false);
+          return;
+        }
+        return _startSpeak.apply(R, arguments);
+      };
+    }
 
     // ── Reprise en main de la voix de traduction ──
     // On coupe la voix du module de base (sortie directe bloquée par Safari)
@@ -1243,6 +1353,8 @@
       toggleCamera: toggleCam,
       raiseHand: toggleHand,
       get state() { return { videoOn: S.videoOn, handUp: S.handUp, peers: S.peers.size, roster: S.roster.length }; },
+      // Diagnostic : état de la séance (président, parole)
+      get seance() { return { isChair: !!S.isChair, chair: S.chairId || (S.isChair ? S.selfId : null), floor: S.floor || null }; },
     };
   }
 
