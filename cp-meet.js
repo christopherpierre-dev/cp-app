@@ -499,6 +499,105 @@
     };
     lift('confSrcLang');
     lift('confVoiceSel');
+    installConfChair();
+  }
+
+  /* ────────────────────────────────────────────────────────────────────
+   * TOUR DE PAROLE (Conference — un seul appareil)
+   *
+   * Autour d'une table, le micro est commun : on ne peut pas couper celui
+   * des autres. La présidence y prend donc la forme d'un tour de parole :
+   * la personne qui tient l'appareil ajoute les intervenants (nom +
+   * langue) ; toucher un nom affiche « la parole est à X » et bascule
+   * automatiquement la reconnaissance vocale dans la langue de X — plus
+   * besoin de manipuler le sélecteur entre chaque orateur. La main se
+   * lève physiquement ; l'application tient l'ordre et la langue.
+   * ──────────────────────────────────────────────────────────────────── */
+  const CONF_KEY = 'loquivox_conf_speakers';
+
+  function installConfChair() {
+    const sel = document.getElementById('confSrcLang');
+    if (!sel || !sel.parentElement || document.getElementById('cpmConfChair')) return;
+    if (!sel.options || !sel.options.length) return;   // structure inattendue : ne rien casser
+
+    let speakers = [];
+    try { speakers = JSON.parse(localStorage.getItem(CONF_KEY) || '[]'); } catch (_) {}
+    let current = -1;
+
+    const wrap = document.createElement('div');
+    wrap.id = 'cpmConfChair';
+    wrap.style.cssText = 'margin:10px 24px;padding:12px;border:1px solid #1e2d4a;'
+      + 'border-radius:14px;background:#131929;';
+    wrap.innerHTML =
+      '<div style="font-size:12px;color:#8fa0bd;letter-spacing:.5px;text-transform:uppercase;'
+      + 'margin-bottom:8px;">🪑 Tour de parole</div>'
+      + '<div id="cpmConfChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>'
+      + '<div style="display:flex;gap:6px;">'
+      + '<input id="cpmConfName" placeholder="Nom de l\'intervenant" style="flex:1;min-width:0;'
+      + 'background:rgba(255,255,255,.05);border:1px solid #1e2d4a;border-radius:10px;'
+      + 'padding:8px 10px;color:#e8edf5;font-size:13px;">'
+      + '<select id="cpmConfLang" style="background:rgba(255,255,255,.05);border:1px solid #1e2d4a;'
+      + 'border-radius:10px;padding:8px;color:#e8edf5;font-size:13px;max-width:38%">'
+      + [...sel.options].map(o => `<option value="${o.value}">${o.textContent}</option>`).join('')
+      + '</select>'
+      + '<button id="cpmConfAdd" style="border:none;border-radius:10px;padding:8px 12px;'
+      + 'background:#28304a;color:#e8edf5;font-size:13px;cursor:pointer">+</button></div>';
+    sel.parentElement.parentElement
+      ? sel.parentElement.parentElement.insertBefore(wrap, sel.parentElement)
+      : sel.parentElement.insertBefore(wrap, sel);
+
+    const chips = wrap.querySelector('#cpmConfChips');
+
+    function save() { try { localStorage.setItem(CONF_KEY, JSON.stringify(speakers)); } catch (_) {} }
+
+    function giveFloor(i) {
+      current = (current === i) ? -1 : i;
+      if (current >= 0) {
+        const s = speakers[current];
+        // Bascule de la langue d'écoute — même effet qu'un choix manuel
+        sel.value = s.lang;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        floorBar('🎤 La parole est à ' + s.name + ' (' + s.langLabel + ')', false);
+      } else {
+        floorBar(null);
+      }
+      draw();
+    }
+
+    function draw() {
+      chips.innerHTML = speakers.map((s, i) =>
+        `<span data-i="${i}" style="cursor:pointer;padding:6px 12px;border-radius:16px;font-size:13px;
+          border:1px solid ${i === current ? '#57c46b' : 'rgba(255,255,255,.15)'};
+          background:${i === current ? 'rgba(87,196,107,.15)' : 'rgba(255,255,255,.05)'};color:#e8edf5;">
+          ${i === current ? '🎤 ' : ''}${s.name} · ${s.langLabel}
+          <b data-del="${i}" style="margin-left:6px;color:#8fa0bd;cursor:pointer">×</b></span>`).join('')
+        || '<span style="font-size:12px;color:#64748b">Ajoutez les intervenants, puis touchez un nom pour lui donner la parole.</span>';
+      chips.querySelectorAll('[data-i]').forEach(el => {
+        el.onclick = (ev) => {
+          if (ev.target && ev.target.dataset && ev.target.dataset.del !== undefined) {
+            const d = parseInt(ev.target.dataset.del, 10);
+            speakers.splice(d, 1);
+            if (current === d) { current = -1; floorBar(null); }
+            else if (current > d) current--;
+            save(); draw(); return;
+          }
+          giveFloor(parseInt(el.dataset.i, 10));
+        };
+      });
+    }
+
+    wrap.querySelector('#cpmConfAdd').onclick = () => {
+      const nameEl = wrap.querySelector('#cpmConfName');
+      const langEl = wrap.querySelector('#cpmConfLang');
+      const name = (nameEl.value || '').trim();
+      if (!name) return;
+      speakers.push({ name, lang: langEl.value,
+                      langLabel: langEl.options[langEl.selectedIndex].textContent.trim() });
+      nameEl.value = '';
+      save(); draw();
+    };
+
+    draw();
   }
 
   const SPEAK_LANGS = [
