@@ -73,6 +73,21 @@ jobs:
           fi
           echo "OK  ordre de chargement correct (ligne $M avant $O)"
 
+      # Le service worker doit servir le CODE réseau d'abord. En cache
+      # d'abord, chaque appareil reste figé sur sa copie : les correctifs
+      # se déploient mais personne ne les reçoit. C'est arrivé le 5 août —
+      # les téléphones exécutaient un mélange de fichiers du 4 août.
+      - name: sw.js — code servi réseau d'abord
+        run: |
+          if [ -f sw.js ] && ! grep -qi "RESEAU-D-ABORD" sw.js; then
+            echo ""
+            echo "BLOQUANT — sw.js ne porte plus la stratégie réseau-d'abord."
+            echo "Servir le code depuis le cache fige les appareils sur de vieilles"
+            echo "versions. Reprendre le sw.js marqué RESEAU-D-ABORD (voir AGENTS.md, règle 4)."
+            exit 1
+          fi
+          echo "OK  sw.js réseau d'abord"
+
       # ══ PLAFONDS ═════════════════════════════════════════════════════
       # 1. Sortie audio directe.
       #    Safari iOS refuse toute lecture qui ne découle pas d'un geste de

@@ -1,71 +1,72 @@
-// Loquivox — service worker
-// Stratégie : RÉSEAU D'ABORD pour le code (index.html, cp-remote.js) afin que
-// chaque déploiement atteigne immédiatement tous les appareils ; le cache ne
-// sert qu'en secours hors-ligne. Les icônes/manifest restent cache d'abord.
-// Changer CACHE_NAME invalide les caches des anciennes versions.
-const CACHE_NAME = 'loquivox-v4';
+/* Service worker Loquivox — stratégie RESEAU-D-ABORD pour le code.
+ *
+ * Règle n° 4 d'AGENTS.md : servir le code depuis le cache fige les appareils.
+ * C'est arrivé : les téléphones sont restés bloqués sur un instantané du
+ * 4 août pendant que les correctifs s'accumulaient en ligne, invisibles.
+ *
+ * Principe :
+ *   - index.html, *.js, *.json → RÉSEAU D'ABORD ; le cache ne sert qu'en
+ *     cas de coupure. Chaque visite récupère donc la dernière version.
+ *   - images et icônes → cache d'abord (elles ne changent presque jamais).
+ *
+ * Le numéro de version ne sert plus qu'à purger les vieux caches : il n'est
+ * plus nécessaire de le changer à chaque correctif.
+ */
+const VERSION = 'loquivox-v5';
 const PRECACHE = [
-  './',
-  './index.html',
-  './cp-remote.js',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
+  './', './index.html', './cp-remote.js', './cp-meet.js',
+  './manifest.json', './icon-192.png', './icon-512.png',
 ];
+const CODE = /\.(?:js|html|json)(\?.*)?$/;
 
-// Fichiers de code : toujours tenter le réseau en premier
-const NETWORK_FIRST = /(\/$|index\.html|cp-remote\.js|manifest\.json)/;
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(PRECACHE))
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(VERSION)
+      .then((c) => c.addAll(PRECACHE).catch(() => {}))
       .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys()
+      .then((ks) => Promise.all(ks.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', event => {
-  const req = event.request;
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
   if (req.method !== 'GET') return;
-
   const url = new URL(req.url);
-  const isCode = req.mode === 'navigate' ||
-                 (url.origin === location.origin && NETWORK_FIRST.test(url.pathname));
+  if (url.origin !== location.origin) return;
+
+  const isCode = req.mode === 'navigate' || CODE.test(url.pathname) || url.pathname === '/';
 
   if (isCode) {
-    // Réseau d'abord : version fraîche à chaque visite, cache en secours
-    event.respondWith(
-      fetch(req).then(response => {
-        if (response && response.status === 200) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
-        }
-        return response;
-      }).catch(() =>
-        caches.match(req).then(c => c || caches.match('./index.html'))
-      )
+    // RÉSEAU D'ABORD — le cache n'est qu'un filet de sécurité hors ligne.
+    e.respondWith(
+      fetch(req)
+        .then((r) => {
+          const copy = r.clone();
+          caches.open(VERSION).then((c) => c.put(req, copy)).catch(() => {});
+          return r;
+        })
+        .catch(() =>
+          caches.match(req, { ignoreSearch: true })
+            .then((r) => r || caches.match('./index.html'))
+        )
     );
   } else {
-    // Ressources statiques : cache d'abord, réseau en complément
-    event.respondWith(
-      caches.match(req).then(cached => {
-        if (cached) return cached;
-        return fetch(req).then(response => {
-          if (response && response.status === 200 && response.type === 'basic') {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
-          }
-          return response;
-        });
-      })
+    // Ressources statiques : cache d'abord, réseau en complément.
+    e.respondWith(
+      caches.match(req).then((r) =>
+        r || fetch(req).then((res) => {
+          const copy = res.clone();
+          caches.open(VERSION).then((c) => c.put(req, copy)).catch(() => {});
+          return res;
+        })
+      )
     );
   }
 });
