@@ -370,6 +370,9 @@
 
         // audioConfig = null : Azure renvoie les octets au lieu de jouer
         const synth = new SpeechSDK.SpeechSynthesizer(cfg, null);
+        // Chemin interne : cette fonction possede deja la file et la
+        // lecture. L'enveloppe posee sur le prototype doit s'effacer.
+        synth.__cpmInterne = true;
         synth.speakTextAsync(text, (r) => {
           synth.close();
           playBytes(r && r.audioData).then(resolve);
@@ -420,50 +423,56 @@
    * Conséquence : le code écrit demain, par qui que ce soit, produit du
    * son sur iPhone sans avoir à connaître cette contrainte.
    * ──────────────────────────────────────────────────────────────────── */
+  /* Le paquet Azure expose ses classes en accesseurs SANS setter et NON
+   * reconfigurables. Reaffecter la classe echoue donc EN SILENCE : aucune
+   * exception, la propriete ne bouge pas. Le collecteur se croyait installe
+   * sans l'etre — d'ou l'absence totale de son en Remote Call.
+   * On vise desormais deux objets reellement modifiables (verifie en
+   * production) : AudioConfig.fromDefaultSpeakerOutput, et le PROTOTYPE de
+   * SpeechSynthesizer. Et l'installation est VERIFIEE avant d'etre declaree. */
   function installSynthFunnel() {
     const SDK = window.SpeechSDK;
     if (!SDK || typeof SDK.SpeechSynthesizer !== 'function') return false;
-    if (SDK.SpeechSynthesizer.__cpm) return true;
-
-    const Orig = SDK.SpeechSynthesizer;
-
-    function Funnelled(cfg, audioCfg) {
-      // Un seul argument = haut-parleur par défaut dans le SDK Azure.
-      const wantsSpeaker = (arguments.length < 2) || (audioCfg !== null && audioCfg !== undefined);
-      const inst = new Orig(cfg, null);
-      if (!wantsSpeaker) return inst;
-
-      console.info('[cp-meet] sortie audio directe interceptée — '
-                 + 'lecture redirigée vers le canal déverrouillé');
-
-      const orig = inst.speakTextAsync.bind(inst);
-      inst.speakTextAsync = function (text, cb, errCb) {
-        if (alreadySpoken(text)) {
+    try {
+      const AC = SDK.AudioConfig;
+      if (AC && typeof AC.fromDefaultSpeakerOutput === 'function'
+          && !AC.fromDefaultSpeakerOutput.__cpm) {
+        const muet = function () { return null; };
+        muet.__cpm = true; muet.__orig = AC.fromDefaultSpeakerOutput;
+        AC.fromDefaultSpeakerOutput = muet;
+      }
+    } catch (_) {}
+    const P = SDK.SpeechSynthesizer.prototype;
+    if (P.speakTextAsync && P.speakTextAsync.__cpm) return true;
+    const enveloppe = (nom, dedupe) => {
+      const orig = P[nom];
+      if (typeof orig !== 'function' || orig.__cpm) return;
+      const patched = function (arg, cb, errCb) {
+        // Nos propres appels gerent deja file et lecture. Les intercepter
+        // ici jouerait deux fois — et enchainerait ttsQueue sur elle-meme,
+        // ce qui fige la voix des le deuxieme enonce.
+        if (this.__cpmInterne) return orig.call(this, arg, cb, errCb);
+        if (!this.__cpmMuet) {
+          this.__cpmMuet = true;
+          for (const champ of ['privAudioConfig', 'audioConfig', 'audioCfg']) {
+            try { if (this[champ] != null) this[champ] = null; } catch (_) {}
+          }
+        }
+        if (dedupe && alreadySpoken(arg)) {
           if (typeof cb === 'function') cb({ audioData: new ArrayBuffer(0) });
           return;
         }
-        return orig(text, (r) => {
+        return orig.call(this, arg, (r) => {
           ttsQueue = ttsQueue.then(() => playBytes(r && r.audioData));
           if (typeof cb === 'function') { try { cb(r); } catch (_) {} }
         }, errCb);
       };
-      if (typeof inst.speakSsmlAsync === 'function') {
-        const origSsml = inst.speakSsmlAsync.bind(inst);
-        inst.speakSsmlAsync = function (ssml, cb, errCb) {
-          return origSsml(ssml, (r) => {
-            ttsQueue = ttsQueue.then(() => playBytes(r && r.audioData));
-            if (typeof cb === 'function') { try { cb(r); } catch (_) {} }
-          }, errCb);
-        };
-      }
-      return inst;
-    }
-
-    Funnelled.prototype = Orig.prototype;
-    Funnelled.__cpm = true;
-    Funnelled.__orig = Orig;
-    try { SDK.SpeechSynthesizer = Funnelled; } catch (_) { return false; }
-    return true;
+      patched.__cpm = true; patched.__orig = orig;
+      P[nom] = patched;
+    };
+    enveloppe('speakTextAsync', true);
+    enveloppe('speakSsmlAsync', false);
+    return !!(P.speakTextAsync && P.speakTextAsync.__cpm);
   }
 
   /* ────────────────────────────────────────────────────────────────────
@@ -499,34 +508,31 @@
     if (el) { el.textContent = txt; el.style.opacity = '.8'; }
   }
 
+  // Meme contrainte : le constructeur n'est pas remplacable. On accroche
+  // l'affichage partiel au demarrage de la reconnaissance, sur le prototype.
   function installRecognizerFunnel() {
     const SDK = window.SpeechSDK;
     if (!SDK || typeof SDK.TranslationRecognizer !== 'function') return false;
-    if (SDK.TranslationRecognizer.__cpm) return true;
-
-    const Orig = SDK.TranslationRecognizer;
-    function Wrapped(...args) {
-      const inst = new Orig(...args);
-      let userFn = null;
+    const P = SDK.TranslationRecognizer.prototype;
+    if (!P || typeof P.startContinuousRecognitionAsync !== 'function') return false;
+    if (P.startContinuousRecognitionAsync.__cpm) return true;
+    const orig = P.startContinuousRecognitionAsync;
+    const patched = function (cb, errCb) {
       try {
-        Object.defineProperty(inst, 'recognizing', {
-          configurable: true,
-          get() { return userFn; },
-          set(fn) {
-            userFn = function (s, e) {
-              try { showLivePartial(e); } catch (_) {}
-              if (typeof fn === 'function') fn(s, e);
-            };
-          },
-        });
+        if (!this.__cpmPartial) {
+          this.__cpmPartial = true;
+          const sien = this.recognizing;
+          this.recognizing = function (s, e) {
+            try { showLivePartial(e); } catch (_) {}
+            if (typeof sien === 'function') { try { sien.call(this, s, e); } catch (_) {} }
+          };
+        }
       } catch (_) {}
-      return inst;
-    }
-    Wrapped.prototype = Orig.prototype;
-    Wrapped.__cpm = true;
-    Wrapped.__orig = Orig;
-    try { SDK.TranslationRecognizer = Wrapped; } catch (_) { return false; }
-    return true;
+      return orig.call(this, cb, errCb);
+    };
+    patched.__cpm = true; patched.__orig = orig;
+    P.startContinuousRecognitionAsync = patched;
+    return !!P.startContinuousRecognitionAsync.__cpm;
   }
 
   /* ────────────────────────────────────────────────────────────────────
@@ -540,19 +546,37 @@
    *    réinjecte un sélecteur complet, et le choix est transmis à
    *    CPRemote au moment de créer ou de rejoindre une salle.
    * ──────────────────────────────────────────────────────────────────── */
+  /* Mesure du 7 aout 2026 en production : .conf-transcript a 782 px,
+   * .conf-start-btn a 981 px. Les selecteurs de langue etaient donc SOUS le
+   * texte. La version precedente remontait le bloc frere entier, ce qui
+   * aurait aussi remonte le bouton Demarrer. On deplace les seuls
+   * selecteurs, dans un conteneur insere avant le transcript. */
   function fixConferenceLayout() {
     const tr = document.getElementById('confTranscript');
-    if (!tr || !tr.parentElement) return;
-    const p = tr.parentElement;
-    const lift = (id) => {
+    if (!tr) return;
+    const conf = document.getElementById('conference');
+    if (!conf) return;
+    let blocTr = tr;
+    while (blocTr && blocTr.parentElement !== conf) blocTr = blocTr.parentElement;
+    if (!blocTr) return;
+    let boite = document.getElementById('cpmConfLangs');
+    if (!boite) {
+      boite = document.createElement('div');
+      boite.id = 'cpmConfLangs';
+      boite.style.cssText = 'display:flex;gap:8px;align-items:center;margin:0 24px 10px;flex-wrap:wrap;';
+      conf.insertBefore(boite, blocTr);
+    }
+    const deplacer = (id) => {
       const el = document.getElementById(id);
-      if (!el) return;
-      let b = el;
-      while (b && b.parentElement !== p) b = b.parentElement;   // bloc frère du transcript
-      if (b && b !== tr && b.parentElement === p) p.insertBefore(b, tr);
+      if (!el || boite.contains(el)) return;
+      const prec = el.previousElementSibling;
+      if (prec && /^(LABEL|SPAN)$/.test(prec.tagName)
+          && (prec.textContent || '').trim().length < 40) boite.appendChild(prec);
+      el.style.flex = '1'; el.style.minWidth = '0';
+      boite.appendChild(el);
     };
-    lift('confSrcLang');
-    lift('confVoiceSel');
+    deplacer('confSrcLang');
+    deplacer('confVoiceSel');
     installConfChair();
   }
 
@@ -1539,18 +1563,25 @@
     // Le SDK Azure est chargé depuis un domaine externe et peut arriver
     // après nous ; on réessaie jusqu'à ce que le collecteur soit en place.
     installAudioEngine();
-    let tries = 0;
-    const t = setInterval(() => {
-      installAudioEngine();
-      if (++tries > 50) {                   // ~10 s au maximum
-        clearInterval(t);
-        if (!(window.SpeechSDK && window.SpeechSDK.SpeechSynthesizer
-              && window.SpeechSDK.SpeechSynthesizer.__cpm)) {
-          console.warn('[cp-meet] collecteur de synthèse non installé — '
-                     + 'le SDK Azure n\'a pas été chargé');
-        }
-      }
-    }, 200);
+
+    /* La version precedente reessayait 10 s puis abandonnait. Or les ecrans
+     * sont construits a la demande, souvent bien plus tard : tout ce qui
+     * dependait d'un ecran ouvert ensuite n'etait jamais installe. On
+     * observe donc le document. Les installateurs sont idempotents. */
+    let dernier = 0;
+    const rejouer = () => {
+      const now = Date.now();
+      if (now - dernier < 250) return;
+      dernier = now;
+      try { installAudioEngine(); } catch (e) { console.warn('[cp-meet]', e); }
+    };
+    try {
+      new MutationObserver(rejouer).observe(document.body, {
+        childList: true, subtree: true, attributes: true,
+        attributeFilter: ['class', 'style'],
+      });
+    } catch (_) {}
+    setInterval(rejouer, 2000);
 
     // Exposé pour diagnostic et pour un usage externe éventuel
     window.CPAudio = {
@@ -1559,8 +1590,9 @@
       get ready() { return ttsUnlocked; },
       get owned() { return ttsOwned; },
       get funnelled() {
-        return !!(window.SpeechSDK && window.SpeechSDK.SpeechSynthesizer
-                  && window.SpeechSDK.SpeechSynthesizer.__cpm);
+        const P = window.SpeechSDK && window.SpeechSDK.SpeechSynthesizer
+                  && window.SpeechSDK.SpeechSynthesizer.prototype;
+        return !!(P && P.speakTextAsync && P.speakTextAsync.__cpm);
       },
     };
 
@@ -1572,6 +1604,8 @@
       get state() { return { videoOn: S.videoOn, handUp: S.handUp, peers: S.peers.size, roster: S.roster.length }; },
       // Diagnostic : état de la séance (président, parole)
       get seance() { return { isChair: !!S.isChair, chair: S.chairId || (S.isChair ? S.selfId : null), floor: S.floor || null }; },
+      // Rejoue les installateurs sur demande (banc d'essai et diagnostic).
+      rejouer() { try { installAudioEngine(); return true; } catch (e) { return String(e && e.message); } },
     };
   }
 

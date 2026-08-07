@@ -73,6 +73,41 @@ jobs:
           fi
           echo "OK  ordre de chargement correct (ligne $M avant $O)"
 
+      # Le paquet Azure expose ses classes en accesseurs SANS setter et
+      # NON reconfigurables. Reaffecter la classe echoue donc en silence :
+      # aucune exception, la propriete ne bouge pas. Le collecteur s'est cru
+      # installe pendant des semaines sans l'etre — aucun son en Remote Call,
+      # et treize tests au vert. On enveloppe le PROTOTYPE, modifiable.
+      - name: Pas de remplacement du constructeur Azure
+        run: |
+          if [ -f cp-meet.js ] && grep -nE '(SDK|SpeechSDK)\.(SpeechSynthesizer|TranslationRecognizer)[[:space:]]*=' cp-meet.js; then
+            echo ""
+            echo "BLOQUANT — remplacement d'une classe du SDK Azure."
+            echo "Ces proprietes sont des accesseurs en lecture seule :"
+            echo "l'affectation echoue SANS erreur et rien n'est installe."
+            echo "Envelopper SpeechSynthesizer.prototype.speakTextAsync,"
+            echo "et neutraliser AudioConfig.fromDefaultSpeakerOutput."
+            exit 1
+          fi
+          echo "OK  aucun remplacement de constructeur"
+
+      # Une synthese construite sans second argument joue dans le
+      # haut-parleur par defaut, sans passer par fromDefaultSpeakerOutput :
+      # l'enveloppe ne peut alors que limiter les degats.
+      - name: Synthese construite avec un audioConfig explicite
+        run: |
+          N=$(grep -rnE 'new[[:space:]]+(SpeechSDK\.)?SpeechSynthesizer\([^,)]*\)' \
+              --include="*.js" --include="*.html" . | wc -l)
+          if [ "$N" -gt 0 ]; then
+            echo ""
+            echo "BLOQUANT — SpeechSynthesizer construit sans audioConfig."
+            echo "Ecrire : new SpeechSDK.SpeechSynthesizer(cfg, null)"
+            grep -rnE 'new[[:space:]]+(SpeechSDK\.)?SpeechSynthesizer\([^,)]*\)' \
+              --include="*.js" --include="*.html" .
+            exit 1
+          fi
+          echo "OK  toutes les syntheses passent un audioConfig explicite"
+
       # Le service worker doit servir le CODE réseau d'abord. En cache
       # d'abord, chaque appareil reste figé sur sa copie : les correctifs
       # se déploient mais personne ne les reçoit. C'est arrivé le 5 août —
