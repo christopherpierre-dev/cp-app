@@ -1865,3 +1865,163 @@
     boot();
   }
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   MENAGE D AVANT-LANCEMENT — revision du 9 aout 2026
+
+   Six corrections que index.html porte encore. Elles sont appliquees ici
+   parce que cp-meet.js est la couche prevue pour ca, et parce que les
+   ecrans concernes sont masques jusqu a ce que l utilisateur les ouvre :
+   rien ne clignote, le resultat visible est le meme.
+   ═════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  function ech(v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  /* 1. Deux « services premium » sont des maquettes remplies de fiction.
+        L un affiche un numero de telephone invente comme s il etait actif,
+        l autre trois collegues qui n existent pas et un taux de precision
+        que rien ne mesure. Apple refuse une application pour moins que ca. */
+  function retirerLesMaquettes() {
+    ['lnumber', 'workspace'].forEach(function (id) {
+      var sel = '[onclick*="showScreen(\'' + id + '\')"]';
+      document.querySelectorAll(sel).forEach(function (n) {
+        var carte = n.closest('.mode-card') || n;
+        if (carte && carte.parentNode) carte.remove();
+      });
+      var ecran = document.getElementById(id);
+      if (ecran && ecran.parentNode) ecran.remove();
+    });
+    document.querySelectorAll('.participant-card.p-add').forEach(function (n) {
+      var oc = n.getAttribute('onclick') || '';
+      if (oc.indexOf('v1.1') >= 0) n.remove();
+    });
+  }
+
+  /* 2. « 20 Languages » : il y en a 18. Le chiffre 20 vient d un decompte
+        ou le chinois est compte deux fois (zh et zh-Hans). Les boutiques
+        sanctionnent les metadonnees inexactes. */
+  function corrigerLeNombreDeLangues() {
+    var p = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = p.nextNode())) {
+      if (n.nodeValue && n.nodeValue.indexOf('20 Languages') >= 0) {
+        n.nodeValue = n.nodeValue.replace(/20 Languages/g, '18 Languages');
+      }
+    }
+  }
+
+  /* 3. L accueil affichait « Good morning there CP » : « there » est le nom
+        par defaut d un nom jamais demande, « CP » l ancienne initiale, et
+        « Good morning » s affichait a toute heure. */
+  function corrigerLaSalutation() {
+    var hh = document.querySelector('.home-header');
+    if (!hh) return;
+    var h = new Date().getHours();
+    var mot = h < 12 ? 'Good morning' : (h < 18 ? 'Good afternoon' : 'Good evening');
+    var nom = '';
+    try { nom = (localStorage.getItem('loquivox_name') || '').trim(); } catch (e) {}
+    var w = document.createTreeWalker(hh, NodeFilter.SHOW_TEXT);
+    var n;
+    while ((n = w.nextNode())) {
+      if (/Good (morning|afternoon|evening)/.test(n.nodeValue)) {
+        n.nodeValue = n.nodeValue.replace(/Good (morning|afternoon|evening)/, mot);
+      }
+    }
+    var t = document.getElementById('homeUserName');
+    if (t) {
+      if ((t.textContent || '').trim() === 'there') t.textContent = '';
+      if (nom) t.textContent = nom;
+      t.style.display = (t.textContent || '').trim() ? '' : 'none';
+    }
+    hh.querySelectorAll('*').forEach(function (e) {
+      if (e.children.length === 0 && (e.textContent || '').trim() === 'CP') {
+        var p = nom.split(/\s+/).filter(Boolean);
+        e.textContent = p.length
+          ? (p[0][0] + (p.length > 1 ? p[p.length - 1][0] : '')).toUpperCase()
+          : 'LX';
+      }
+    });
+  }
+
+  /* 4. Le code de salle faisait quatre caracteres, sans mot de passe ni
+        salle d attente : on tombe sur une reunion en cours en quelques
+        minutes d essais. Le champ accepte desormais six caracteres ;
+        le serveur doit suivre pour que ce soit reellement une protection. */
+  function codeDeSalleASixCaracteres() {
+    var c = document.getElementById('joinCodeInput');
+    if (!c) return;
+    if (c.maxLength !== 6) c.maxLength = 6;
+    if (/K7Q2\)/.test(c.placeholder || '')) {
+      c.placeholder = c.placeholder.replace('K7Q2', 'K7Q2M9');
+    }
+  }
+
+  /* 5. Sans aria-live, un lecteur d ecran n annonce jamais les nouvelles
+        lignes de transcription : pour une personne aveugle, la traduction
+        en direct est muette. Et un bouton qui n affiche qu un pictogramme
+        n a aucun nom lisible. */
+  function rendreAudibleAuxLecteursDEcran() {
+    ['confTranscript', 'meetTranscriptLines', 'cpmLog'].forEach(function (id) {
+      var e = document.getElementById(id);
+      if (e && !e.getAttribute('aria-live')) {
+        e.setAttribute('aria-live', 'polite');
+        e.setAttribute('aria-atomic', 'false');
+        e.setAttribute('role', 'log');
+      }
+    });
+    document.querySelectorAll('button').forEach(function (b) {
+      if (b.getAttribute('aria-label')) return;
+      var t = (b.textContent || '').replace(/\s+/g, ' ').trim();
+      if (t && /[A-Za-z0-9]/.test(t)) return;
+      var s = b.getAttribute('title') || b.className || '';
+      s = s.replace(/[-_]/g, ' ').replace(/\b(btn|ctrl|icon|nav)\b/g, '').trim();
+      if (s) b.setAttribute('aria-label', s);
+    });
+  }
+
+  /* 6. La ligne de transcription inserait le nom de l intervenant et le
+        texte reconnu directement dans la page. Ces valeurs arrivent des
+        autres appareils par le relais : un participant pouvait executer du
+        code chez tous les autres, et falsifier une traduction affichee.
+        On echappe les valeurs AVANT qu elles n atteignent la page. */
+  function echapperLaTranscription() {
+    var f = window.addMeetTranscriptLine;
+    if (typeof f !== 'function' || f.__cpmEch) return;
+    var enveloppe = function (o) {
+      var v = o || {};
+      return f.call(this, {
+        speaker: ech(v.speaker),
+        text: ech(v.text),
+        trans: ech(v.trans),
+      });
+    };
+    enveloppe.__cpmEch = true;
+    enveloppe.__orig = f;
+    window.addMeetTranscriptLine = enveloppe;
+  }
+
+  function tout() {
+    [retirerLesMaquettes, corrigerLeNombreDeLangues, corrigerLaSalutation,
+     codeDeSalleASixCaracteres, rendreAudibleAuxLecteursDEcran,
+     echapperLaTranscription].forEach(function (fn) {
+      try { fn(); } catch (e) { console.warn('[cp-meet] menage —', fn.name, e); }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tout);
+  } else {
+    tout();
+  }
+  try {
+    new MutationObserver(function () { tout(); })
+      .observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) {}
+  setInterval(tout, 3000);
+})();
