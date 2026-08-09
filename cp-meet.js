@@ -235,11 +235,41 @@
 
   let ttsAudio = null, ttsUnlocked = false, ttsQueue = Promise.resolve(), ttsOwned = false;
 
+  /* Dernier echec de lecture, pour que le bandeau puisse l'expliquer.
+   *
+   * On a passe des heures a chercher pourquoi « le son ne sort pas », sans
+   * jamais savoir si le navigateur refusait, si le media ne se chargeait
+   * pas, ou si rien n'etait meme tente. L'information existait a chaque
+   * fois — elle n'etait simplement ecrite nulle part. */
+  let dernierEchecAudio = null;
+
+  function diagAudio(motif, a) {
+    dernierEchecAudio = {
+      motif,
+      etat: a ? a.readyState : -1,     // 0 = rien charge, 4 = pret
+      arret: a ? !!a.paused : null,
+      position: a ? Math.round((a.currentTime || 0) * 100) / 100 : null,
+      erreur: (a && a.error) ? a.error.code : null,
+      quand: Date.now(),
+    };
+    console.warn('[cp-meet] audio —', motif, JSON.stringify(dernierEchecAudio));
+    try { majBandeauLangue(); } catch (_) {}
+  }
+
   function ensureAudioEl() {
     if (!ttsAudio) {
       ttsAudio = new Audio();
       ttsAudio.setAttribute('playsinline', '');
       ttsAudio.autoplay = false;
+      // Un element detache du document est traite de facon inegale selon
+      // les navigateurs. On l'attache, invisible : cela ne coute rien et
+      // supprime une variable dans une chaine deja difficile a observer.
+      try {
+        if (ttsAudio.style) {
+          ttsAudio.style.cssText = 'position:absolute;width:0;height:0;opacity:0';
+        }
+        if (document.body && document.body.appendChild) document.body.appendChild(ttsAudio);
+      } catch (_) {}
     }
     return ttsAudio;
   }
@@ -288,19 +318,34 @@
           clearTimeout(guard);
           resolve();
         };
+        /* Le garde-fou etait a 30 secondes. Trop long : la file etant
+         * serielle, une seule lecture qui ne se termine jamais rendait
+         * l'application muette pendant une demi-minute — et comme les
+         * phrases s'enchainent, elle paraissait muette tout court. On
+         * libere apres 10 secondes, ce qui depasse largement la duree
+         * d'une phrase traduite. */
         const guard = setTimeout(() => {
-          console.warn('[cp-meet] fin de lecture non signalée — file libérée');
+          diagAudio('lecture jamais terminee', a);
           finish();
-        }, 30000);
+        }, 10000);
+
+        /* Si la lecture n'a meme pas commence au bout d'une seconde et
+         * demie, ce n'est pas de la lenteur : c'est un blocage. On le note
+         * pour que le bandeau puisse le dire, au lieu de laisser
+         * l'utilisateur devant un silence sans explication. */
+        const veille = setTimeout(() => {
+          if (a.paused || !a.currentTime) diagAudio('lecture bloquee', a);
+        }, 1500);
+        const finishAvecVeille = () => { clearTimeout(veille); finish(); };
 
         duckVoices(true);                         // la vraie voix passe dessous
         a.src = url;
-        a.onended = finish;
-        a.onerror = finish;
-        a.play().catch((e) => {
-          console.warn('[cp-meet] lecture bloquée :', e && e.name,
-                       '— l\'audio n\'a pas été déverrouillé par un geste');
-          finish();
+        a.onended = finishAvecVeille;
+        a.onerror = () => { diagAudio('erreur de lecture', a); finishAvecVeille(); };
+        const p = a.play();
+        if (p && p.catch) p.catch((e) => {
+          diagAudio('refus du navigateur : ' + (e && e.name), a);
+          finishAvecVeille();
         });
       } catch (_) { resolve(); }
     });
@@ -810,8 +855,18 @@
     const c = chosenSpeak();
     const nom = (SPEAK_LANGS.find(r => r[0] === c.lang) || [,, c.lang])[2];
     const pret = !!(window.CPAudio && window.CPAudio.ready);
+    // Si une lecture a echoue recemment, on dit pourquoi. Un silence sans
+    // explication est ce qui coute le plus cher a diagnostiquer.
+    const e = dernierEchecAudio;
+    const recent = e && (Date.now() - e.quand < 60000);
+    const detail = recent
+      ? '<div style="margin-top:4px;font-size:11px;color:#f0b429">'
+        + esc(e.motif) + ' &middot; media ' + e.etat + '/4'
+        + (e.erreur ? ' &middot; err ' + e.erreur : '') + '</div>'
+      : '';
     el.innerHTML = 'Vous parlez : <b>' + nom + '</b> &nbsp;&middot;&nbsp; son '
-      + (pret ? 'actif' : '<b style="color:#f0b429">bloque — touchez ici</b>');
+      + (pret ? 'actif' : '<b style="color:#f0b429">bloque — touchez ici</b>')
+      + detail;
   }
 
   /* Pourquoi le choix de langue s'applique desormais TOUJOURS.
