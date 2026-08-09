@@ -40,6 +40,8 @@
     videoOn: false,
     micMuted: false,
     handUp: false,
+    // Quand chaque main s'est levee : c'est l'ordre de la file de parole.
+    handAt: new Map(),
     open: false,             // panneau visible
     tab: 'chat',
     unread: 0,
@@ -769,35 +771,83 @@
           + r[2] + '</option>').join('')
       + '</select>';
     anchor.parentElement.insertBefore(wrap, anchor.nextSibling);
+    // On ecrit le choix par defaut des l'affichage : sans cela rien n'est
+    // memorise tant que l'utilisateur n'a pas touche au menu, et la langue
+    // depend alors d'un menu qu'il n'a peut-etre jamais ouvert.
+    try { if (!localStorage.getItem(SPEAK_KEY)) localStorage.setItem(SPEAK_KEY, saved); } catch (_) {}
     wrap.querySelector('select').addEventListener('change', (ev) => {
       localStorage.setItem(SPEAK_KEY, ev.target.value);
       const c = chosenSpeak();
       try { window.CPRemote && CPRemote.setLanguage && CPRemote.setLanguage(c.lang, c.speechLang); } catch (_) {}
+      majBandeauLangue();
     });
   }
 
-  // Le choix ne s'applique que lorsque l'utilisateur passe par le modal
-  // Remote Call — le panneau Conference garde son propre choix de langue.
-  function remoteModalOpen() {
-    const m = document.getElementById('remoteModal');
-    return !!(m && (m.classList.contains('open') || m.style.display === 'flex'));
+  /* Un bandeau qui dit ce qui se passe.
+   *
+   * Il existe parce qu'on m'a demande, le 9 aout 2026, si la langue avait
+   * ete choisie et si l'ecran avait ete touche avant la premiere phrase —
+   * et que personne ne pouvait repondre. Rien a l'ecran ne l'indiquait.
+   * Une application qui ne montre pas son etat oblige a deviner.
+   *
+   * Il affiche la langue de parole reellement transmise a la salle, et si
+   * le canal audio est deverrouille. Le toucher le deverrouille : c'est un
+   * geste utilisateur, donc le navigateur l'autorise. */
+  function majBandeauLangue() {
+    const salle = document.getElementById('remote') || document.getElementById('meetRoot');
+    const actif = !!(window.CPRemote && CPRemote.room);
+    let el = document.getElementById('cpmLangBadge');
+    if (!actif) { if (el) el.remove(); return; }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'cpmLangBadge';
+      el.style.cssText = 'position:fixed;left:12px;bottom:96px;z-index:9998;'
+        + 'padding:7px 12px;border-radius:14px;font-size:12px;cursor:pointer;'
+        + 'background:rgba(11,17,32,.92);border:1px solid #1e2d4a;color:#e8edf5;';
+      el.onclick = () => { try { unlockAudio(); } catch (_) {} setTimeout(majBandeauLangue, 400); };
+      (salle || document.body).appendChild(el);
+    }
+    const c = chosenSpeak();
+    const nom = (SPEAK_LANGS.find(r => r[0] === c.lang) || [,, c.lang])[2];
+    const pret = !!(window.CPAudio && window.CPAudio.ready);
+    el.innerHTML = 'Vous parlez : <b>' + nom + '</b> &nbsp;&middot;&nbsp; son '
+      + (pret ? 'actif' : '<b style="color:#f0b429">bloque — touchez ici</b>');
   }
 
+  /* Pourquoi le choix de langue s'applique desormais TOUJOURS.
+   *
+   * La premiere version ne l'appliquait que si le modal Remote Call etait
+   * encore ouvert au moment de l'appel. Condition fragile : le modal se
+   * referme souvent avant que create() ne s'execute, et l'on entre aussi
+   * dans une salle par un lien partage, sans passer par lui. Dans ces cas
+   * mapOpts retombe sur ses valeurs par defaut — lang 'en', speechLang
+   * 'en-US' — et Azure ecoute en anglais quoi que l'on ait choisi.
+   * Symptome rapporte le 9 aout 2026 : « en Remote, cela ne prend que
+   * l'anglais ; quand on parle francais, on ne reconnait pas. »
+   *
+   * Le garde-fou existait pour que Conference garde sa propre langue. Or
+   * Conference ne passe jamais par CPRemote.create ni par CPRemote.join :
+   * la condition ne protegeait rien et cassait le cas courant. */
   function installLangOnJoin(R) {
     const _create = R.create, _join = R.join;
+    const avecLangue = (o) => {
+      const c = chosenSpeak();
+      const o2 = Object.assign({}, o || {}, c);
+      S.myLang = c.lang;
+      // Le son ne peut etre deverrouille que dans le geste de l'utilisateur.
+      // Creer ou rejoindre une salle en est un : on en profite.
+      try { unlockAudio(); } catch (_) {}
+      return o2;
+    };
     if (typeof _create === 'function') {
       R.create = function (o) {
-        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
-        if (o2 && o2.lang) S.myLang = o2.lang;
-        S.isChair = true;          // qui crée la salle préside la séance
-        return _create.call(R, o2);
+        S.isChair = true;          // qui cree la salle preside la seance
+        return _create.call(R, avecLangue(o));
       };
     }
     if (typeof _join === 'function') {
       R.join = function (code, o) {
-        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
-        if (o2 && o2.lang) S.myLang = o2.lang;
-        return _join.call(R, code, o2);
+        return _join.call(R, code, avecLangue(o));
       };
     }
   }
@@ -840,6 +890,7 @@
     // Réparations d'interface effacées par la restauration.
     fixConferenceLayout();
     installSpeakPicker();
+    majBandeauLangue();
 
     // Langue → code court, pour retrouver la voix Azure
     const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
@@ -1066,15 +1117,25 @@
       body.innerHTML = '<div class="cpm-empty">Personne d\'autre dans la salle.</div>';
       return;
     }
-    // Mains levées d'abord — c'est la file d'attente de parole du président.
+    /* Ordre d'arrivee des mains levees.
+     *
+     * Trier par « main levee » ne suffit pas : deux personnes qui levent la
+     * main ne sont pas a egalite, la premiere a demande la parole avant. A
+     * l'Assemblee generale on parle dans l'ordre d'inscription, pas dans
+     * l'ordre alphabetique. On horodate donc chaque levee de main et on
+     * classe la file la-dessus. */
     const chairId = S.isChair ? S.selfId : S.chairId;
-    const ordered = [...S.roster].sort((a, b) => (b.hand ? 1 : 0) - (a.hand ? 1 : 0));
+    const rang = (p) => (p.hand ? (S.handAt.get(p.id) || 0) : Infinity);
+    const ordered = [...S.roster].sort((a, b) => rang(a) - rang(b));
     body.innerHTML = ordered.map(p => {
       const ini = (p.name || '?').trim().charAt(0).toUpperCase() || '?';
       const tags = [];
       if (p.id === chairId) tags.push('<span class="cpm-tag">🪑 préside</span>');
       if (p.id === S.floor) tags.push('<span class="cpm-tag" style="border-color:#57c46b">🎤 a la parole</span>');
-      if (p.hand) tags.push('<span class="cpm-tag">✋ main levée</span>');
+      if (p.hand) {
+        const pos = ordered.filter(x => x.hand).findIndex(x => x.id === p.id) + 1;
+        tags.push('<span class="cpm-tag">&#9995; ' + pos + '<sup>e</sup> dans la file</span>');
+      }
       if (p.muted) tags.push('<span class="cpm-tag">🔇</span>');
       if (p.video) tags.push('<span class="cpm-tag">🎥</span>');
       if (p.lang) tags.push(`<span class="cpm-tag">${esc(String(p.lang).toUpperCase())}</span>`);
@@ -1141,7 +1202,14 @@
   function toggleHand() {
     S.handUp = !S.handUp;
     document.getElementById('cpmHand').classList.toggle('active', S.handUp);
+    // On s'inscrit soi-meme dans la file tout de suite, sans attendre
+    // l'aller-retour par le serveur : sinon on ne se voit pas y entrer.
+    if (S.selfId) {
+      if (S.handUp) S.handAt.set(S.selfId, Date.now());
+      else S.handAt.delete(S.selfId);
+    }
     send({ type: 'state', hand: S.handUp });
+    majFileParole();
   }
 
   /* ────────────────────────────────────────────────────────────────────
@@ -1192,6 +1260,63 @@
     el.__t = setTimeout(() => { el.style.display = 'none'; }, ms || 6000);
   }
 
+  /* LA FILE DE PAROLE, VISIBLE PAR TOUS.
+   *
+   * Elle est affichee a tout le monde, pas seulement au president. Dans une
+   * enceinte multilaterale, savoir qui attend et a quel rang fait partie de
+   * la transparence des debats : on ne demande pas la parole a l'aveugle.
+   * Chacun voit sa propre position ; le president donne la parole d'un seul
+   * geste, sans ouvrir le panneau des participants.
+   *
+   * L'identite affichee est le nom saisi a l'entree dans la salle. Il peut
+   * etre un nom de personne ou un nom de delegation — « Senegal » comme
+   * « Marie Dupont ». Loquivox ne sert pas qu'aux rencontres multilaterales :
+   * on n'impose donc pas le vocabulaire diplomatique, on l'autorise. */
+  function majFileParole() {
+    const enSalle = !!(window.CPRemote && CPRemote.room);
+    let box = document.getElementById('cpmQueue');
+    const attente = (S.roster || [])
+      .filter(p => p.hand)
+      .sort((a, b) => (S.handAt.get(a.id) || 0) - (S.handAt.get(b.id) || 0));
+
+    if (!enSalle || !attente.length) { if (box) box.remove(); return; }
+
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'cpmQueue';
+      box.style.cssText = 'position:fixed;right:12px;bottom:150px;z-index:9099;'
+        + 'width:min(268px,74vw);padding:10px 12px;border-radius:14px;'
+        + 'background:rgba(11,17,32,.95);border:1px solid #1e2d4a;color:#e8ecf6;'
+        + 'font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.4);';
+      document.body.appendChild(box);
+    }
+
+    const lignes = attente.map((p, i) => {
+      const moi = p.id === S.selfId;
+      const attenteMin = Math.round((Date.now() - (S.handAt.get(p.id) || Date.now())) / 60000);
+      const depuis = attenteMin >= 1 ? ' · ' + attenteMin + ' min' : '';
+      const bouton = (S.isChair && !moi)
+        ? '<button class="cpm-q" data-id="' + esc(p.id) + '" style="margin-left:auto;'
+          + 'border:1px solid rgba(255,255,255,.2);background:#28304a;color:#e8ecf6;'
+          + 'border-radius:10px;padding:3px 9px;font-size:12px;cursor:pointer">&#127908;</button>'
+        : '';
+      return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;'
+        + (moi ? 'color:#8fd6a0' : '') + '">'
+        + '<b style="opacity:.65;min-width:14px">' + (i + 1) + '.</b>'
+        + '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        + esc(p.name || '—') + (moi ? ' (vous)' : '') + '</span>'
+        + '<span style="opacity:.6;font-size:11px">' + esc(String(p.lang || '').toUpperCase())
+        + depuis + '</span>' + bouton + '</div>';
+    }).join('');
+
+    box.innerHTML = '<div style="font-size:11px;letter-spacing:.4px;text-transform:uppercase;'
+      + 'color:#8fa0bd;margin-bottom:6px">&#9995; Demandes de parole (' + attente.length + ')</div>'
+      + lignes;
+    box.querySelectorAll('.cpm-q').forEach(b => {
+      b.onclick = () => setFloor(b.dataset.id);
+    });
+  }
+
   function floorBar(msg, mine) {
     let bar = document.getElementById('cpmFloorBar');
     if (!msg) { if (bar) bar.remove(); return; }
@@ -1218,6 +1343,9 @@
     if (!S.floor) floorBar(null);
     else if (S.floor === S.selfId) floorBar('🎤 Vous avez la parole', true);
     else floorBar('🎤 La parole est à ' + nameOf(S.floor) + ' — levez la main ✋ pour la demander', false);
+    // Celui qui recoit la parole quitte la file : on la redessine.
+    if (S.floor) S.handAt.delete(S.floor);
+    majFileParole();
     render();
   }
 
@@ -1472,8 +1600,21 @@
           }
         }
       }
+      /* Horodatage de la file, tenu localement.
+       *
+       * Le serveur ne transmet qu'un booleen « main levee » : deux
+       * personnes qui levent la main arrivent donc sans ordre. On note ici
+       * l'instant ou chaque main apparait, et on oublie celles qui
+       * redescendent. L'ordre est ainsi le meme pour tout le monde, a la
+       * latence du relais pres — suffisant pour une file de parole. */
+      const avant = new Set((S.roster || []).filter(p => p.hand).map(p => p.id));
+      for (const p of (data.participants || [])) {
+        if (p.hand && !avant.has(p.id) && !S.handAt.has(p.id)) S.handAt.set(p.id, Date.now());
+        if (!p.hand) S.handAt.delete(p.id);
+      }
       S.roster = data.participants || [];
       S.rosterMax = Math.max(S.rosterMax || 0, S.roster.length);
+      majFileParole();
       // Le président informe les arrivants de l'état de la séance
       broadcastMeet();
       // Le détenteur de la parole est parti : la discussion redevient libre
