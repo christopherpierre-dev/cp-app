@@ -551,6 +551,9 @@
    * texte. La version precedente remontait le bloc frere entier, ce qui
    * aurait aussi remonte le bouton Demarrer. On deplace les seuls
    * selecteurs, dans un conteneur insere avant le transcript. */
+  /* Mesure du 7 aout 2026 en production : les selecteurs de langue etaient
+   * SOUS le transcript. On les remonte, dans un conteneur dedie insere
+   * avant lui. Le bouton Demarrer reste ou il est. */
   function fixConferenceLayout() {
     const tr = document.getElementById('confTranscript');
     if (!tr) return;
@@ -559,6 +562,7 @@
     let blocTr = tr;
     while (blocTr && blocTr.parentElement !== conf) blocTr = blocTr.parentElement;
     if (!blocTr) return;
+
     let boite = document.getElementById('cpmConfLangs');
     if (!boite) {
       boite = document.createElement('div');
@@ -566,17 +570,40 @@
       boite.style.cssText = 'display:flex;gap:8px;align-items:center;margin:0 24px 10px;flex-wrap:wrap;';
       conf.insertBefore(boite, blocTr);
     }
-    const deplacer = (id) => {
-      const el = document.getElementById(id);
-      if (!el || boite.contains(el)) return;
-      const prec = el.previousElementSibling;
-      if (prec && /^(LABEL|SPAN)$/.test(prec.tagName)
-          && (prec.textContent || '').trim().length < 40) boite.appendChild(prec);
-      el.style.flex = '1'; el.style.minWidth = '0';
-      boite.appendChild(el);
-    };
-    deplacer('confSrcLang');
-    deplacer('confVoiceSel');
+
+    /* Ne deplacer QUE le vrai selecteur, et avec son etiquette.
+     *
+     * Premiere version : on deplacait confSrcLang ET confVoiceSel. Mesure
+     * ensuite en production, c'etait faux sur les deux plans.
+     *
+     *   confVoiceSel  <select> « Listen in », enferme dans un <div> avec son
+     *                 <label>. Deplacer le seul <select> laissait
+     *                 l'etiquette orpheline en bas de l'ecran.
+     *   confSrcLang   n'est PAS un selecteur : c'est un <b> au milieu de la
+     *                 phrase « You speak <b>English</b> — the room reads you
+     *                 live… ». Le deplacer arrachait un mot a sa phrase.
+     *
+     * On deplace donc le bloc entier qui porte confVoiceSel, et on laisse
+     * confSrcLang tranquille. */
+    const sel = document.getElementById('confVoiceSel');
+    if (sel && !boite.contains(sel)) {
+      let bloc = sel;
+      while (bloc.parentElement && bloc.parentElement !== conf
+             && bloc.parentElement.id !== 'cpmConfLangs'
+             && bloc.parentElement.children.length <= 3) bloc = bloc.parentElement;
+      boite.appendChild(bloc.parentElement === conf ? sel : bloc);
+    }
+
+    // Reparation : si une version anterieure a sorti confSrcLang de sa
+    // phrase, on l'y remet, juste avant le fragment « — the room reads… ».
+    const b = document.getElementById('confSrcLang');
+    const hint = document.getElementById('confHint');
+    if (b && hint && !hint.contains(b)) {
+      const tiret = [...hint.childNodes].find(
+        (n) => n.nodeType === 3 && /^\s*—/.test(n.textContent || ''));
+      hint.insertBefore(b, tiret || null);
+    }
+
     installConfChair();
   }
 
@@ -593,10 +620,36 @@
    * ──────────────────────────────────────────────────────────────────── */
   const CONF_KEY = 'loquivox_conf_speakers';
 
+  /* D'ou vient la liste des langues, et comment on donne la parole.
+   *
+   * La premiere version cherchait un <select> nomme confSrcLang. Mesure en
+   * production le 7 aout 2026 : confSrcLang est un <b>, pas un menu. Le
+   * garde-fou « structure inattendue » sortait donc a chaque fois et le
+   * panneau n'apparaissait jamais. Il refusait de casser quoi que ce soit,
+   * ce qui etait juste — mais il ne cherchait pas le bon element.
+   *
+   * L'ecran Conference possede deja ce qu'il faut : les cartes #pl-en,
+   * #pl-fr, #pl-ht… portent chacune onclick="setConfSpeaker(nom, drapeau)".
+   * Donner la parole revient donc a cliquer la carte de la langue de
+   * l'intervenant — on emprunte le chemin de l'application au lieu d'en
+   * inventer un second. */
+  function languesDeLaSalle() {
+    return [...document.querySelectorAll('[id^="pl-"]')].map((carte) => {
+      const oc = carte.getAttribute('onclick') || '';
+      const m = oc.match(/setConfSpeaker\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]*)['"]/);
+      const code = carte.id.replace(/^pl-/, '');
+      const label = (carte.textContent || '').trim().split(/\s+/).slice(0, 2).join(' ');
+      return { code, nom: m ? m[1] : label, drapeau: m ? m[2] : '',
+               label: (m ? (m[2] + ' ' + m[1]) : label).trim() };
+    });
+  }
+
   function installConfChair() {
-    const sel = document.getElementById('confSrcLang');
-    if (!sel || !sel.parentElement || document.getElementById('cpmConfChair')) return;
-    if (!sel.options || !sel.options.length) return;   // structure inattendue : ne rien casser
+    if (document.getElementById('cpmConfChair')) return;
+    const boite = document.getElementById('cpmConfLangs');
+    if (!boite || !boite.parentElement) return;
+    const langues = languesDeLaSalle();
+    if (!langues.length) return;          // ecran pas encore construit
 
     let speakers = [];
     try { speakers = JSON.parse(localStorage.getItem(CONF_KEY) || '[]'); } catch (_) {}
@@ -608,7 +661,7 @@
       + 'border-radius:14px;background:#131929;';
     wrap.innerHTML =
       '<div style="font-size:12px;color:#8fa0bd;letter-spacing:.5px;text-transform:uppercase;'
-      + 'margin-bottom:8px;">🪑 Tour de parole</div>'
+      + 'margin-bottom:8px;">Tour de parole</div>'
       + '<div id="cpmConfChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>'
       + '<div style="display:flex;gap:6px;">'
       + '<input id="cpmConfName" placeholder="Nom de l\'intervenant" style="flex:1;min-width:0;'
@@ -616,13 +669,12 @@
       + 'padding:8px 10px;color:#e8edf5;font-size:13px;">'
       + '<select id="cpmConfLang" style="background:rgba(255,255,255,.05);border:1px solid #1e2d4a;'
       + 'border-radius:10px;padding:8px;color:#e8edf5;font-size:13px;max-width:38%">'
-      + [...sel.options].map(o => `<option value="${o.value}">${o.textContent}</option>`).join('')
+      + langues.map(l => '<option value="' + l.code + '">' + l.label + '</option>').join('')
       + '</select>'
       + '<button id="cpmConfAdd" style="border:none;border-radius:10px;padding:8px 12px;'
       + 'background:#28304a;color:#e8edf5;font-size:13px;cursor:pointer">+</button></div>';
-    sel.parentElement.parentElement
-      ? sel.parentElement.parentElement.insertBefore(wrap, sel.parentElement)
-      : sel.parentElement.insertBefore(wrap, sel);
+    // Juste au-dessus des selecteurs de langue, donc au-dessus du transcript.
+    boite.parentElement.insertBefore(wrap, boite);
 
     const chips = wrap.querySelector('#cpmConfChips');
 
@@ -632,10 +684,12 @@
       current = (current === i) ? -1 : i;
       if (current >= 0) {
         const s = speakers[current];
-        // Bascule de la langue d'écoute — même effet qu'un choix manuel
-        sel.value = s.lang;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
-        floorBar('🎤 La parole est à ' + s.name + ' (' + s.langLabel + ')', false);
+        // On clique la carte de langue de l'intervenant : c'est le chemin
+        // que l'application emprunte elle-meme (setConfSpeaker), donc le
+        // seul dont on soit sur qu'il reste juste si l'ecran evolue.
+        const carte = document.getElementById('pl-' + s.lang);
+        if (carte) { try { carte.click(); } catch (_) {} }
+        floorBar('La parole est a ' + s.name + ' (' + s.langLabel + ')', false);
       } else {
         floorBar(null);
       }
@@ -644,11 +698,11 @@
 
     function draw() {
       chips.innerHTML = speakers.map((s, i) =>
-        `<span data-i="${i}" style="cursor:pointer;padding:6px 12px;border-radius:16px;font-size:13px;
-          border:1px solid ${i === current ? '#57c46b' : 'rgba(255,255,255,.15)'};
-          background:${i === current ? 'rgba(87,196,107,.15)' : 'rgba(255,255,255,.05)'};color:#e8edf5;">
-          ${i === current ? '🎤 ' : ''}${s.name} · ${s.langLabel}
-          <b data-del="${i}" style="margin-left:6px;color:#8fa0bd;cursor:pointer">×</b></span>`).join('')
+        '<span data-i="' + i + '" style="cursor:pointer;padding:6px 12px;border-radius:16px;font-size:13px;'
+        + 'border:1px solid ' + (i === current ? '#57c46b' : 'rgba(255,255,255,.15)') + ';'
+        + 'background:' + (i === current ? 'rgba(87,196,107,.15)' : 'rgba(255,255,255,.05)') + ';color:#e8edf5;">'
+        + (i === current ? '&#127908; ' : '') + s.name + ' · ' + s.langLabel
+        + '<b data-del="' + i + '" style="margin-left:6px;color:#8fa0bd;cursor:pointer">&times;</b></span>').join('')
         || '<span style="font-size:12px;color:#64748b">Ajoutez les intervenants, puis touchez un nom pour lui donner la parole.</span>';
       chips.querySelectorAll('[data-i]').forEach(el => {
         el.onclick = (ev) => {
