@@ -769,35 +769,83 @@
           + r[2] + '</option>').join('')
       + '</select>';
     anchor.parentElement.insertBefore(wrap, anchor.nextSibling);
+    // On ecrit le choix par defaut des l'affichage : sans cela rien n'est
+    // memorise tant que l'utilisateur n'a pas touche au menu, et la langue
+    // depend alors d'un menu qu'il n'a peut-etre jamais ouvert.
+    try { if (!localStorage.getItem(SPEAK_KEY)) localStorage.setItem(SPEAK_KEY, saved); } catch (_) {}
     wrap.querySelector('select').addEventListener('change', (ev) => {
       localStorage.setItem(SPEAK_KEY, ev.target.value);
       const c = chosenSpeak();
       try { window.CPRemote && CPRemote.setLanguage && CPRemote.setLanguage(c.lang, c.speechLang); } catch (_) {}
+      majBandeauLangue();
     });
   }
 
-  // Le choix ne s'applique que lorsque l'utilisateur passe par le modal
-  // Remote Call — le panneau Conference garde son propre choix de langue.
-  function remoteModalOpen() {
-    const m = document.getElementById('remoteModal');
-    return !!(m && (m.classList.contains('open') || m.style.display === 'flex'));
+  /* Un bandeau qui dit ce qui se passe.
+   *
+   * Il existe parce qu'on m'a demande, le 9 aout 2026, si la langue avait
+   * ete choisie et si l'ecran avait ete touche avant la premiere phrase —
+   * et que personne ne pouvait repondre. Rien a l'ecran ne l'indiquait.
+   * Une application qui ne montre pas son etat oblige a deviner.
+   *
+   * Il affiche la langue de parole reellement transmise a la salle, et si
+   * le canal audio est deverrouille. Le toucher le deverrouille : c'est un
+   * geste utilisateur, donc le navigateur l'autorise. */
+  function majBandeauLangue() {
+    const salle = document.getElementById('remote') || document.getElementById('meetRoot');
+    const actif = !!(window.CPRemote && CPRemote.room);
+    let el = document.getElementById('cpmLangBadge');
+    if (!actif) { if (el) el.remove(); return; }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'cpmLangBadge';
+      el.style.cssText = 'position:fixed;left:12px;bottom:96px;z-index:9998;'
+        + 'padding:7px 12px;border-radius:14px;font-size:12px;cursor:pointer;'
+        + 'background:rgba(11,17,32,.92);border:1px solid #1e2d4a;color:#e8edf5;';
+      el.onclick = () => { try { unlockAudio(); } catch (_) {} setTimeout(majBandeauLangue, 400); };
+      (salle || document.body).appendChild(el);
+    }
+    const c = chosenSpeak();
+    const nom = (SPEAK_LANGS.find(r => r[0] === c.lang) || [,, c.lang])[2];
+    const pret = !!(window.CPAudio && window.CPAudio.ready);
+    el.innerHTML = 'Vous parlez : <b>' + nom + '</b> &nbsp;&middot;&nbsp; son '
+      + (pret ? 'actif' : '<b style="color:#f0b429">bloque — touchez ici</b>');
   }
 
+  /* Pourquoi le choix de langue s'applique desormais TOUJOURS.
+   *
+   * La premiere version ne l'appliquait que si le modal Remote Call etait
+   * encore ouvert au moment de l'appel. Condition fragile : le modal se
+   * referme souvent avant que create() ne s'execute, et l'on entre aussi
+   * dans une salle par un lien partage, sans passer par lui. Dans ces cas
+   * mapOpts retombe sur ses valeurs par defaut — lang 'en', speechLang
+   * 'en-US' — et Azure ecoute en anglais quoi que l'on ait choisi.
+   * Symptome rapporte le 9 aout 2026 : « en Remote, cela ne prend que
+   * l'anglais ; quand on parle francais, on ne reconnait pas. »
+   *
+   * Le garde-fou existait pour que Conference garde sa propre langue. Or
+   * Conference ne passe jamais par CPRemote.create ni par CPRemote.join :
+   * la condition ne protegeait rien et cassait le cas courant. */
   function installLangOnJoin(R) {
     const _create = R.create, _join = R.join;
+    const avecLangue = (o) => {
+      const c = chosenSpeak();
+      const o2 = Object.assign({}, o || {}, c);
+      S.myLang = c.lang;
+      // Le son ne peut etre deverrouille que dans le geste de l'utilisateur.
+      // Creer ou rejoindre une salle en est un : on en profite.
+      try { unlockAudio(); } catch (_) {}
+      return o2;
+    };
     if (typeof _create === 'function') {
       R.create = function (o) {
-        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
-        if (o2 && o2.lang) S.myLang = o2.lang;
-        S.isChair = true;          // qui crée la salle préside la séance
-        return _create.call(R, o2);
+        S.isChair = true;          // qui cree la salle preside la seance
+        return _create.call(R, avecLangue(o));
       };
     }
     if (typeof _join === 'function') {
       R.join = function (code, o) {
-        const o2 = remoteModalOpen() ? Object.assign({}, o || {}, chosenSpeak()) : o;
-        if (o2 && o2.lang) S.myLang = o2.lang;
-        return _join.call(R, code, o2);
+        return _join.call(R, code, avecLangue(o));
       };
     }
   }
@@ -840,6 +888,7 @@
     // Réparations d'interface effacées par la restauration.
     fixConferenceLayout();
     installSpeakPicker();
+    majBandeauLangue();
 
     // Langue → code court, pour retrouver la voix Azure
     const shortCode = (c) => String(c || 'en').toLowerCase().split('-')[0];
