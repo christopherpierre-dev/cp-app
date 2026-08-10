@@ -2006,12 +2006,19 @@
     window.addMeetTranscriptLine = enveloppe;
   }
 
+  var enCours = false;
   function tout() {
-    [retirerLesMaquettes, corrigerLeNombreDeLangues, corrigerLaSalutation,
+    if (enCours) return;
+    enCours = true;
+    try {
+      [retirerLesMaquettes, corrigerLeNombreDeLangues, corrigerLaSalutation,
      codeDeSalleASixCaracteres, rendreAudibleAuxLecteursDEcran,
-     echapperLaTranscription].forEach(function (fn) {
-      try { fn(); } catch (e) { console.warn('[cp-meet] menage —', fn.name, e); }
-    });
+       echapperLaTranscription].forEach(function (fn) {
+        try { fn(); } catch (e) { console.warn('[cp-meet] menage —', fn.name, e); }
+      });
+    } finally {
+      enCours = false;
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -2019,9 +2026,11 @@
   } else {
     tout();
   }
-  try {
-    new MutationObserver(function () { tout(); })
-      .observe(document.documentElement, { childList: true, subtree: true });
-  } catch (e) {}
-  setInterval(tout, 3000);
+
+  /* PAS de MutationObserver ici. La premiere version en avait un, et il a
+     fige l application : tout() modifie le document (textes, attributs),
+     l observateur le voit et rappelle tout(), qui modifie a nouveau. Boucle
+     sans fin, page bloquee. Un intervalle de deux secondes suffit largement :
+     les ecrans sont statiques et rien n apparait entre deux passages. */
+  setInterval(tout, 2000);
 })();
