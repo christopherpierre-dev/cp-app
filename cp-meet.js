@@ -2034,3 +2034,136 @@
      les ecrans sont statiques et rien n apparait entre deux passages. */
   setInterval(tout, 2000);
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   ENTREE EN SALLE — pays, partage du lien, salle unique expliquee
+   Revision du 9 aout 2026, demande de Wisnique :
+   « La personne rentre dans la salle avec son nom et sa langue, ou le
+   nom du pays, comme aux Nations unies. » Le menu propose les pays
+   membres, puis Institution et Personne pour tous les autres cas.
+   ═════════════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* Codes ISO des Etats membres de l ONU. Le nom s ecrit tout seul dans
+     la langue de l appareil (Intl.DisplayNames) : rien a traduire, rien
+     a maintenir, et le drapeau se deduit du code. */
+  var CODES = ('AF AL DZ AD AO AG AR AM AU AT AZ BS BH BD BB BY BE BZ BJ BT BO BA BW BR BN BG BF BI CV KH CM CA CF TD CL CN CO KM CG CD CR CI HR CU CY CZ DK DJ DM DO EC EG SV GQ ER EE SZ ET FJ FI FR GA GM GE DE GH GR GD GT GN GW GY HT HN HU IS IN ID IR IQ IE IL IT JM JP JO KZ KE KI KP KR KW KG LA LV LB LS LR LY LI LT LU MG MW MY MV ML MT MH MR MU MX FM MD MC MN ME MA MZ MM NA NR NP NL NZ NI NE NG MK NO OM PK PW PA PG PY PE PH PL PT QA RO RU RW KN LC VC WS SM ST SA SN RS SC SL SG SK SI SB SO ZA SS ES LK SD SR SE CH SY TJ TZ TH TL TG TO TT TN TR TM TV UG UA AE GB US UY UZ VU VE VN YE ZM ZW').split(' ');
+
+  function drapeau(code) {
+    return String.fromCodePoint.apply(null,
+      code.split('').map(function (c) { return 127397 + c.charCodeAt(0); }));
+  }
+
+  function listePays() {
+    var langue = (navigator.language || 'en');
+    var noms;
+    try { noms = new Intl.DisplayNames([langue], { type: 'region' }); }
+    catch (e) { noms = { of: function (c) { return c; } }; }
+    return CODES.map(function (c) {
+      return { code: c, nom: noms.of(c) || c, drapeau: drapeau(c) };
+    }).sort(function (a, b) { return a.nom.localeCompare(b.nom, langue); });
+  }
+
+  /* 1. Le menu « Vous representez » a l entree en conference.
+        Choisir un pays remplit le nom avec drapeau + pays — c est ce que
+        les autres verront dans la file de parole. Institution et Personne
+        rendent la main au champ libre. */
+  function poserSelecteur() {
+    var inp = document.getElementById('confJoinNameInput');
+    if (!inp || document.getElementById('cpmRepSel')) return;
+    var sel = document.createElement('select');
+    sel.id = 'cpmRepSel';
+    sel.setAttribute('aria-label', 'Who you represent');
+    sel.style.cssText = inp.style.cssText;
+    sel.className = inp.className;
+    sel.style.marginBottom = '8px';
+    sel.style.width = '100%';
+    var histoire = '';
+    try { histoire = localStorage.getItem('loquivox_represente') || ''; } catch (e) {}
+    var h = '';
+    h += '\x3coption value=""\x3e\ud83c\udf10 Country \u00b7 Pays\u2026\x3c/option\x3e';
+    h += '\x3coption value="pers"\x3e\ud83d\udc64 Person \u00b7 Personne\x3c/option\x3e';
+    h += '\x3coption value="inst"\x3e\ud83c\udfe2 Institution\x3c/option\x3e';
+    listePays().forEach(function (p) {
+      h += '\x3coption value="' + p.code + '"\x3e' + p.drapeau + ' ' + p.nom + '\x3c/option\x3e';
+    });
+    sel.innerHTML = h;
+    if (histoire) { try { sel.value = histoire; } catch (e) {} }
+    sel.addEventListener('change', function () {
+      var v = sel.value;
+      try { localStorage.setItem('loquivox_represente', v); } catch (e) {}
+      if (v && v !== 'pers' && v !== 'inst') {
+        var p = listePays().filter(function (x) { return x.code === v; })[0];
+        if (p) { inp.value = p.drapeau + ' ' + p.nom; }
+      } else if (v === 'inst') {
+        inp.value = ''; inp.placeholder = 'Institution name'; inp.focus();
+      } else if (v === 'pers') {
+        inp.value = ''; inp.placeholder = 'Your name'; inp.focus();
+      }
+    });
+    inp.parentElement.insertBefore(sel, inp);
+  }
+
+  /* 2. Le lien d invitation, mis en avant la ou le code s affiche.
+        Un code se dicte ; un lien s envoie. Le lien ouvre directement
+        le choix de langue chez l invite. */
+  function poserPartage() {
+    var panneau = document.getElementById('qrPanel');
+    if (!panneau || document.getElementById('cpmBtnPartage')) return;
+    var lien = document.getElementById('qrLink');
+    var b = document.createElement('button');
+    b.id = 'cpmBtnPartage';
+    b.textContent = '\ud83d\udce4 Send invitation link';
+    b.setAttribute('aria-label', 'Send invitation link');
+    b.style.cssText = 'width:100%;margin-top:10px;padding:13px;border:none;' +
+      'border-radius:12px;background:linear-gradient(135deg,#4f8ef7,#7c5cfc);' +
+      'color:#fff;font-size:14px;font-weight:600;cursor:pointer';
+    b.addEventListener('click', function () {
+      var url = (lien && lien.textContent && lien.textContent.trim()) || '';
+      if (!url) {
+        var code = (window.CPRemote && CPRemote.room && (CPRemote.room.code || CPRemote.room)) || '';
+        if (code) url = 'https://loquivox.app/#conf=' + code;
+      }
+      if (!url) return;
+      if (navigator.share) {
+        navigator.share({ title: 'Loquivox', text: 'Join my meeting \u2014 in your own language:', url: url }).catch(function () {});
+      } else if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function () {
+          b.textContent = '\u2713 Link copied'; 
+          setTimeout(function () { b.textContent = '\ud83d\udce4 Send invitation link'; }, 2000);
+        }).catch(function () {});
+      }
+    });
+    panneau.appendChild(b);
+  }
+
+  /* 3. Dire la salle unique, plutot que laisser croire a un bogue.
+        Conference et appel a distance creent la meme salle : un seul
+        code, que l on soit autour de la table ou a Geneve. */
+  function poserExplication() {
+    var panneau = document.getElementById('qrPanel');
+    if (!panneau || document.getElementById('cpmNoteSalle')) return;
+    var note = document.createElement('div');
+    note.id = 'cpmNoteSalle';
+    note.style.cssText = 'margin-top:10px;font-size:12px;line-height:1.5;color:#64748b;text-align:center';
+    note.textContent = 'One room, one code \u2014 Conference and Remote Call share it. ' +
+      'Anyone who opens the link joins in their own language.';
+    panneau.appendChild(note);
+  }
+
+  var occupe = false;
+  function poserTout() {
+    if (occupe) return;
+    occupe = true;
+    try {
+      [poserSelecteur, poserPartage, poserExplication].forEach(function (fn) {
+        try { fn(); } catch (e) { console.warn('[cp-meet] entree —', e); }
+      });
+    } finally { occupe = false; }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', poserTout);
+  } else { poserTout(); }
+  setInterval(poserTout, 2000);
+})();
