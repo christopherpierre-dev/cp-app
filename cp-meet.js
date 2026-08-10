@@ -2184,3 +2184,74 @@
   } else { poserTout(); }
   setInterval(poserTout, 2000);
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   VOIX ORIGINALE — rendre la panne visible
+   Demande de Wisnique, 10 aout 2026. Meme demarche que pour la synthese
+   (PR #23) : je ne pretends pas corriger le son, je rends lisible POURQUOI
+   il ne sort pas. La voix originale de Remote Call passe par le serveur en
+   morceaux MediaRecorder, decodes par decodeAudioData. L en-tete du fichier
+   dit que Safari iPhone lit mal ce canal : si c est le cas, le decodage
+   echoue, et jusqu ici cet echec disparaissait en silence.
+   On enveloppe decodeAudioData (prototype modifiable) sans toucher au code
+   audio existant, et on affiche le motif sous l etat de l appel. */
+(function () {
+  'use strict';
+  var dernierEchecVoix = null;
+
+  function noter(motif) {
+    dernierEchecVoix = { motif: motif, quand: Date.now() };
+    try { montrerBandeauVoix(); } catch (e) {}
+  }
+  function oublier() {
+    if (dernierEchecVoix) { dernierEchecVoix = null; try { montrerBandeauVoix(); } catch (e) {} }
+  }
+
+  function enroberDecode(Cls) {
+    if (!Cls || !Cls.prototype) return;
+    var orig = Cls.prototype.decodeAudioData;
+    if (typeof orig !== 'function' || orig.__cpmDec) return;
+    var patched = function (buf, ok, echec) {
+      var self = this;
+      var surEchec = function (e) {
+        noter('flux illisible sur cet appareil (decodeAudioData a echoue)');
+        if (typeof echec === 'function') { try { echec(e); } catch (_) {} }
+      };
+      var surSucces = function (d) { oublier(); if (typeof ok === 'function') { try { ok(d); } catch (_) {} } return d; };
+      try {
+        var p = orig.call(self, buf, (typeof ok === 'function' ? surSucces : undefined), surEchec);
+        if (p && typeof p.then === 'function') {
+          return p.then(function (d) { oublier(); return d; }, function (e) {
+            noter('flux illisible sur cet appareil (decodeAudioData a echoue)'); throw e;
+          });
+        }
+        return p;
+      } catch (e) { surEchec(e); throw e; }
+    };
+    patched.__cpmDec = true; patched.__orig = orig;
+    Cls.prototype.decodeAudioData = patched;
+  }
+  try { enroberDecode(window.AudioContext); } catch (e) {}
+  try { enroberDecode(window.webkitAudioContext); } catch (e) {}
+
+  /* Le bandeau : sous l etat de l appel a distance, un seul message, en
+     rouge discret, seulement si l echec date de moins d une minute. */
+  function montrerBandeauVoix() {
+    var ancre = document.getElementById('remoteStatus')
+             || document.getElementById('voiceLabel');
+    if (!ancre) return;
+    var b = document.getElementById('cpmBandeauVoix');
+    var frais = dernierEchecVoix && (Date.now() - dernierEchecVoix.quand < 60000);
+    if (!frais) { if (b) b.remove(); return; }
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'cpmBandeauVoix';
+      b.setAttribute('role', 'status');
+      b.style.cssText = 'margin-top:8px;font-size:12px;line-height:1.4;color:#ef4444;text-align:center';
+      ancre.parentElement.insertBefore(b, ancre.nextSibling);
+    }
+    b.textContent = 'Voix originale — ' + dernierEchecVoix.motif;
+  }
+
+  setInterval(function () { try { montrerBandeauVoix(); } catch (e) {} }, 2000);
+})();
