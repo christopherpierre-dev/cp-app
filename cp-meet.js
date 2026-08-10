@@ -2152,12 +2152,29 @@
     panneau.appendChild(note);
   }
 
+
+  /* 4. « Start live session » sous le choix de langue, pas apres le
+        transcript. L animateur regle sa langue et son ecoute, puis lance :
+        les trois vont ensemble. Le bouton etait relegue tout en bas, apres
+        la liste des intervenants et le transcript. On le remonte — meme
+        bouton, meme identifiant, meme action, juste deplace. */
+  function deplacerBoutonSession() {
+    var bloc = document.querySelector('.conf-start-btn');
+    var voix = document.getElementById('confVoiceSel');
+    if (!bloc || !voix) return;
+    var ancre = voix.closest('div');
+    if (!ancre || !ancre.parentElement) return;
+    /* deja a la bonne place ? ne rien faire, sinon on boucle */
+    if (ancre.nextElementSibling === bloc) return;
+    ancre.parentElement.insertBefore(bloc, ancre.nextSibling);
+  }
+
   var occupe = false;
   function poserTout() {
     if (occupe) return;
     occupe = true;
     try {
-      [poserSelecteur, poserPartage, poserExplication].forEach(function (fn) {
+      [poserSelecteur, poserPartage, poserExplication, deplacerBoutonSession].forEach(function (fn) {
         try { fn(); } catch (e) { console.warn('[cp-meet] entree —', e); }
       });
     } finally { occupe = false; }
