@@ -1801,10 +1801,6 @@ function showConfRoomQR(room){
 }
 
 function showConfQR(){
-  if(!confActive){
-    alert('Start the live session first, then share the QR.');
-    return;
-  }
   // Create a CPRemote room for attendees if not already done
   if(!currentRoomCode){
     CPRemote.create({name:'Host', lang: LANG_TRANS[confLang.name]||'en', speechLang: LANG_SPEECH[confLang.name]||'en-US'})
