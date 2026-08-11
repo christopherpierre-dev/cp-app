@@ -2255,3 +2255,79 @@
 
   setInterval(function () { try { montrerBandeauVoix(); } catch (e) {} }, 2000);
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   PRESIDENT : camera et marqueur visibles sur l'ecran Conference
+   Demande de Wisnique. La camera (🎥), la main levee et la parole existent
+   deja dans le panneau flottant en bas a droite, mais il n'apparait qu'une
+   fois connecte a la salle et il est facile a manquer. On amene sur l'ecran
+   Conference lui-meme : un marqueur « Vous presidez » pour celui qui a cree
+   la salle, et un bouton camera qui reutilise le vrai bouton existant. */
+(function () {
+  'use strict';
+
+  /* Le president est celui qui cree la salle (comme S.isChair a l'interieur).
+     On le detecte depuis l'exterieur en enveloppant create/join une fois. */
+  try {
+    if (window.CPRemote && !CPRemote.__cpmChairFlag) {
+      var _c = CPRemote.create, _j = CPRemote.join;
+      if (typeof _c === 'function') CPRemote.create = function () { window.__cpmChair = true; return _c.apply(CPRemote, arguments); };
+      if (typeof _j === 'function') CPRemote.join = function () { window.__cpmChair = false; return _j.apply(CPRemote, arguments); };
+      CPRemote.__cpmChairFlag = true;
+    }
+  } catch (e) {}
+
+  function salleOuverte() {
+    var fab = document.getElementById('cpmFab');
+    return !!(fab && fab.classList.contains('on'));
+  }
+
+  function poserBarrePresident() {
+    var conf = document.getElementById('conference');
+    if (!conf || (conf.getAttribute('class') || '').indexOf('active') < 0) return;
+    var ancre = document.querySelector('.conf-start-btn');
+    if (!ancre) return;
+    var bar = document.getElementById('cpmChairBar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'cpmChairBar';
+      bar.style.cssText = 'margin:10px 24px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap';
+      var badge = document.createElement('div');
+      badge.id = 'cpmChairBadge';
+      badge.style.cssText = 'font-size:13px;font-weight:600;color:#c9a45c;display:none';
+      badge.textContent = '🪑 Vous présidez la séance';
+      var cam = document.createElement('button');
+      cam.id = 'cpmChairCam';
+      cam.type = 'button';
+      cam.setAttribute('aria-label', 'Activer ma caméra');
+      cam.style.cssText = 'padding:10px 16px;border:1px solid #4f8ef7;border-radius:12px;background:rgba(79,142,247,.12);color:#e8edf5;font-size:13px;font-weight:600;cursor:pointer';
+      cam.textContent = '🎥 Activer ma caméra';
+      cam.addEventListener('click', function () {
+        var vrai = document.getElementById('cpmCam');
+        if (!vrai || !salleOuverte()) {
+          cam.textContent = '🎥 Ouvrez la salle d\'abord (partagez le lien)';
+          setTimeout(function () { majBarre(); }, 2500);
+          return;
+        }
+        try { vrai.click(); } catch (e) {}
+        cam.__on = !cam.__on;
+        cam.textContent = cam.__on ? '🎥 Caméra activée — toucher pour couper' : '🎥 Activer ma caméra';
+      });
+      bar.appendChild(badge);
+      bar.appendChild(cam);
+      ancre.parentElement.insertBefore(bar, ancre);
+    }
+    majBarre();
+  }
+
+  function majBarre() {
+    var badge = document.getElementById('cpmChairBadge');
+    if (badge) badge.style.display = window.__cpmChair ? '' : 'none';
+    var cam = document.getElementById('cpmChairCam');
+    if (cam && !cam.__on) {
+      cam.textContent = salleOuverte() ? '🎥 Activer ma caméra' : '🎥 Activer ma caméra (dès l\'ouverture de la salle)';
+    }
+  }
+
+  setInterval(function () { try { poserBarrePresident(); } catch (e) {} }, 2000);
+})();
