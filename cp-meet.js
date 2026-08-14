@@ -2366,3 +2366,30 @@
   enveloppe.__orig = orig;
   window.fetch = enveloppe;
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   REMOTE CALL — deverrouiller le son pour CELUI QUI ECOUTE
+   La conference (cote animateur) joue par un element <audio> deverrouille
+   largement. Remote Call ET les participants qui rejoignent une conference
+   a distance jouent par un AudioContext, deverrouille seulement dans
+   toggleMic (au moment ou l'on touche le micro). Or l'auditeur ne touche
+   jamais son micro : il ecoute. Son AudioContext reste suspendu par la
+   politique iOS/Android, et il n'entend rien. On le deverrouille au PREMIER
+   geste, quel qu'il soit, en reveillant le contexte deja expose par
+   cp-remote.js via window._getRemoteAudioCtx. */
+(function () {
+  'use strict';
+  function reveiller() {
+    try {
+      if (typeof window._getRemoteAudioCtx === 'function') {
+        var c = window._getRemoteAudioCtx();
+        if (c && c.state === 'suspended' && typeof c.resume === 'function') {
+          c.resume().catch(function () {});
+        }
+      }
+    } catch (e) {}
+  }
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (ev) {
+    document.addEventListener(ev, reveiller, { capture: true, passive: true });
+  });
+})();
