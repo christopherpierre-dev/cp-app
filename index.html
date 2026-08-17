@@ -1183,32 +1183,50 @@ async function startListening(){
         ? SpeechSDK.SpeechTranslationConfig.fromSubscription(tk.token, tk.region)
         : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
       speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
-      const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
-      // Azure Speech SDK doesn't support 'ht' (Haitian Creole) as a translation target
-      // Use French as the Azure target, then route TTS through ElevenLabs
-      const azureTargetLang = targetLang === 'ht' ? 'fr' : targetLang;
-      speechConfig.addTargetLanguage(azureTargetLang);
+      // ── BIDIRECTIONNEL : detection automatique de la langue parlee ──
+      // On donne les DEUX langues comme candidates. Azure detecte laquelle
+      // est parlee et on traduit vers l'AUTRE. Que ce soit vous ou l'autre
+      // qui parle, chacun entend dans sa langue, sans avoir a inverser.
+      const codeA = LANG_TRANS[currentLangA.name] || 'en';
+      const codeB = LANG_TRANS[currentLangB.name] || 'fr';
+      const locA  = LANG_SPEECH[currentLangA.name] || 'en-US';
+      const locB  = LANG_SPEECH[currentLangB.name] || 'fr-FR';
+      // Azure ne gere pas 'ht' (creole) comme cible : viser 'fr',
+      // le TTS route ensuite vers ElevenLabs pour le creole.
+      const azA = codeA === 'ht' ? 'fr' : codeA;
+      const azB = codeB === 'ht' ? 'fr' : codeB;
+      speechConfig.addTargetLanguage(azA);
+      if (azB !== azA) speechConfig.addTargetLanguage(azB);
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+      try {
+        const autoDetect = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]);
+        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, autoDetect, audioConfig);
+      } catch (eAuto) {
+        speechConfig.speechRecognitionLanguage = locA;
+        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+      }
 
-      // Show interim results as user speaks
       azureRecognizer.recognizing = (s, e) => {
         if(e.result.text){
           document.getElementById('origA').innerHTML = e.result.text + '<span class="cursor-blink"></span>';
         }
       };
 
-      // Final result with translation + TTS playback — keep listening after each phrase
       azureRecognizer.recognized = (s, e) => {
         if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
           const original = e.result.text;
-          const translated = e.result.translations.get(azureTargetLang);
+          let src = '';
+          try { src = (SpeechSDK.AutoDetectSourceLanguageResult.fromResult(e.result).language || ''); } catch(_){}
+          src = src.toLowerCase();
+          const baseA = (locA.split('-')[0] || '').toLowerCase();
+          const parleA = !!baseA && src.indexOf(baseA) === 0;
+          const outCode = parleA ? codeB : codeA;
+          const azOut   = parleA ? azB : azA;
+          const translated = e.result.translations.get(azOut);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
-          // Pass original targetLang so Haitian Creole routes to ElevenLabs TTS
-          if(translated) speakCallTTS(translated, targetLang, tk);
-          // Do NOT stop listening — keep mic on until user taps to stop
+          if(translated) speakCallTTS(translated, outCode, tk);
         }
       };
 
@@ -1310,7 +1328,19 @@ async function speakCallTTS(text, langCode, creds) {
     const cfg = creds.isKey
       ? SpeechSDK.SpeechConfig.fromSubscription(creds.token, creds.region)
       : SpeechSDK.SpeechConfig.fromAuthorizationToken(creds.token, creds.region);
-    cfg.speechSynthesisVoiceName = CONF_VOICES[langCode] || 'en-US-GuyNeural';
+    const _voice = CONF_VOICES[langCode];
+    if (_voice) {
+      cfg.speechSynthesisVoiceName = _voice;
+    } else {
+      // Pas de voix curatee : on laisse Azure choisir la voix par defaut de
+      // la langue, au lieu de retomber sur l'anglais (11 langues sonnaient
+      // en anglais a cause de cela).
+      const _loc = { de:'de-DE', ja:'ja-JP', pt:'pt-BR', hi:'hi-IN', ko:'ko-KR',
+        it:'it-IT', nl:'nl-NL', pl:'pl-PL', sv:'sv-SE', tr:'tr-TR', vi:'vi-VN',
+        sw:'sw-KE', 'zh-Hans':'zh-CN' }[langCode];
+      if (_loc) cfg.speechSynthesisLanguage = _loc;
+      else cfg.speechSynthesisVoiceName = 'en-US-GuyNeural';
+    }
     const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
     const s = new SpeechSDK.SpeechSynthesizer(cfg, ac);
     s.speakTextAsync(text, () => s.close(), () => s.close());
