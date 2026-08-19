@@ -1459,10 +1459,29 @@ async function startConference(){
         addLiveConfLine(e.result.text, e.result.translations, targets);
       }
     };
-    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
+    confRecognizer.canceled = (s, e) => {
+      // Coupure (jeton expiré ou réseau) : relance auto tant que la séance
+      // est censée être active — plus besoin de « Resume » manuel.
+      if (!window.__confWantActive) return;
+      try { if (confRecognizer) { confRecognizer.close(); confRecognizer = null; } } catch(_){}
+      clearInterval(window.__confTokTimer);
+      const now = Date.now();
+      window.__confRetry = (window.__confRetry && (now - window.__confRetry.t < 60000))
+        ? { n: window.__confRetry.n + 1, t: now } : { n: 1, t: now };
+      if (window.__confRetry.n > 5) { window.__confWantActive = false; stopConference('▶ Resume session'); return; }
+      setTimeout(() => { if (window.__confWantActive) startConference(); }, 1200);
+    };
 
     confRecognizer.startContinuousRecognitionAsync(
-      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
+      () => {
+        confActive = true; window.__confWantActive = true; window.__confRetry = null;
+        btn.textContent = '⏹ Stop session';
+        // Renouvelle le jeton avant expiration (~10 min) pour tenir des heures.
+        clearInterval(window.__confTokTimer);
+        window.__confTokTimer = setInterval(async () => {
+          try { const nt = await getCpToken(); if (confRecognizer) confRecognizer.authorizationToken = nt.token; window.__confTk = nt; } catch(_){}
+        }, 8 * 60 * 1000);
+      },
       (err) => { stopConference(); alert('Could not start the session: ' + err); }
     );
   } catch(err){
@@ -1473,6 +1492,8 @@ async function startConference(){
 
 function stopConference(label){
   confActive = false;
+  if (!label || label === '▶ Start live session') window.__confWantActive = false;
+  clearInterval(window.__confTokTimer);
   confCurrentTargets = [];
   const btn = document.getElementById('confBtn');
   if(btn) btn.textContent = label || '▶ Start live session';
