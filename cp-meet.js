@@ -2331,3 +2331,65 @@
 
   setInterval(function () { try { poserBarrePresident(); } catch (e) {} }, 2000);
 })();
+
+/* ═════════════════════════════════════════════════════════════════════
+   CACHE DU JETON AZURE — ne plus le redemander a chaque phrase
+   La synthese (speakText) demandait un jeton au serveur POUR CHAQUE phrase.
+   Sans cache, une conference active vidait la limite du serveur en quelques
+   minutes : la voix s'arretait, le texte continuait. Un jeton Azure vaut dix
+   minutes ; on le garde 8 min et on le reutilise. Les appels a /api/token
+   tombent de un-par-phrase a environ un toutes les 8 minutes, et la synthese
+   demarre plus vite (plus d'aller-retour serveur avant de parler).
+   On enveloppe fetch : seul /api/token en GET est mis en cache, tout le
+   reste passe inchange. */
+(function () {
+  'use strict';
+  if (window.fetch && window.fetch.__cpmTokCache) return;
+  var cache = null, cacheAt = 0, TTL = 8 * 60 * 1000;
+  var orig = window.fetch;
+  if (typeof orig !== 'function') return;
+  var enveloppe = function (url, opts) {
+    try {
+      var u = (typeof url === 'string') ? url : (url && url.url) || '';
+      var m = (opts && opts.method ? opts.method : (url && url.method) || 'GET').toUpperCase();
+      if (u.indexOf('/api/token') >= 0 && m === 'GET') {
+        if (cache && (Date.now() - cacheAt) < TTL) return Promise.resolve(cache.clone());
+        return orig.apply(this, arguments).then(function (r) {
+          if (r && r.ok) { try { cache = r.clone(); cacheAt = Date.now(); } catch (e) {} }
+          return r;
+        });
+      }
+    } catch (e) {}
+    return orig.apply(this, arguments);
+  };
+  enveloppe.__cpmTokCache = true;
+  enveloppe.__orig = orig;
+  window.fetch = enveloppe;
+})();
+
+/* ═════════════════════════════════════════════════════════════════════
+   REMOTE CALL — deverrouiller le son pour CELUI QUI ECOUTE
+   La conference (cote animateur) joue par un element <audio> deverrouille
+   largement. Remote Call ET les participants qui rejoignent une conference
+   a distance jouent par un AudioContext, deverrouille seulement dans
+   toggleMic (au moment ou l'on touche le micro). Or l'auditeur ne touche
+   jamais son micro : il ecoute. Son AudioContext reste suspendu par la
+   politique iOS/Android, et il n'entend rien. On le deverrouille au PREMIER
+   geste, quel qu'il soit, en reveillant le contexte deja expose par
+   cp-remote.js via window._getRemoteAudioCtx. */
+(function () {
+  'use strict';
+  function reveiller() {
+    try {
+      if (typeof window._getRemoteAudioCtx === 'function') {
+        var c = window._getRemoteAudioCtx();
+        if (c && c.state === 'suspended' && typeof c.resume === 'function') {
+          c.resume().catch(function () {});
+        }
+      }
+    } catch (e) {}
+  }
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(function (ev) {
+    document.addEventListener(ev, reveiller, { capture: true, passive: true });
+  });
+})();
