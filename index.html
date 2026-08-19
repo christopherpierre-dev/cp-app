@@ -638,7 +638,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
-    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="pt">Português</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div style="text-align:center;margin-bottom:10px;">
     <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
@@ -1381,9 +1381,9 @@ function selectLang(flag,name){
 // Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
 // Azure traduit chaque énoncé vers les langues des participants affichés,
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
-const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
+const CONF_TARGETS = ['English','French','Spanish','Portuguese','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
-const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', pt:'pt-BR-AntonioNeural', ht:'fr-CA-JeanNeural'};
 let confLang = {name:'English', flag:'🇺🇸'};
 
 function explainHtLimit(){
