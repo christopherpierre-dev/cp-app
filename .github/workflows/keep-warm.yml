@@ -1,0 +1,18 @@
+name: Keep token server warm
+
+# Garde le serveur de jetons Azure éveillé pour éliminer le « cold start »
+# (le délai avant la première traduction). Ping léger toutes les 10 minutes.
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping token endpoint (HEAD)
+        run: |
+          curl -s -o /dev/null -w "token endpoint HTTP %{http_code}\n" \
+            -X HEAD https://cp-app-rho.vercel.app/api/token || true
