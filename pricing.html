@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Loquivox — Pricing / Tarifs</title>
+<!-- Lemon Squeezy overlay checkout (loads the buy-button script) -->
+<script src="https://assets.lemonsqueezy.com/lemon.js" defer></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#0a0e1a; --card:#131929; --border:#1e2d4a;
+    --accent:#4f8ef7; --accent2:#7c5cfc; --green:#22c55e;
+    --text:#e8edf5; --muted:#64748b; --yellow:#f59e0b;
+  }
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.5;padding:0 16px 80px}
+  .wrap{max-width:1080px;margin:0 auto}
+  header{text-align:center;padding:56px 0 12px}
+  .logo{font-size:26px;font-weight:800;letter-spacing:.5px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  h1{font-size:34px;margin:22px 0 8px;font-weight:800}
+  .sub{color:var(--muted);font-size:17px;max-width:640px;margin:0 auto}
+  .toggle{display:flex;justify-content:center;align-items:center;gap:12px;margin:28px 0 8px}
+  .toggle button{background:var(--card);color:var(--muted);border:1px solid var(--border);padding:8px 18px;border-radius:999px;cursor:pointer;font-size:14px;font-weight:600}
+  .toggle button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .save{color:var(--green);font-size:13px;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}
+  @media(max-width:820px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 22px;display:flex;flex-direction:column}
+  .card.feat{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 12px 40px rgba(79,142,247,.18);position:relative}
+  .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:999px}
+  .tier{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .who{font-size:12px;color:var(--accent);font-weight:700;margin-top:2px}
+  .price{font-size:40px;font-weight:800;margin:10px 0 2px}
+  .price small{font-size:15px;color:var(--muted);font-weight:600}
+  .pnote{color:var(--muted);font-size:13px;min-height:18px}
+  ul{list-style:none;margin:18px 0 22px;flex:1}
+  li{padding:7px 0 7px 26px;position:relative;font-size:15px;color:#cbd5e1}
+  li:before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:800}
+  li.no{color:var(--muted)}
+  li.no:before{content:"—";color:var(--muted)}
+  .btn{display:block;text-align:center;padding:13px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;cursor:pointer;border:none}
+  .btn.primary{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#fff}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .instit{margin-top:22px;background:linear-gradient(180deg,var(--card),#0f1526);border:1px solid var(--border);border-radius:16px;padding:26px 24px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .instit h3{font-size:20px;margin-bottom:6px}
+  .instit p{color:var(--muted);font-size:15px;max-width:560px}
+  .faq{margin-top:48px}
+  .faq h2{font-size:22px;margin-bottom:14px}
+  .qa{border-top:1px solid var(--border);padding:16px 0}
+  .qa b{display:block;margin-bottom:5px;font-size:16px}
+  .qa p{color:var(--muted);font-size:15px}
+  footer{text-align:center;color:var(--muted);font-size:13px;margin-top:44px}
+  .mor{display:inline-block;margin-top:8px;font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">LOQUIVOX</div>
+    <h1>Break every language barrier</h1>
+    <p class="sub">Real-time AI voice translation for everyday conversations — and for the multilingual meetings your organization runs.</p>
+  </header>
+
+  <div class="toggle">
+    <button id="mBtn" class="on" onclick="setCycle('m')">Monthly</button>
+    <button id="yBtn" onclick="setCycle('y')">Yearly <span class="save">2 months free</span></button>
+  </div>
+
+  <div class="grid">
+    <!-- FREE -->
+    <div class="card">
+      <div class="tier">Free</div>
+      <div class="who">For individuals</div>
+      <div class="price">$0</div>
+      <div class="pnote">To try it out</div>
+      <ul>
+        <li>30 minutes of voice translation / month</li>
+        <li>Two-Way Call (1-to-1), all languages</li>
+        <li>Live text translation</li>
+        <li>Join a conference when invited</li>
+        <li class="no">Original-voice relay</li>
+        <li class="no">Host a conference</li>
+      </ul>
+      <a class="btn ghost" href="https://loquivox.app">Get started</a>
+    </div>
+
+    <!-- PRO -->
+    <div class="card feat">
+      <div class="badge">Most popular</div>
+      <div class="tier">Pro</div>
+      <div class="who">For individuals</div>
+      <div class="price"><span data-price="m">$7.99</span><small>/mo</small></div>
+      <div class="pnote" data-note="m">Billed monthly</div>
+      <ul>
+        <li>Unlimited Two-Way Calls (fair use)</li>
+        <li>All languages, live text + voice</li>
+        <li>Original-voice relay</li>
+        <li>Transcript export</li>
+        <li>Join conferences when invited</li>
+        <li>Priority processing &amp; support</li>
+      </ul>
+      <!-- Replace href with your Lemon Squeezy checkout URL after creating the product -->
+      <a class="btn primary lemonsqueezy-button" id="proBuy" href="https://STORE.lemonsqueezy.com/buy/PRO-MONTHLY-VARIANT?embed=1">Start Pro</a>
+    </div>
+
+    <!-- INSTITUTION -->
+    <div class="card">
+      <div class="tier">Institution</div>
+      <div class="who">For teams, NGOs, gov &amp; events</div>
+      <div class="price">From&nbsp;$99<small>/mo</small></div>
+      <div class="pnote">or per-event packages · custom quote</div>
+      <ul>
+        <li><b>Host multilingual conferences</b> &amp; meetings</li>
+        <li>Many participants, many languages</li>
+        <li>Metered by hours or seats</li>
+        <li>Single sign-on (SSO) &amp; invoicing</li>
+        <li>Usage reporting &amp; SLA</li>
+        <li>Dedicated support · data-region options</li>
+      </ul>
+      <a class="btn ghost" href="mailto:contact@credia.ca?subject=Loquivox%20Institution%20plan">Contact sales</a>
+    </div>
+  </div>
+
+  <div class="instit">
+    <div>
+      <h3>Running a multilingual meeting or event?</h3>
+      <p>Conferences with several participants and languages are billed by the hour or by seat — a fraction of traditional interpretation. Delegations, NGOs and international organizations get invoicing, onboarding and an SLA, all outside the app stores.</p>
+    </div>
+    <a class="btn primary" style="padding:13px 22px" href="mailto:contact@credia.ca?subject=Loquivox%20Institution%20plan">Get a quote</a>
+  </div>
+
+  <div class="faq">
+    <h2>Questions</h2>
+    <div class="qa"><b>What's the difference between Pro and Institution?</b><p>Pro is for one person having 1-to-1 conversations (Two-Way Call). Institution is for <em>hosting</em> multilingual meetings and conferences with several participants — priced by the hour or by seat.</p></div>
+    <div class="qa"><b>What does “unlimited, fair use” mean on Pro?</b><p>Everyday back-and-forth conversations are unlimited. Very heavy, continuous use (many hours a day) may be paced to keep the service fast for everyone — it suits personal use, not running events.</p></div>
+    <div class="qa"><b>How does billing work?</b><p>Payments are handled securely by Lemon Squeezy, our merchant of record. Applicable sales tax / VAT is calculated and included automatically for your country.</p></div>
+    <div class="qa"><b>Do I pay through the App Store?</b><p>No. You subscribe here on the web and sign in to the app with your account, so there are no app-store surcharges.</p></div>
+  </div>
+
+  <footer>
+    © CREDIA INC. — Loquivox
+    <span class="mor">Payments processed by Lemon Squeezy (merchant of record).</span>
+  </footer>
+</div>
+
+<script>
+  // Prices — EDIT to match the variants you create in Lemon Squeezy
+  var PRICES = {
+    proMonthly:{ price:"$7.99", note:"Billed monthly",              url:"https://STORE.lemonsqueezy.com/buy/PRO-MONTHLY-VARIANT?embed=1" },
+    proYearly: { price:"$59.99", note:"Billed yearly (~$5/mo)",     url:"https://STORE.lemonsqueezy.com/buy/PRO-YEARLY-VARIANT?embed=1" }
+  };
+  function setCycle(c){
+    document.getElementById('mBtn').classList.toggle('on', c==='m');
+    document.getElementById('yBtn').classList.toggle('on', c==='y');
+    var p = c==='m' ? PRICES.proMonthly : PRICES.proYearly;
+    document.querySelector('[data-price="m"]').textContent = p.price;
+    document.querySelector('[data-note="m"]').textContent = p.note;
+    var suffix = document.querySelector('.card.feat .price small'); if(suffix) suffix.textContent = c==='m' ? '/mo' : '/yr';
+    document.getElementById('proBuy').setAttribute('href', p.url);
+  }
+</script>
+</body>
+</html>
