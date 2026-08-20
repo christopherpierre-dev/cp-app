@@ -781,7 +781,7 @@
 
   const SPEAK_LANGS = [
     ['fr','fr-FR','Français'],       ['en','en-US','English'],
-    ['ht','fr-HT','Kreyòl ayisyen'], ['es','es-ES','Español'],
+    ['pt','pt-BR','Português'],['ht','fr-HT','Kreyòl ayisyen'], ['es','es-ES','Español'],
     ['de','de-DE','Deutsch'],        ['pt','pt-BR','Português'],
     ['ar','ar-SA','العربية'],        ['zh-Hans','zh-CN','中文'],
     ['ru','ru-RU','Русский'],        ['it','it-IT','Italiano'],
