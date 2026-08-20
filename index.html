@@ -887,6 +887,12 @@ function getRCAudioCtx() {
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
+  // Pré-chauffage : dès qu'on entre en Conférence/Appel, on va chercher le jeton
+  // (réveille le serveur + remplit le cache) pour que « Start » n'attende plus.
+  if((id==='conference'||id==='call') && typeof getCpToken==='function'){
+    var _pw=Date.now();
+    if(!window.__prewarmAt || _pw-window.__prewarmAt>60000){ window.__prewarmAt=_pw; try{ getCpToken().catch(function(){}); }catch(e){} }
+  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
