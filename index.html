@@ -1203,6 +1203,7 @@ async function startListening(){
       const azB = codeB === 'ht' ? 'fr' : codeB;
       speechConfig.addTargetLanguage(azA);
       if (azB !== azA) speechConfig.addTargetLanguage(azB);
+      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_LanguageIdMode, 'Continuous');
 
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       try {
