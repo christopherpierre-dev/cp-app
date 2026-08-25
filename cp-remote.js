@@ -343,11 +343,23 @@
           const creds = await getAzureToken();
           const cfg = makeSpeechConfig(creds);
           cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
-          const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+          const outStream = SpeechSDK.AudioOutputStream.createPullStream();
+          const ac = SpeechSDK.AudioConfig.fromStreamOutput(outStream);
           const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
           synth.speakTextAsync(
             text,
-            () => { synth.close(); resolve(); },
+            async (result) => {
+              synth.close();
+              try {
+                const ctx = getAudioCtx();
+                const decoded = await ctx.decodeAudioData(result.audioData.slice(0));
+                const node = ctx.createBufferSource();
+                node.buffer = decoded;
+                node.connect(ctx.destination);
+                node.onended = resolve;
+                node.start();
+              } catch (e) { resolve(); }
+            },
             (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
           );
         }
