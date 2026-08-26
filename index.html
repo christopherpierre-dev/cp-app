@@ -1243,7 +1243,7 @@ async function startListening(){
       const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
       try {
         const autoDetect = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]);
-        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, autoDetect, audioConfig);
+        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
       } catch (eAuto) {
         speechConfig.speechRecognitionLanguage = locA;
         azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
@@ -1264,7 +1264,7 @@ async function startListening(){
           const baseA = (locA.split('-')[0] || '').toLowerCase();
           const parleA = !!baseA && src.indexOf(baseA) === 0;
           const outCode = parleA ? codeB : codeA;
-          const azOut   = parleA ? azB : azA;
+          const azOut   = azB;
           const translated = e.result.translations.get(azOut);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
