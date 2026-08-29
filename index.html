@@ -1206,91 +1206,60 @@ function toggleMic(){
 }
 
 async function startListening(){
-  try{ await ensureMic(); }
-  catch(e){ showMicError(e.message); return; }
+  /* TWO-WAY-ONCE : mains-libres, detection par phrase (recognizeOnce + autoDetect) */
+  try{ await ensureMic(); }catch(e){ showMicError(e.message); return; }
   isListening=true;
-  const btn=document.getElementById('micBtn');
-  btn.classList.add('listening');
-  document.getElementById('micLabel').textContent='Listening…';
-  document.getElementById('origA').textContent='';
-  document.getElementById('transA').textContent='';
-  animateWave(true);
-
-  // ── Try Azure Speech Translation SDK (jeton via serveur CP) ──
-  if(typeof SpeechSDK !== 'undefined'){
+  var _b=document.getElementById('micBtn'); if(_b)_b.classList.add('listening');
+  var _ml=document.getElementById('micLabel'); if(_ml)_ml.textContent='Listening...';
+  if(typeof animateWave==='function') animateWave(true);
+  var codeA=LANG_TRANS[currentLangA.name]||'en';
+  var codeB=LANG_TRANS[currentLangB.name]||'fr';
+  var locA=LANG_SPEECH[currentLangA.name]||'en-US';
+  var locB=LANG_SPEECH[currentLangB.name]||'fr-FR';
+  var azA=codeA==='ht'?'fr':codeA;
+  var azB=codeB==='ht'?'fr':codeB;
+  var baseA=(locA.split('-')[0]||'').toLowerCase();
+  var tk;
+  try{ tk=await getCpToken(); }catch(e){ if(typeof runDemoTranslation==='function') runDemoTranslation(); return; }
+  var cfg=SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+  cfg.addTargetLanguage(azA);
+  if(azB!==azA) cfg.addTargetLanguage(azB);
+  var audioConfig=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+  var rec;
+  try{ var auto=SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]); rec=new SpeechSDK.TranslationRecognizer(cfg, auto, audioConfig); }
+  catch(eA){ cfg.speechRecognitionLanguage=locA; rec=new SpeechSDK.TranslationRecognizer(cfg, audioConfig); }
+  azureRecognizer=rec;
+  rec.recognizing=function(s,e){ if(e.result&&e.result.text){ var oa=document.getElementById('origA'); if(oa) oa.textContent=e.result.text; } };
+  function playTTS(text, code){
     try{
-      const tk = await getCpToken();
-      const speechConfig = tk.isKey
-        ? SpeechSDK.SpeechTranslationConfig.fromSubscription(tk.token, tk.region)
-        : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-      speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
-      // ── BIDIRECTIONNEL : detection automatique de la langue parlee ──
-      // On donne les DEUX langues comme candidates. Azure detecte laquelle
-      // est parlee et on traduit vers l'AUTRE. Que ce soit vous ou l'autre
-      // qui parle, chacun entend dans sa langue, sans avoir a inverser.
-      const codeA = LANG_TRANS[currentLangA.name] || 'en';
-      const codeB = LANG_TRANS[currentLangB.name] || 'fr';
-      const locA  = LANG_SPEECH[currentLangA.name] || 'en-US';
-      const locB  = LANG_SPEECH[currentLangB.name] || 'fr-FR';
-      // Azure ne gere pas 'ht' (creole) comme cible : viser 'fr',
-      // le TTS route ensuite vers ElevenLabs pour le creole.
-      const azA = codeA === 'ht' ? 'fr' : codeA;
-      const azB = codeB === 'ht' ? 'fr' : codeB;
-      speechConfig.addTargetLanguage(azA);
-      if (azB !== azA) speechConfig.addTargetLanguage(azB);
-      speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_LanguageIdMode, 'Continuous');
-
-      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      try {
-        const autoDetect = SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]);
-        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
-      } catch (eAuto) {
-        speechConfig.speechRecognitionLanguage = locA;
-        azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
-      }
-
-      azureRecognizer.recognizing = (s, e) => {
-        if(e.result.text){
-          document.getElementById('origA').innerHTML = e.result.text + '<span class="cursor-blink"></span>';
-        }
-      };
-
-      azureRecognizer.recognized = (s, e) => {
-        if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
-          const original = e.result.text;
-          let src = '';
-          try { src = (SpeechSDK.AutoDetectSourceLanguageResult.fromResult(e.result).language || ''); } catch(_){}
-          src = src.toLowerCase();
-          const baseA = (locA.split('-')[0] || '').toLowerCase();
-          const parleA = !!baseA && src.indexOf(baseA) === 0;
-          const outCode = parleA ? codeB : codeA;
-          const azOut   = azB;
-          const translated = e.result.translations.get(azOut);
-          document.getElementById('origA').textContent = original;
-          typeText('transA', translated || '[Translation unavailable]');
-          if(translated) speakCallTTS(translated, outCode, tk);
-        }
-      };
-
-      azureRecognizer.canceled = (s, e) => {
-        // Only act on actual errors, not normal end-of-speech pauses
-        if(e.reason === SpeechSDK.CancellationReason.Error){
-          runDemoTranslation(); // keep mic on
-        }
-      };
-
-      azureRecognizer.startContinuousRecognitionAsync(
-        ()=>{}, // success
-        ()=>{ runDemoTranslation(); } // error → demo, keep mic on
-      );
-
-    } catch(err){
-      runDemoTranslation(); // keep mic on even if Azure fails
-    }
-  } else {
-    // Fallback demo mode
-    runDemoTranslation();
+      var vcfg=SpeechSDK.SpeechConfig.fromAuthorizationToken(tk.token, tk.region);
+      vcfg.speechSynthesisVoiceName=(typeof CONF_VOICES!=='undefined'&&CONF_VOICES[code])||'en-US-GuyNeural';
+      var os=SpeechSDK.AudioOutputStream.createPullStream();
+      var ac=SpeechSDK.AudioConfig.fromStreamOutput(os);
+      var syn=new SpeechSDK.SpeechSynthesizer(vcfg, ac);
+      syn.speakTextAsync(text, function(res){ syn.close();
+        try{ var ctx=(window._getRemoteAudioCtx?window._getRemoteAudioCtx():new (window.AudioContext||window.webkitAudioContext)()); if(ctx.state==='suspended') ctx.resume();
+          ctx.decodeAudioData(res.audioData.slice(0)).then(function(dec){ var n=ctx.createBufferSource(); n.buffer=dec; n.connect(ctx.destination); n.start(); }).catch(function(){});
+        }catch(e){} }, function(err){ syn.close(); });
+    }catch(e){}
   }
+  function handleResult(r){
+    if(!r||r.reason!==SpeechSDK.ResultReason.TranslatedSpeech||!r.text) return;
+    var src=''; try{ src=(SpeechSDK.AutoDetectSourceLanguageResult.fromResult(r).language||'').toLowerCase(); }catch(e){}
+    var parleA=!src||(baseA&&src.indexOf(baseA)===0);
+    var outCode=parleA?azB:azA;
+    var original=r.text;
+    var translated=(r.translations&&r.translations.get(outCode))||'';
+    var oa=document.getElementById(parleA?'origA':'origB');
+    var ta=document.getElementById(parleA?'transA':'transB');
+    if(oa) oa.textContent=original;
+    if(ta) ta.textContent=translated;
+    if(translated) playTTS(translated, outCode);
+  }
+  (function loopOnce(){
+    if(!isListening){ try{ rec.close(); }catch(e){} return; }
+    rec.recognizeOnceAsync(function(r){ try{ handleResult(r); }catch(e){} if(isListening) setTimeout(loopOnce,120); else { try{ rec.close(); }catch(e){} } }, function(err){ if(isListening) setTimeout(loopOnce,400); else { try{ rec.close(); }catch(e){} } });
+  })();
 }
 
 function stopListening(){
