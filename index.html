@@ -2979,5 +2979,25 @@ window.addEventListener("load", function(){
   }, 4000);
 });
 </script>
+<script>
+/* REMOTE-AUDIO-UNLOCK : debloque le contexte audio au premier geste (voix Remote sur mobile) */
+(function(){
+  function unlock(){
+    try{
+      var ctx = window._getRemoteAudioCtx ? window._getRemoteAudioCtx() : null;
+      if(ctx){
+        if(ctx.state==='suspended'){ ctx.resume(); }
+        var b=ctx.createBuffer(1,1,22050); var s=ctx.createBufferSource(); s.buffer=b; s.connect(ctx.destination); s.start(0);
+      }
+    }catch(e){}
+    document.removeEventListener('touchend', unlock, true);
+    document.removeEventListener('click', unlock, true);
+    document.removeEventListener('pointerdown', unlock, true);
+  }
+  document.addEventListener('touchend', unlock, true);
+  document.addEventListener('click', unlock, true);
+  document.addEventListener('pointerdown', unlock, true);
+})();
+</script>
 </body>
 </html>
