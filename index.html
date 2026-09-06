@@ -1206,12 +1206,16 @@ function toggleMic(){
 }
 
 async function startListening(){
-  /* TWO-WAY-ONCE : mains-libres, detection par phrase (recognizeOnce + autoDetect) */
+  /* TWO-WAY-ONCE-V2 : moteur neuf par phrase + detection fiable + debug (?debug=1) */
   try{ await ensureMic(); }catch(e){ showMicError(e.message); return; }
   isListening=true;
   var _b=document.getElementById('micBtn'); if(_b)_b.classList.add('listening');
   var _ml=document.getElementById('micLabel'); if(_ml)_ml.textContent='Listening...';
   if(typeof animateWave==='function') animateWave(true);
+  var DBG = location.search.indexOf('debug')!==-1;
+  var dbgEl=null;
+  if(DBG){ dbgEl=document.getElementById('twDbg'); if(!dbgEl){ dbgEl=document.createElement('div'); dbgEl.id='twDbg'; dbgEl.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#000;color:#0f0;font:12px monospace;padding:8px;border-radius:8px;white-space:pre-wrap'; document.body.appendChild(dbgEl); } }
+  function dbg(s){ if(dbgEl) dbgEl.textContent=s; try{ console.log('[TW] '+s); }catch(e){} }
   var codeA=LANG_TRANS[currentLangA.name]||'en';
   var codeB=LANG_TRANS[currentLangB.name]||'fr';
   var locA=LANG_SPEECH[currentLangA.name]||'en-US';
@@ -1219,17 +1223,10 @@ async function startListening(){
   var azA=codeA==='ht'?'fr':codeA;
   var azB=codeB==='ht'?'fr':codeB;
   var baseA=(locA.split('-')[0]||'').toLowerCase();
+  var baseB=(locB.split('-')[0]||'').toLowerCase();
   var tk;
-  try{ tk=await getCpToken(); }catch(e){ if(typeof runDemoTranslation==='function') runDemoTranslation(); return; }
-  var cfg=SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-  cfg.addTargetLanguage(azA);
-  if(azB!==azA) cfg.addTargetLanguage(azB);
-  var audioConfig=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-  var rec;
-  try{ var auto=SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]); rec=new SpeechSDK.TranslationRecognizer(cfg, auto, audioConfig); }
-  catch(eA){ cfg.speechRecognitionLanguage=locA; rec=new SpeechSDK.TranslationRecognizer(cfg, audioConfig); }
-  azureRecognizer=rec;
-  rec.recognizing=function(s,e){ if(e.result&&e.result.text){ var oa=document.getElementById('origA'); if(oa) oa.textContent=e.result.text; } };
+  try{ tk=await getCpToken(); }catch(e){ dbg('token indisponible'); if(typeof runDemoTranslation==='function') runDemoTranslation(); return; }
+  var cyc=0;
   function playTTS(text, code){
     try{
       var vcfg=SpeechSDK.SpeechConfig.fromAuthorizationToken(tk.token, tk.region);
@@ -1237,29 +1234,45 @@ async function startListening(){
       var os=SpeechSDK.AudioOutputStream.createPullStream();
       var ac=SpeechSDK.AudioConfig.fromStreamOutput(os);
       var syn=new SpeechSDK.SpeechSynthesizer(vcfg, ac);
-      syn.speakTextAsync(text, function(res){ syn.close();
-        try{ var ctx=(window._getRemoteAudioCtx?window._getRemoteAudioCtx():new (window.AudioContext||window.webkitAudioContext)()); if(ctx.state==='suspended') ctx.resume();
-          ctx.decodeAudioData(res.audioData.slice(0)).then(function(dec){ var n=ctx.createBufferSource(); n.buffer=dec; n.connect(ctx.destination); n.start(); }).catch(function(){});
-        }catch(e){} }, function(err){ syn.close(); });
+      syn.speakTextAsync(text, function(res){ syn.close(); try{ var ctx=(window._getRemoteAudioCtx?window._getRemoteAudioCtx():new (window.AudioContext||window.webkitAudioContext)()); if(ctx.state==='suspended') ctx.resume(); ctx.decodeAudioData(res.audioData.slice(0)).then(function(dec){ var n=ctx.createBufferSource(); n.buffer=dec; n.connect(ctx.destination); n.start(); }).catch(function(){}); }catch(e){} }, function(){ syn.close(); });
     }catch(e){}
   }
-  function handleResult(r){
-    if(!r||r.reason!==SpeechSDK.ResultReason.TranslatedSpeech||!r.text) return;
-    var src=''; try{ src=(SpeechSDK.AutoDetectSourceLanguageResult.fromResult(r).language||'').toLowerCase(); }catch(e){}
-    var parleA=!src||(baseA&&src.indexOf(baseA)===0);
-    var outCode=parleA?azB:azA;
-    var original=r.text;
-    var translated=(r.translations&&r.translations.get(outCode))||'';
-    var oa=document.getElementById(parleA?'origA':'origB');
-    var ta=document.getElementById(parleA?'transA':'transB');
-    if(oa) oa.textContent=original;
-    if(ta) ta.textContent=translated;
-    if(translated) playTTS(translated, outCode);
+  function cycle(){
+    if(!isListening) return;
+    cyc++;
+    var cfg=SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+    cfg.addTargetLanguage(azA); if(azB!==azA) cfg.addTargetLanguage(azB);
+    var rec;
+    try{
+      var auto=SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]);
+      var audioConfig=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      rec=new SpeechSDK.TranslationRecognizer(cfg, auto, audioConfig);
+    }catch(eA){ var ac2=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput(); rec=new SpeechSDK.TranslationRecognizer(cfg, ac2); }
+    azureRecognizer=rec;
+    rec.recognizing=function(s,e){ if(e.result&&e.result.text){ var oa=document.getElementById('origA'); if(oa) oa.textContent=e.result.text; } };
+    dbg('Cycle '+cyc+' - parlez ('+locA+' ou '+locB+')...');
+    rec.recognizeOnceAsync(function(r){
+      var src=''; try{ src=(SpeechSDK.AutoDetectSourceLanguageResult.fromResult(r).language||'').toLowerCase(); }catch(e){}
+      var reason=r&&r.reason;
+      if(r && r.reason===SpeechSDK.ResultReason.TranslatedSpeech && r.text){
+        var isA;
+        if(src){ isA = src.indexOf(baseA)===0; }
+        else { isA = true; } // fallback si non detecte
+        var outCode=isA?azB:azA;
+        var translated=(r.translations&&r.translations.get(outCode))||'';
+        var oId=isA?'origA':'origB', tId=isA?'transA':'transB';
+        var oe=document.getElementById(oId), te=document.getElementById(tId);
+        if(oe) oe.textContent=r.text; if(te) te.textContent=translated;
+        dbg('Cycle '+cyc+' OK\ndetecte: '+(src||'(vide)')+' | orateur '+(isA?'A':'B')+' | sortie: '+outCode+'\n"'+r.text+'"\n=> "'+translated+'"');
+        if(translated) playTTS(translated, outCode);
+      } else {
+        dbg('Cycle '+cyc+' : aucun texte (reason='+reason+', detecte='+(src||'(vide)')+')');
+      }
+      try{ rec.close(); }catch(e){}
+      if(isListening) setTimeout(cycle, 150);
+    }, function(err){ dbg('Cycle '+cyc+' ERREUR: '+String(err).slice(0,70)); try{ rec.close(); }catch(e){} if(isListening) setTimeout(cycle, 400); });
   }
-  (function loopOnce(){
-    if(!isListening){ try{ rec.close(); }catch(e){} return; }
-    rec.recognizeOnceAsync(function(r){ try{ handleResult(r); }catch(e){} if(isListening) setTimeout(loopOnce,120); else { try{ rec.close(); }catch(e){} } }, function(err){ if(isListening) setTimeout(loopOnce,400); else { try{ rec.close(); }catch(e){} } });
-  })();
+  cycle();
 }
 
 function stopListening(){
