@@ -1882,6 +1882,8 @@ function enterRemoteCall(room, isHost){
   // handleRemoteAudioChunk can assign them to new speakers without hitting the
   // autoplay policy block (new Audio().play() outside a gesture is blocked on mobile/strict browsers).
   try { getRCAudioCtx(); } catch(e){}
+  // Pre-unlock the cp-remote.js AudioContext too (must happen during user gesture)
+  try { if(window._getRemoteAudioCtx) window._getRemoteAudioCtx(); } catch(e){}
   try {
     window._rcAudioPool = [];
     for(let _i=0; _i<10; _i++){
