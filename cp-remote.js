@@ -327,44 +327,45 @@
     // Queue TTS so overlapping utterances play in order
     state.ttsQueue = state.ttsQueue.then(() => new Promise(async (resolve) => {
       try {
+        const ctx = getAudioCtx(); // always use pre-unlocked AudioContext
         if (state.myLang === 'ht') {
-          // Haitian Creole → ElevenLabs multilingual_v2 via proxy (Azure doesn't support ht)
+          // Haitian Creole → ElevenLabs multilingual_v2 via proxy (Azure doesn't support ht TTS)
           const r = await fetch(HT_TTS_URL + '?text=' + encodeURIComponent(text));
           if (!r.ok) { resolve(); return; }
           const buf = await r.arrayBuffer();
-          const ctx = getAudioCtx();
-          const decoded = await ctx.decodeAudioData(buf);
+          const decoded = await ctx.decodeAudioData(buf.slice(0));
           const src = ctx.createBufferSource();
           src.buffer = decoded;
           src.connect(ctx.destination);
           src.onended = resolve;
-          src.start();
+          src.start(0);
         } else {
+          // Azure TTS REST API — bypass SDK's internal AudioContext (which starts suspended)
           const creds = await getAzureToken();
-          const cfg = makeSpeechConfig(creds);
-          cfg.speechSynthesisVoiceName = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
-          const outStream = SpeechSDK.AudioOutputStream.createPullStream();
-          const ac = SpeechSDK.AudioConfig.fromStreamOutput(outStream);
-          const synth = new SpeechSDK.SpeechSynthesizer(cfg, ac);
-          synth.speakTextAsync(
-            text,
-            async (result) => {
-              synth.close();
-              try {
-                const ctx = getAudioCtx();
-                const decoded = await ctx.decodeAudioData(result.audioData.slice(0));
-                const node = ctx.createBufferSource();
-                node.buffer = decoded;
-                node.connect(ctx.destination);
-                node.onended = resolve;
-                node.start();
-              } catch (e) { resolve(); }
+          const voice = TTS_VOICES[state.myLang] || 'en-US-GuyNeural';
+          const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const ssml = `<speak version='1.0' xml:lang='en-US'><voice name='${voice}'>${escaped}</voice></speak>`;
+          const r = await fetch(`https://${creds.region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + creds.token,
+              'Content-Type': 'application/ssml+xml',
+              'X-Microsoft-OutputFormat': 'audio-16khz-32kbitrate-mono-mp3',
+              'User-Agent': 'Loquivox',
             },
-            (err) => { console.warn('[CPRemote] TTS error:', err); synth.close(); resolve(); }
-          );
+            body: ssml,
+          });
+          if (!r.ok) { console.warn('[CPRemote] TTS HTTP', r.status); resolve(); return; }
+          const buf = await r.arrayBuffer();
+          const decoded = await ctx.decodeAudioData(buf.slice(0));
+          const src = ctx.createBufferSource();
+          src.buffer = decoded;
+          src.connect(ctx.destination);
+          src.onended = resolve;
+          src.start(0);
         }
       } catch (err) {
-        console.warn('[CPRemote] TTS setup error:', err);
+        console.warn('[CPRemote] TTS error:', err);
         resolve();
       }
     }));
