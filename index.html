@@ -531,6 +531,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     <div class="waveform" id="waveform"></div>
   </div>
 
+  <!-- Turn indicator (Two-Way Call only) -->
+  <div id="turnLabel" style="text-align:center;font-size:13px;color:var(--muted);padding:4px 0 2px;min-height:20px;"></div>
+
   <!-- Controls -->
   <div class="call-controls">
     <div class="ctrl-btn" onclick="toggleSpeaker()">
@@ -539,12 +542,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
     <div class="ctrl-btn" onclick="toggleMic()">
       <button class="ctrl-icon ctrl-mic" id="micBtn">🎙️</button>
-      <span id="micLabel">A speaks</span>
-    </div>
-    <!-- Speaker B mic — shown only in Two-Way Call mode -->
-    <div class="ctrl-btn" id="micBtnBWrap" onclick="toggleMicB()" style="display:none;">
-      <button class="ctrl-icon ctrl-mic" id="micBtnB">🎙️</button>
-      <span id="micLabelB">B speaks</span>
+      <span id="micLabel">Tap to speak</span>
     </div>
     <!-- Original Voice toggle — only shown in Remote Call mode -->
     <div class="ctrl-btn" id="origVoiceCtrl" onclick="toggleOriginalVoice()" style="display:none;">
@@ -878,6 +876,7 @@ let obStep = 0;
 let azureRecognizer = null;
 let azureRecognizerB = null;
 let isListeningB = false;
+let activeSpeaker = 'A'; // 'A' or 'B' — whose turn it is in Two-Way Call
 let remoteMode = false; // NOUVEAU : mode appel à distance
 // ── Original Voice state (Remote Call) ───────────────────────
 let remoteOriginalVoice = false;
@@ -920,8 +919,24 @@ function showCall(){
   showScreen('call');
   updateCallUI();
   buildWaveform();
-  // Show B mic button for Two-Way Call
-  document.getElementById('micBtnBWrap').style.display='';
+  activeSpeaker = 'A';
+  updateTurnLabel();
+}
+
+function updateTurnLabel(){
+  const lbl = document.getElementById('turnLabel');
+  if(!lbl) return;
+  if(remoteMode){ lbl.textContent=''; return; }
+  const lang = activeSpeaker === 'A' ? currentLangA : currentLangB;
+  lbl.textContent = `Speaker ${activeSpeaker} · ${lang.flag} ${lang.name} · Tap to speak`;
+}
+
+function switchToSpeaker(who){
+  activeSpeaker = who;
+  updateTurnLabel();
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micLabel').textContent='Tap to speak';
+  animateWave(false);
 }
 
 function updateCallUI(){
@@ -1203,7 +1218,11 @@ function toggleMic(){
     }
     return;
   }
-  if(isListening){stopListening();}else{startListening();}
+  if(activeSpeaker === 'B'){
+    if(isListeningB){ stopListeningB(); } else { startListeningB(); }
+  } else {
+    if(isListening){ stopListening(); } else { startListening(); }
+  }
 }
 
 async function startListening(){
@@ -1248,9 +1267,9 @@ async function startListening(){
           const translated = e.result.translations.get(azureTargetLang);
           document.getElementById('origA').textContent = original;
           typeText('transA', translated || '[Translation unavailable]');
-          // Pass original targetLang so Haitian Creole routes to ElevenLabs TTS
-          if(translated) speakCallTTS(translated, targetLang, tk);
-          // Do NOT stop listening — keep mic on until user taps to stop
+          // Stop A's mic, play TTS for B, then switch turn to B
+          stopListening();
+          speakCallTTS(translated || '', targetLang, tk, () => switchToSpeaker('B'));
         }
       };
 
@@ -1283,9 +1302,8 @@ function stopListening(){
   }
   if(recognition){try{recognition.stop();}catch(e){}}
   document.getElementById('micBtn').classList.remove('listening');
-  document.getElementById('micLabel').textContent='A speaks';
+  document.getElementById('micLabel').textContent='Tap to speak';
   animateWave(false);
-  stopListeningB();
 }
 
 // ── Speaker B mic (Two-Way Call only) ────────────────────────
@@ -1297,12 +1315,10 @@ function toggleMicB(){
 async function startListeningB(){
   try{ await ensureMic(); }
   catch(e){ showMicError(e.message); return; }
-  // Stop A if running
   if(isListening){ stopListening(); }
   isListeningB=true;
-  const btn=document.getElementById('micBtnB');
-  btn.classList.add('listening');
-  document.getElementById('micLabelB').textContent='Listening…';
+  document.getElementById('micBtn').classList.add('listening');
+  document.getElementById('micLabel').textContent='Listening…';
   document.getElementById('origB').textContent='';
   document.getElementById('transB').textContent='';
   animateWave(true);
@@ -1330,7 +1346,9 @@ async function startListeningB(){
           const translated = e.result.translations.get(azureTargetLang);
           document.getElementById('origB').textContent = original;
           typeText('transB', translated || '[Translation unavailable]');
-          if(translated) speakCallTTS(translated, targetLang, tk);
+          // Stop B's mic, play TTS for A, then switch turn back to A
+          stopListeningB();
+          speakCallTTS(translated || '', targetLang, tk, () => switchToSpeaker('A'));
         }
       };
       azureRecognizerB.canceled = (s, e) => {
@@ -1347,9 +1365,8 @@ function stopListeningB(){
     try{ azureRecognizerB.stopContinuousRecognitionAsync(()=>{ azureRecognizerB.close(); azureRecognizerB=null; }); }
     catch(e){ azureRecognizerB=null; }
   }
-  const btn=document.getElementById('micBtnB');
-  if(btn){ btn.classList.remove('listening'); }
-  document.getElementById('micLabelB').textContent='B speaks';
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micLabel').textContent='Tap to speak';
   animateWave(false);
 }
 
@@ -1408,28 +1425,26 @@ const CALL_VOICES = {
 };
 
 // Speak the translated text via REST API + pre-unlocked AudioContext (cross-browser reliable)
-async function speakCallTTS(text, langCode, creds) {
-  if (!callTtsEnabled || !text) return;
-  // Always use the pre-unlocked AudioContext to avoid autoplay blocks
+// onDone() is called when audio finishes (used to auto-switch speaker turn)
+async function speakCallTTS(text, langCode, creds, onDone) {
+  if (!callTtsEnabled || !text) { if(onDone) onDone(); return; }
   const ctx = getRCAudioCtx();
 
-  // Haitian Creole → ElevenLabs multilingual v2 (Azure doesn't support ht TTS)
   if (langCode === 'ht') {
     try {
       const r = await fetch('https://cp-app-rho.vercel.app/api/ht-tts?text=' + encodeURIComponent(text));
-      if (!r.ok) return;
+      if (!r.ok) { if(onDone) onDone(); return; }
       const buf = await r.arrayBuffer();
       const decoded = await ctx.decodeAudioData(buf.slice(0));
       const src = ctx.createBufferSource();
       src.buffer = decoded;
       src.connect(ctx.destination);
+      src.onended = () => { if(onDone) onDone(); };
       src.start(0);
-    } catch(e) {}
+    } catch(e) { if(onDone) onDone(); }
     return;
   }
 
-  // All other languages → Azure TTS REST API played through pre-unlocked AudioContext
-  // (avoids SpeechSDK creating its own suspended AudioContext which browsers block)
   try {
     const voice = CALL_VOICES[langCode] || 'en-US-GuyNeural';
     const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1444,14 +1459,15 @@ async function speakCallTTS(text, langCode, creds) {
       },
       body: ssml,
     });
-    if (!r.ok) return;
+    if (!r.ok) { if(onDone) onDone(); return; }
     const buf = await r.arrayBuffer();
     const decoded = await ctx.decodeAudioData(buf.slice(0));
     const src = ctx.createBufferSource();
     src.buffer = decoded;
     src.connect(ctx.destination);
+    src.onended = () => { if(onDone) onDone(); };
     src.start(0);
-  } catch(e) { console.warn('[TTS]', e); }
+  } catch(e) { console.warn('[TTS]', e); if(onDone) onDone(); }
 }
 
 // ── Fin d'appel (local ou distance) ───────────────────────────
@@ -1463,7 +1479,7 @@ function endCall(){
     stopRCAudio();
     CPRemote.setTTS(true);
     document.getElementById('origVoiceCtrl').style.display='none';
-    document.getElementById('micBtnBWrap').style.display='';
+    activeSpeaker='A'; updateTurnLabel();
     document.querySelector('#langBoxA .lang-sub').textContent='Speaker A (You)';
     document.querySelector('#langBoxB .lang-sub').textContent='Speaker B';
   }
@@ -1475,6 +1491,13 @@ function endCall(){
 // ── Language Picker ───────────────────────────────────────────
 function openLangPicker(side){
   pickingFor=side;
+  // In Two-Way Call, clicking a language panel also switches whose turn it is
+  if(!remoteMode && document.getElementById('call')?.classList.contains('active')){
+    if(isListening) stopListening();
+    if(isListeningB) stopListeningB();
+    activeSpeaker=side;
+    updateTurnLabel();
+  }
   document.getElementById('langSearch').value='';
   renderLangList(LANGUAGES);
   document.getElementById('langModal').classList.add('open');
@@ -1882,8 +1905,8 @@ function enterRemoteCall(room, isHost){
   // Update sub-labels for bidirectional mode
   document.querySelector('#langBoxA .lang-sub').textContent = 'You — tap mic to speak';
   document.querySelector('#langBoxB .lang-sub').textContent = 'Them — their language';
-  // Hide B mic button (not needed in Remote Call)
-  document.getElementById('micBtnBWrap').style.display='none';
+  // Hide turn label (not needed in Remote Call)
+  const tl=document.getElementById('turnLabel'); if(tl) tl.textContent='';
   // Show Original Voice toggle, reset its appearance
   const vc = document.getElementById('origVoiceCtrl');
   vc.style.display = 'flex';
