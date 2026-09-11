@@ -350,7 +350,7 @@
             headers: {
               'Authorization': 'Bearer ' + creds.token,
               'Content-Type': 'application/ssml+xml',
-              'X-Microsoft-OutputFormat': 'audio-16khz-32kbitrate-mono-mp3',
+              'X-Microsoft-OutputFormat': 'audio-24khz-96kbitrate-mono-mp3',
               'User-Agent': 'Loquivox',
             },
             body: ssml,
