@@ -19,19 +19,6 @@
 
 <!-- Azure Speech SDK -->
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-<script>
-/* Secours SDK : si le CDN Microsoft (aka.ms) est bloque, charger via jsDelivr */
-(function(){
-  function fallback(){
-    if (window.SpeechSDK || document.getElementById("sdkFallback")) return;
-    var s=document.createElement("script"); s.id="sdkFallback";
-    s.src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk@1.49.0/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle-min.js";
-    document.head.appendChild(s);
-  }
-  setTimeout(fallback, 3000);
-  window.addEventListener("load", function(){ setTimeout(fallback, 1500); });
-})();
-</script>
 <!-- PWA: Manifest -->
 <link rel="manifest" href="manifest.json"/>
 <style>
@@ -565,9 +552,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- Note about speech -->
-  <div style="text-align:center;padding:0 24px 24px;font-size:12px;color:var(--muted);">
-    🎙️ Powered by Azure AI · Real-time voice translation<br>Open in Chrome and allow microphone access
+  <!-- Note about speech — message adapts to PWA vs browser context -->
+  <div style="text-align:center;padding:0 24px 24px;font-size:12px;color:var(--muted);" id="callFooterNote">
+    🎙️ Powered by Azure AI · Real-time voice translation
   </div>
 </div>
 
@@ -651,7 +638,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <div class="conf-start-btn">
-    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="pt">Português</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
+    <div style="text-align:center;margin-bottom:8px;"><label style="font-size:12.5px;color:var(--muted,#8b93a7);">🔊 Listen in: <select id="confVoiceSel" style="background:#1a2336;color:#fff;border:1px solid #2a3654;border-radius:8px;padding:4px 8px;font-size:12.5px;"><option value="">Text only (mute)</option><option value="en">English</option><option value="fr">Français</option><option value="es">Español</option><option value="ru">Русский</option><option value="zh-Hans">中文</option><option value="ar">العربية</option><option value="ht">Kreyòl (voix fr)</option></select></label></div>
     <div style="text-align:center;margin-bottom:10px;">
     <button onclick="showConfQR()" style="background:rgba(79,142,247,0.12);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:8px 20px;font-size:13px;font-weight:600;cursor:pointer;">📱 Invite attendees — Show QR</button>
   </div>
@@ -760,28 +747,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
       Create a room and share the code, or join with a code you received.
       Pick <strong>your</strong> language first (Speaker A on the call screen).
     </p>
-    <label style="display:block;font-size:12px;color:var(--muted);margin-bottom:6px;">Your language / Votre langue</label>
-    <select id="rcLang" style="width:100%;background:#1a2336;color:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:14px;margin-bottom:14px;">
-      <option value="English">English</option>
-      <option value="French">Français</option>
-      <option value="Spanish">Español</option>
-      <option value="Portuguese">Português</option>
-      <option value="German">Deutsch</option>
-      <option value="Italian">Italiano</option>
-      <option value="Dutch">Nederlands</option>
-      <option value="Polish">Polski</option>
-      <option value="Swedish">Svenska</option>
-      <option value="Turkish">Türkçe</option>
-      <option value="Russian">Русский</option>
-      <option value="Arabic">العربية</option>
-      <option value="Chinese">中文</option>
-      <option value="Japanese">日本語</option>
-      <option value="Korean">한국어</option>
-      <option value="Hindi">हिन्दी</option>
-      <option value="Vietnamese">Tiếng Việt</option>
-      <option value="Swahili">Kiswahili</option>
-      <option value="Haitian Creole">Kreyòl</option>
-    </select>
     <button class="btn btn-primary" onclick="createRemoteRoom()">➕ Create a room</button>
     <div style="display:flex;gap:10px;margin-top:14px;">
       <input id="joinCodeInput" placeholder="Room code (e.g. K7Q2)" maxlength="4"
@@ -922,12 +887,6 @@ function getRCAudioCtx() {
 
 // ── Screen navigation ─────────────────────────────────────────
 function showScreen(id){
-  // Pré-chauffage : dès qu'on entre en Conférence/Appel, on va chercher le jeton
-  // (réveille le serveur + remplit le cache) pour que « Start » n'attende plus.
-  if((id==='conference'||id==='call') && typeof getCpToken==='function'){
-    var _pw=Date.now();
-    if(!window.__prewarmAt || _pw-window.__prewarmAt>60000){ window.__prewarmAt=_pw; try{ getCpToken().catch(function(){}); }catch(e){} }
-  }
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
@@ -1010,15 +969,42 @@ function animateWave(on){
 
 
 // ── Vérification préalable du micro (message clair si l'autorisation manque) ──
+// Detect PWA / installed desktop app (standalone display mode)
+const IS_PWA = window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true
+            || document.referrer.includes('android-app://');
+
+// Set footer note once — only show browser hint when actually in a browser
+(function setCallFooter(){
+  const note = document.getElementById('callFooterNote');
+  if(!note) return;
+  if(IS_PWA){
+    note.textContent = '🎙️ Powered by Azure AI · Real-time voice translation';
+  } else {
+    note.innerHTML = '🎙️ Powered by Azure AI · Real-time voice translation<br>Allow microphone access when prompted';
+  }
+})();
+
 async function ensureMic(){
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    throw new Error("Microphone unavailable. Open this page over https:// in Chrome, Edge or Safari.");
+    const hint = IS_PWA
+      ? "Microphone unavailable. Make sure microphone access is allowed for this app in Windows Settings → Privacy → Microphone."
+      : "Microphone unavailable. Open this page over https:// in Chrome, Edge or Safari.";
+    throw new Error(hint);
   }
+
+  // Check existing permission state without prompting
   let state = null;
   try{ state = (await navigator.permissions.query({name:'microphone'})).state; }catch(e){}
+
   if(state === 'denied'){
-    throw new Error("Microphone blocked for this site. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+    const hint = IS_PWA
+      ? "Microphone blocked. Open Windows Settings → Privacy & Security → Microphone, and enable access for this app."
+      : "Microphone blocked. Click the padlock in the address bar, set Microphone to Allow, then reload.";
+    throw new Error(hint);
   }
+
+  // Permission is 'granted' or 'prompt' — request it
   try{
     const stream = await Promise.race([
       navigator.mediaDevices.getUserMedia({audio:true}),
@@ -1028,13 +1014,19 @@ async function ensureMic(){
     return true;
   }catch(err){
     if(err && err.message === '__PROMPT_TIMEOUT__'){
-      throw new Error("Waiting for microphone permission. Chrome should show a prompt at the top of the window — click Allow. If you see no prompt, click the padlock in the address bar, set Microphone to Allow, then reload.");
+      const hint = IS_PWA
+        ? "Microphone permission timed out. Check Windows Settings → Privacy & Security → Microphone and make sure access is enabled."
+        : "Microphone permission timed out. Allow microphone access when the browser prompt appears.";
+      throw new Error(hint);
     }
     if(err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')){
-      throw new Error("Microphone permission denied. Click the padlock in the address bar, set Microphone to Allow, then reload.");
+      const hint = IS_PWA
+        ? "Microphone access denied. Go to Windows Settings → Privacy & Security → Microphone and enable access, then reopen the app."
+        : "Microphone permission denied. Click the padlock in the address bar, set Microphone to Allow, then reload.";
+      throw new Error(hint);
     }
     if(err && err.name === 'NotFoundError'){
-      throw new Error("No microphone detected. Connect a microphone or headset and reload.");
+      throw new Error("No microphone detected. Connect a microphone or headset and try again.");
     }
     throw new Error("Microphone error: " + (err && (err.name || err.message) || 'unknown'));
   }
@@ -1206,73 +1198,72 @@ function toggleMic(){
 }
 
 async function startListening(){
-  /* TWO-WAY-ONCE-V2 : moteur neuf par phrase + detection fiable + debug (?debug=1) */
-  try{ await ensureMic(); }catch(e){ showMicError(e.message); return; }
+  try{ await ensureMic(); }
+  catch(e){ showMicError(e.message); return; }
   isListening=true;
-  var _b=document.getElementById('micBtn'); if(_b)_b.classList.add('listening');
-  var _ml=document.getElementById('micLabel'); if(_ml)_ml.textContent='Listening...';
-  if(typeof animateWave==='function') animateWave(true);
-  var DBG = location.search.indexOf('debug')!==-1;
-  var dbgEl=null;
-  if(DBG){ dbgEl=document.getElementById('twDbg'); if(!dbgEl){ dbgEl=document.createElement('div'); dbgEl.id='twDbg'; dbgEl.style.cssText='position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#000;color:#0f0;font:12px monospace;padding:8px;border-radius:8px;white-space:pre-wrap'; document.body.appendChild(dbgEl); } }
-  function dbg(s){ if(dbgEl) dbgEl.textContent=s; try{ console.log('[TW] '+s); }catch(e){} }
-  var codeA=LANG_TRANS[currentLangA.name]||'en';
-  var codeB=LANG_TRANS[currentLangB.name]||'fr';
-  var locA=LANG_SPEECH[currentLangA.name]||'en-US';
-  var locB=LANG_SPEECH[currentLangB.name]||'fr-FR';
-  var azA=codeA==='ht'?'fr':codeA;
-  var azB=codeB==='ht'?'fr':codeB;
-  var baseA=(locA.split('-')[0]||'').toLowerCase();
-  var baseB=(locB.split('-')[0]||'').toLowerCase();
-  var tk;
-  try{ tk=await getCpToken(); }catch(e){ dbg('token indisponible'); if(typeof runDemoTranslation==='function') runDemoTranslation(); return; }
-  var cyc=0;
-  function playTTS(text, code){
+  const btn=document.getElementById('micBtn');
+  btn.classList.add('listening');
+  document.getElementById('micLabel').textContent='Listening…';
+  document.getElementById('origA').textContent='';
+  document.getElementById('transA').textContent='';
+  animateWave(true);
+
+  // ── Try Azure Speech Translation SDK (jeton via serveur CP) ──
+  if(typeof SpeechSDK !== 'undefined'){
     try{
-      var vcfg=SpeechSDK.SpeechConfig.fromAuthorizationToken(tk.token, tk.region);
-      vcfg.speechSynthesisVoiceName=(typeof CONF_VOICES!=='undefined'&&CONF_VOICES[code])||'en-US-GuyNeural';
-      var os=SpeechSDK.AudioOutputStream.createPullStream();
-      var ac=SpeechSDK.AudioConfig.fromStreamOutput(os);
-      var syn=new SpeechSDK.SpeechSynthesizer(vcfg, ac);
-      syn.speakTextAsync(text, function(res){ syn.close(); try{ var ctx=(window._getRemoteAudioCtx?window._getRemoteAudioCtx():new (window.AudioContext||window.webkitAudioContext)()); if(ctx.state==='suspended') ctx.resume(); ctx.decodeAudioData(res.audioData.slice(0)).then(function(dec){ var n=ctx.createBufferSource(); n.buffer=dec; n.connect(ctx.destination); n.start(); }).catch(function(){}); }catch(e){} }, function(){ syn.close(); });
-    }catch(e){}
+      const tk = await getCpToken();
+      const speechConfig = tk.isKey
+        ? SpeechSDK.SpeechTranslationConfig.fromSubscription(tk.token, tk.region)
+        : SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
+      speechConfig.speechRecognitionLanguage = LANG_SPEECH[currentLangA.name] || 'en-US';
+      const targetLang = LANG_TRANS[currentLangB.name] || 'fr';
+      // Azure Speech SDK doesn't support 'ht' (Haitian Creole) as a translation target
+      // Use French as the Azure target, then route TTS through ElevenLabs
+      const azureTargetLang = targetLang === 'ht' ? 'fr' : targetLang;
+      speechConfig.addTargetLanguage(azureTargetLang);
+
+      const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+      azureRecognizer = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
+      // Show interim results as user speaks
+      azureRecognizer.recognizing = (s, e) => {
+        if(e.result.text){
+          document.getElementById('origA').innerHTML = e.result.text + '<span class="cursor-blink"></span>';
+        }
+      };
+
+      // Final result with translation + TTS playback — keep listening after each phrase
+      azureRecognizer.recognized = (s, e) => {
+        if(e.result.reason === SpeechSDK.ResultReason.TranslatedSpeech){
+          const original = e.result.text;
+          const translated = e.result.translations.get(azureTargetLang);
+          document.getElementById('origA').textContent = original;
+          typeText('transA', translated || '[Translation unavailable]');
+          // Pass original targetLang so Haitian Creole routes to ElevenLabs TTS
+          if(translated) speakCallTTS(translated, targetLang, tk);
+          // Do NOT stop listening — keep mic on until user taps to stop
+        }
+      };
+
+      azureRecognizer.canceled = (s, e) => {
+        // Only act on actual errors, not normal end-of-speech pauses
+        if(e.reason === SpeechSDK.CancellationReason.Error){
+          runDemoTranslation(); // keep mic on
+        }
+      };
+
+      azureRecognizer.startContinuousRecognitionAsync(
+        ()=>{}, // success
+        ()=>{ runDemoTranslation(); } // error → demo, keep mic on
+      );
+
+    } catch(err){
+      runDemoTranslation(); // keep mic on even if Azure fails
+    }
+  } else {
+    // Fallback demo mode
+    runDemoTranslation();
   }
-  function cycle(){
-    if(!isListening) return;
-    cyc++;
-    var cfg=SpeechSDK.SpeechTranslationConfig.fromAuthorizationToken(tk.token, tk.region);
-    cfg.addTargetLanguage(azA); if(azB!==azA) cfg.addTargetLanguage(azB);
-    var rec;
-    try{
-      var auto=SpeechSDK.AutoDetectSourceLanguageConfig.fromLanguages([locA, locB]);
-      var audioConfig=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-      rec=new SpeechSDK.TranslationRecognizer(cfg, auto, audioConfig);
-    }catch(eA){ var ac2=SpeechSDK.AudioConfig.fromDefaultMicrophoneInput(); rec=new SpeechSDK.TranslationRecognizer(cfg, ac2); }
-    azureRecognizer=rec;
-    rec.recognizing=function(s,e){ if(e.result&&e.result.text){ var oa=document.getElementById('origA'); if(oa) oa.textContent=e.result.text; } };
-    dbg('Cycle '+cyc+' - parlez ('+locA+' ou '+locB+')...');
-    rec.recognizeOnceAsync(function(r){
-      var src=''; try{ src=(SpeechSDK.AutoDetectSourceLanguageResult.fromResult(r).language||'').toLowerCase(); }catch(e){}
-      var reason=r&&r.reason;
-      if(r && r.reason===SpeechSDK.ResultReason.TranslatedSpeech && r.text){
-        var isA;
-        if(src){ isA = src.indexOf(baseA)===0; }
-        else { isA = true; } // fallback si non detecte
-        var outCode=isA?azB:azA;
-        var translated=(r.translations&&r.translations.get(outCode))||'';
-        var oId=isA?'origA':'origB', tId=isA?'transA':'transB';
-        var oe=document.getElementById(oId), te=document.getElementById(tId);
-        if(oe) oe.textContent=r.text; if(te) te.textContent=translated;
-        dbg('Cycle '+cyc+' OK\ndetecte: '+(src||'(vide)')+' | orateur '+(isA?'A':'B')+' | sortie: '+outCode+'\n"'+r.text+'"\n=> "'+translated+'"');
-        if(translated) playTTS(translated, outCode);
-      } else {
-        dbg('Cycle '+cyc+' : aucun texte (reason='+reason+', detecte='+(src||'(vide)')+')');
-      }
-      try{ rec.close(); }catch(e){}
-      if(isListening) setTimeout(cycle, 150);
-    }, function(err){ dbg('Cycle '+cyc+' ERREUR: '+String(err).slice(0,70)); try{ rec.close(); }catch(e){} if(isListening) setTimeout(cycle, 400); });
-  }
-  cycle();
 }
 
 function stopListening(){
@@ -1330,45 +1321,62 @@ function toggleSpeaker(){
   btn.textContent = callTtsEnabled ? '🔊' : '🔇';
 }
 
-// Speak the translated text — Haitian Creole via ElevenLabs, others via Azure TTS
+// Full voice map for all 20 supported languages
+const CALL_VOICES = {
+  en:'en-US-GuyNeural',     fr:'fr-CA-JeanNeural',    es:'es-MX-JorgeNeural',
+  de:'de-DE-ConradNeural',  ja:'ja-JP-KeitaNeural',   'zh-Hans':'zh-CN-YunxiNeural',
+  pt:'pt-BR-AntonioNeural', ar:'ar-SA-HamedNeural',   ru:'ru-RU-DmitryNeural',
+  hi:'hi-IN-MadhurNeural',  ko:'ko-KR-InJoonNeural',  it:'it-IT-DiegoNeural',
+  nl:'nl-NL-MaartenNeural', pl:'pl-PL-MarekNeural',   sv:'sv-SE-MattiasNeural',
+  tr:'tr-TR-AhmetNeural',   el:'el-GR-NestorasNeural',vi:'vi-VN-NamMinhNeural',
+  sw:'sw-KE-RafikiNeural',
+};
+
+// Speak the translated text via REST API + pre-unlocked AudioContext (cross-browser reliable)
 async function speakCallTTS(text, langCode, creds) {
   if (!callTtsEnabled || !text) return;
-  // Haitian Creole: route through ElevenLabs multilingual v2
+  // Always use the pre-unlocked AudioContext to avoid autoplay blocks
+  const ctx = getRCAudioCtx();
+
+  // Haitian Creole → ElevenLabs multilingual v2 (Azure doesn't support ht TTS)
   if (langCode === 'ht') {
     try {
       const r = await fetch('https://cp-app-rho.vercel.app/api/ht-tts?text=' + encodeURIComponent(text));
       if (!r.ok) return;
       const buf = await r.arrayBuffer();
-      const ctx = new AudioContext();
+      const decoded = await ctx.decodeAudioData(buf.slice(0));
       const src = ctx.createBufferSource();
-      src.buffer = await ctx.decodeAudioData(buf);
+      src.buffer = decoded;
       src.connect(ctx.destination);
-      src.start();
+      src.start(0);
     } catch(e) {}
     return;
   }
-  if (typeof SpeechSDK === 'undefined') return;
+
+  // All other languages → Azure TTS REST API played through pre-unlocked AudioContext
+  // (avoids SpeechSDK creating its own suspended AudioContext which browsers block)
   try {
-    const cfg = creds.isKey
-      ? SpeechSDK.SpeechConfig.fromSubscription(creds.token, creds.region)
-      : SpeechSDK.SpeechConfig.fromAuthorizationToken(creds.token, creds.region);
-    const _voice = CONF_VOICES[langCode];
-    if (_voice) {
-      cfg.speechSynthesisVoiceName = _voice;
-    } else {
-      // Pas de voix curatee : on laisse Azure choisir la voix par defaut de
-      // la langue, au lieu de retomber sur l'anglais (11 langues sonnaient
-      // en anglais a cause de cela).
-      const _loc = { de:'de-DE', ja:'ja-JP', pt:'pt-BR', hi:'hi-IN', ko:'ko-KR',
-        it:'it-IT', nl:'nl-NL', pl:'pl-PL', sv:'sv-SE', tr:'tr-TR', vi:'vi-VN',
-        sw:'sw-KE', 'zh-Hans':'zh-CN' }[langCode];
-      if (_loc) cfg.speechSynthesisLanguage = _loc;
-      else cfg.speechSynthesisVoiceName = 'en-US-GuyNeural';
-    }
-    const ac = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
-    const s = new SpeechSDK.SpeechSynthesizer(cfg, ac);
-    s.speakTextAsync(text, () => s.close(), () => s.close());
-  } catch(e) {}
+    const voice = CALL_VOICES[langCode] || 'en-US-GuyNeural';
+    const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const ssml = `<speak version='1.0' xml:lang='en-US'><voice name='${voice}'>${escaped}</voice></speak>`;
+    const r = await fetch(`https://${creds.region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + creds.token,
+        'Content-Type': 'application/ssml+xml',
+        'X-Microsoft-OutputFormat': 'audio-16khz-32kbitrate-mono-mp3',
+        'User-Agent': 'Loquivox',
+      },
+      body: ssml,
+    });
+    if (!r.ok) return;
+    const buf = await r.arrayBuffer();
+    const decoded = await ctx.decodeAudioData(buf.slice(0));
+    const src = ctx.createBufferSource();
+    src.buffer = decoded;
+    src.connect(ctx.destination);
+    src.start(0);
+  } catch(e) { console.warn('[TTS]', e); }
 }
 
 // ── Fin d'appel (local ou distance) ───────────────────────────
@@ -1435,9 +1443,9 @@ function selectLang(flag,name){
 // Le locuteur = la personne qui tient l'appareil (langue = Speaker A).
 // Azure traduit chaque énoncé vers les langues des participants affichés,
 // en une seule passe (multi-cibles) — la brique du futur mode événement.
-const CONF_TARGETS = ['English','French','Spanish','Portuguese','Russian','Chinese','Arabic','Haitian Creole'];
+const CONF_TARGETS = ['English','French','Spanish','Russian','Chinese','Arabic','Haitian Creole'];
 const CONF_LABEL = {en:'EN', fr:'FR', es:'ES', ru:'RU', 'zh-Hans':'ZH', ar:'AR', ht:'HT'};
-const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', pt:'pt-BR-AntonioNeural', ht:'fr-CA-JeanNeural'};
+const CONF_VOICES = {en:'en-US-GuyNeural', fr:'fr-CA-JeanNeural', es:'es-MX-JorgeNeural', ru:'ru-RU-DmitryNeural', 'zh-Hans':'zh-CN-YunxiNeural', ar:'ar-SA-HamedNeural', ht:'fr-CA-JeanNeural'};
 let confLang = {name:'English', flag:'🇺🇸'};
 
 function explainHtLimit(){
@@ -1513,29 +1521,10 @@ async function startConference(){
         addLiveConfLine(e.result.text, e.result.translations, targets);
       }
     };
-    confRecognizer.canceled = (s, e) => {
-      // Coupure (jeton expiré ou réseau) : relance auto tant que la séance
-      // est censée être active — plus besoin de « Resume » manuel.
-      if (!window.__confWantActive) return;
-      try { if (confRecognizer) { confRecognizer.close(); confRecognizer = null; } } catch(_){}
-      clearInterval(window.__confTokTimer);
-      const now = Date.now();
-      window.__confRetry = (window.__confRetry && (now - window.__confRetry.t < 60000))
-        ? { n: window.__confRetry.n + 1, t: now } : { n: 1, t: now };
-      if (window.__confRetry.n > 5) { window.__confWantActive = false; stopConference('▶ Resume session'); return; }
-      setTimeout(() => { if (window.__confWantActive) startConference(); }, 1200);
-    };
+    confRecognizer.canceled = () => { stopConference('▶ Resume session'); };
 
     confRecognizer.startContinuousRecognitionAsync(
-      () => {
-        confActive = true; window.__confWantActive = true; window.__confRetry = null;
-        btn.textContent = '⏹ Stop session';
-        // Renouvelle le jeton avant expiration (~10 min) pour tenir des heures.
-        clearInterval(window.__confTokTimer);
-        window.__confTokTimer = setInterval(async () => {
-          try { const nt = await getCpToken(); if (confRecognizer) confRecognizer.authorizationToken = nt.token; window.__confTk = nt; } catch(_){}
-        }, 8 * 60 * 1000);
-      },
+      () => { confActive = true; btn.textContent = '⏹ Stop session'; },
       (err) => { stopConference(); alert('Could not start the session: ' + err); }
     );
   } catch(err){
@@ -1546,8 +1535,6 @@ async function startConference(){
 
 function stopConference(label){
   confActive = false;
-  if (!label || label === '▶ Start live session') window.__confWantActive = false;
-  clearInterval(window.__confTokTimer);
   confCurrentTargets = [];
   const btn = document.getElementById('confBtn');
   if(btn) btn.textContent = label || '▶ Start live session';
@@ -1765,12 +1752,10 @@ function showQRAgain(){ if(currentRoomCode) showQR(currentRoomCode); }
 
 function myRemoteOpts(){
   window._myRemoteName = getMyName();
-  var _rc = document.getElementById('rcLang');
-  var _ln = (_rc && _rc.value) || currentLangA.name;
   return {
     name: getMyName(),
-    lang: LANG_TRANS[_ln] || 'en',
-    speechLang: LANG_SPEECH[_ln] || 'en-US',
+    lang: LANG_TRANS[currentLangA.name] || 'en',
+    speechLang: LANG_SPEECH[currentLangA.name] || 'en-US',
   };
 }
 
@@ -1878,6 +1863,10 @@ function showConfRoomQR(room){
 }
 
 function showConfQR(){
+  if(!confActive){
+    alert('Start the live session first, then share the QR.');
+    return;
+  }
   // Create a CPRemote room for attendees if not already done
   if(!currentRoomCode){
     CPRemote.create({name:'Host', lang: LANG_TRANS[confLang.name]||'en', speechLang: LANG_SPEECH[confLang.name]||'en-US'})
@@ -2981,36 +2970,5 @@ function stopAmbient() {
   <button onclick="leaveAttendeeView()" style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#ef4444;border-radius:20px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;">Leave</button>
 </div>
 
-<script>
-/* Secours : recharger cp-meet.js s'il n'a pas construit les menus de langue */
-window.addEventListener("load", function(){
-  setTimeout(function(){
-    if (!document.getElementById("cpmSpeakSel")) {
-      var s=document.createElement("script"); s.src="cp-meet.js?retry="+Date.now();
-      document.body.appendChild(s);
-    }
-  }, 4000);
-});
-</script>
-<script>
-/* REMOTE-AUDIO-UNLOCK : debloque le contexte audio au premier geste (voix Remote sur mobile) */
-(function(){
-  function unlock(){
-    try{
-      var ctx = window._getRemoteAudioCtx ? window._getRemoteAudioCtx() : null;
-      if(ctx){
-        if(ctx.state==='suspended'){ ctx.resume(); }
-        var b=ctx.createBuffer(1,1,22050); var s=ctx.createBufferSource(); s.buffer=b; s.connect(ctx.destination); s.start(0);
-      }
-    }catch(e){}
-    document.removeEventListener('touchend', unlock, true);
-    document.removeEventListener('click', unlock, true);
-    document.removeEventListener('pointerdown', unlock, true);
-  }
-  document.addEventListener('touchend', unlock, true);
-  document.addEventListener('click', unlock, true);
-  document.addEventListener('pointerdown', unlock, true);
-})();
-</script>
 </body>
 </html>
