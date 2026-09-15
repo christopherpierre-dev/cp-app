@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Loquivox — Traduction vocale en temps réel</title>
+<meta name="description" content="Loquivox traduit votre voix en temps réel : chacun parle et écoute dans sa langue. 20 langues, pensé pour les réunions multilingues et le terrain. Par CREDIA INC."/>
+<meta property="og:title" content="Loquivox — Traduction vocale en temps réel"/>
+<meta property="og:description" content="Chacun parle et écoute dans sa propre langue. 20 langues, sans matériel dédié."/>
+<meta property="og:type" content="website"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--card:#131929;--border:#1e2d4a;--accent:#4f8ef7;--accent2:#7c5cfc;
+  --green:#22c55e;--text:#e8edf5;--muted:#8195b0;--radius:18px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:50px;font-weight:600;font-size:15px;cursor:pointer;border:none;transition:transform .15s,box-shadow .15s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 8px 24px rgba(79,142,247,.35)}
+.btn-primary:hover{transform:translateY(-2px)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--accent)}
+nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.3px}
+.logo{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand span{color:var(--accent)}
+.nav-links{display:flex;align-items:center;gap:26px;font-size:14px;color:var(--muted)}
+.nav-links a:hover{color:var(--text)}
+@media(max-width:720px){.nav-links a:not(.btn){display:none}}
+header.hero{position:relative;overflow:hidden;padding:90px 0 70px;text-align:center;background:radial-gradient(1200px 500px at 50% -10%,rgba(79,142,247,.18),transparent 60%)}
+.hero h1{font-size:clamp(34px,6vw,58px);font-weight:800;letter-spacing:-1.5px;line-height:1.08;max-width:900px;margin:0 auto 18px}
+.hero h1 b{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{font-size:clamp(16px,2.4vw,21px);color:var(--muted);max-width:640px;margin:0 auto 30px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);font-size:13px;font-weight:500;padding:7px 15px;border-radius:50px;margin-bottom:26px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+section{padding:64px 0}
+.eyebrow{color:var(--accent);font-weight:700;font-size:13px;letter-spacing:1.2px;text-transform:uppercase;text-align:center;margin-bottom:10px}
+h2.title{font-size:clamp(26px,4vw,38px);font-weight:800;letter-spacing:-.8px;text-align:center;margin-bottom:14px}
+.lead{color:var(--muted);text-align:center;max-width:640px;margin:0 auto 44px;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+.card .ic{font-size:32px;margin-bottom:14px}
+.card h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.card p{color:var(--muted);font-size:14.5px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:820px){.split{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.panel h3{font-size:20px;margin-bottom:10px}
+.panel.prob h3{color:#f59e0b}
+.panel.sol h3{color:var(--green)}
+.panel p{color:var(--muted)}
+.langs{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:820px;margin:0 auto}
+.lang{background:var(--card);border:1px solid var(--border);border-radius:50px;padding:8px 16px;font-size:14px}
+.lang b{color:var(--accent);font-weight:600}
+.org{background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(124,92,252,.08));border:1px solid var(--border);border-radius:24px;padding:44px 32px}
+.org ul{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:14px 26px;margin-top:22px}
+@media(max-width:820px){.org ul{grid-template-columns:1fr}}
+.org li{display:flex;gap:11px;color:var(--muted);font-size:15px}
+.org li .chk{color:var(--green);flex-shrink:0;font-weight:700}
+.badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:26px}
+.badge{font-size:12.5px;color:var(--muted);border:1px solid var(--border);border-radius:50px;padding:6px 14px}
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:stretch}
+@media(max-width:820px){.price-grid{grid-template-columns:1fr}}
+.price{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column}
+.price.feat{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 12px 40px rgba(79,142,247,.18)}
+.price .tier{font-size:14px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.price .amt{font-size:34px;font-weight:800;margin:8px 0 2px}
+.price .amt small{font-size:15px;color:var(--muted);font-weight:500}
+.price .for{color:var(--muted);font-size:13.5px;margin-bottom:16px}
+.price ul{list-style:none;display:flex;flex-direction:column;gap:9px;font-size:14px;color:var(--muted);margin-bottom:22px;flex:1}
+.price ul li:before{content:"\2713 ";color:var(--green);font-weight:700}
+.price .btn{width:100%;justify-content:center}
+.priv{display:flex;gap:16px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px}
+.priv .ic{font-size:30px}
+.final{text-align:center;background:radial-gradient(900px 400px at 50% 120%,rgba(124,92,252,.2),transparent 60%)}
+.final h2{margin-bottom:14px}
+footer{border-top:1px solid var(--border);padding:34px 0;color:var(--muted);font-size:13.5px}
+.foot-in{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.foot-in a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-in">
+  <a class="brand" href="#top"><span class="logo">🌐</span>Loqui<span>vox</span></a>
+  <div class="nav-links">
+    <a href="#modes">Fonctions</a>
+    <a href="#langues">Langues</a>
+    <a href="#organisations">Organisations</a>
+    <a href="#prix">Prix</a>
+    <a class="btn btn-primary" href="https://loquivox.app">Ouvrir l'app →</a>
+  </div>
+</div></nav>
+<header class="hero" id="top"><div class="wrap">
+  <div class="pill"><span class="dot"></span>Propulsé par l'IA · Microsoft Azure Speech</div>
+  <h1>Chacun parle et écoute <b>dans sa propre langue</b>.</h1>
+  <p class="sub">Loquivox traduit votre voix en temps réel — à l'oral comme à l'écrit. Pensé pour les réunions multilingues et le terrain, sans matériel dédié.</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="https://loquivox.app">Essayer gratuitement</a>
+    <a class="btn btn-outline" href="#organisations">Pour les organisations</a>
+  </div>
+</div></header>
+<section id="probleme"><div class="wrap"><div class="split">
+  <div class="panel prob"><h3>Le problème</h3><p>Dans les réunions multilatérales et sur le terrain, la barrière de la langue exclut, ralentit et coûte cher. L'interprétation humaine est indispensable, mais rare et onéreuse — surtout pour les langues sous-desservies.</p></div>
+  <div class="panel sol"><h3>La solution</h3><p>On parle naturellement dans sa langue ; l'autre comprend instantanément dans la sienne, texte et voix. Un simple téléphone ou navigateur suffit. Né des travaux de CREDIA sur la justice linguistique.</p></div>
+</div></div></section>
+<section id="modes"><div class="wrap">
+  <div class="eyebrow">Trois façons de l'utiliser</div>
+  <h2 class="title">Une app, chaque conversation</h2>
+  <p class="lead">Du face-à-face à la salle de conférence, jusqu'à l'appel à distance.</p>
+  <div class="grid">
+    <div class="card"><div class="ic">📞</div><h3>Two-Way</h3><p>Face-à-face sur un seul appareil : deux personnes, deux langues, une conversation fluide.</p></div>
+    <div class="card"><div class="ic">👥</div><h3>Conférence</h3><p>Un orateur parle ; toute la salle le lit et l'entend, chacun dans sa propre langue.</p></div>
+    <div class="card"><div class="ic">🌐</div><h3>Appel à distance</h3><p>Deux appareils rejoignent une salle via un simple code ou QR — chacun dans sa langue.</p></div>
+  </div>
+</div></section>
+<section id="langues" style="padding-top:20px"><div class="wrap">
+  <div class="eyebrow">≈ 20 langues, en croissance</div>
+  <h2 class="title">Des grandes langues aux langues du Sud global</h2>
+  <p class="lead">Une attention particulière aux langues souvent sous-desservies, comme le créole haïtien et le swahili.</p>
+  <div class="langs">
+    <div class="lang">🇫🇷 Français</div><div class="lang">🇺🇸 Anglais</div><div class="lang">🇪🇸 Espagnol</div>
+    <div class="lang">🇧🇷 Portugais</div><div class="lang">🇸🇦 Arabe</div><div class="lang">🇨🇳 Chinois</div>
+    <div class="lang">🇩🇪 Allemand</div><div class="lang">🇷🇺 Russe</div><div class="lang">🇯🇵 Japonais</div>
+    <div class="lang">🇰🇷 Coréen</div><div class="lang">🇮🇳 Hindi</div><div class="lang">🇮🇹 Italien</div>
+    <div class="lang">🇭🇹 <b>Créole haïtien</b></div><div class="lang">🇰🇪 <b>Swahili</b></div><div class="lang">🇻🇳 Vietnamien</div>
+    <div class="lang">🇹🇷 Turc</div><div class="lang">🇳🇱 Néerlandais</div><div class="lang">🇵🇱 Polonais</div>
+    <div class="lang">🇸🇪 Suédois</div><div class="lang">🇬🇷 Grec</div>
+  </div>
+</div></section>
+<section id="organisations"><div class="wrap"><div class="org">
+  <div class="eyebrow">Pour les institutions & ONG</div>
+  <h2 class="title">Conçu pour les contextes multilatéraux</h2>
+  <p class="lead" style="margin-bottom:6px">Réunions internationales, missions de terrain, inclusion linguistique — un déploiement instantané, sans infrastructure.</p>
+  <ul>
+    <li><span class="chk">✓</span> Inclusion linguistique immédiate en réunions, ateliers et missions.</li>
+    <li><span class="chk">✓</span> Complément à faible coût de l'interprétation professionnelle.</li>
+    <li><span class="chk">✓</span> Couvre des langues rarement prises en charge (créole, swahili).</li>
+    <li><span class="chk">✓</span> Transcriptions en direct pour la mémoire des échanges.</li>
+    <li><span class="chk">✓</span> Fonctionne sur 4G et réseaux instables ; aucun matériel dédié.</li>
+    <li><span class="chk">✓</span> Voix traitée de façon sécurisée et non conservée.</li>
+  </ul>
+  <div class="badges">
+    <span class="badge">Aligné ODD 10 — Réduction des inégalités</span>
+    <span class="badge">ODD 16 — Institutions inclusives</span>
+    <span class="badge">ODD 4 — Éducation</span>
+  </div>
+</div></div></section>
+<section id="prix"><div class="wrap">
+  <div class="eyebrow">Tarifs</div>
+  <h2 class="title">Simple et accessible</h2>
+  <p class="lead">Gratuit pour commencer. Pro pour un usage sans limite. Institution sur mesure.</p>
+  <div class="price-grid">
+    <div class="price">
+      <div class="tier">Gratuit</div><div class="amt">0 $</div><div class="for">Pour découvrir</div>
+      <ul><li>Traduction Two-Way</li><li>20 langues</li><li>Transcription en direct</li></ul>
+      <a class="btn btn-outline" href="https://loquivox.app">Commencer</a>
+    </div>
+    <div class="price feat">
+      <div class="tier" style="color:var(--accent)">Pro</div><div class="amt">7,99 $ <small>/ mois</small></div><div class="for">ou 59,99 $/an — 2 mois offerts</div>
+      <ul><li>Usage illimité</li><li>Restitution en voix originale</li><li>Export des transcriptions</li><li>Traitement prioritaire</li></ul>
+      <a class="btn btn-primary" href="https://loquivox.app">Passer à Pro</a>
+    </div>
+    <div class="price">
+      <div class="tier">Institution</div><div class="amt">Sur devis</div><div class="for">Équipes, ONG, événements</div>
+      <ul><li>Mode Conférence multilingue</li><li>Déploiement pour événements</li><li>Accompagnement dédié</li><li>Facturation institutionnelle</li></ul>
+      <a class="btn btn-outline" href="mailto:contact@credia.ca">Nous contacter</a>
+    </div>
+  </div>
+</div></section>
+<section id="confidentialite" style="padding-top:20px"><div class="wrap"><div class="priv">
+  <div class="ic">🔒</div>
+  <div><h3 style="margin-bottom:8px">Votre voix, votre confidentialité</h3>
+  <p style="color:var(--muted)">L'audio est traité en flux par Microsoft Azure et <b style="color:var(--text)">n'est jamais conservé</b> par Loquivox. Connexions chiffrées (HTTPS/WSS), jetons d'accès éphémères, aucune donnée revendue. Vous gardez le contrôle du micro à tout moment. <a href="https://loquivox.app/privacy.html" style="color:var(--accent)">Politique de confidentialité →</a></p></div>
+</div></div></section>
+<section class="final"><div class="wrap">
+  <h2 class="title">Brisez la barrière de la langue</h2>
+  <p class="lead">Essayez Loquivox en quelques secondes, directement dans votre navigateur.</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="https://loquivox.app">Ouvrir l'app</a>
+    <a class="btn btn-outline" href="mailto:contact@credia.ca">Discuter d'un partenariat</a>
+  </div>
+</div></section>
+<footer><div class="wrap foot-in">
+  <div><span class="brand" style="font-size:16px"><span class="logo" style="width:26px;height:26px;font-size:14px">🌐</span>Loqui<span>vox</span></span></div>
+  <div>© 2026 CREDIA INC. · <a href="https://loquivox.app/privacy.html">Confidentialité</a> · <a href="mailto:contact@credia.ca">contact@credia.ca</a></div>
+</div></footer>
+</body>
+</html>
