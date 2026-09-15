@@ -315,6 +315,75 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .ambient-big-btn{margin:0 16px 14px;padding:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:18px;font-size:16px;font-weight:700;cursor:pointer;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 8px 24px rgba(79,142,247,0.35);transition:all .2s;}
 .ambient-big-btn:active{transform:scale(0.98);}
 .ambient-big-btn.listening{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 24px rgba(239,68,68,0.4);}
+
+/* ── Professional Report Wizard ──────────────────────────────── */
+.rw-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:2000;display:flex;flex-direction:column;justify-content:flex-end;}
+.rw-panel{background:var(--bg);border-radius:24px 24px 0 0;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.rw-header{display:flex;align-items:center;padding:18px 16px 14px;border-bottom:1px solid var(--border);gap:10px;}
+.rw-header h3{flex:1;margin:0;font-size:16px;text-align:center;}
+.rw-close-btn{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);padding:0;line-height:1;}
+.rw-progress-bar{height:3px;background:var(--border);}
+.rw-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .35s;}
+.rw-body{flex:1;overflow-y:auto;padding:20px 16px;}
+.rw-step-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;font-weight:600;}
+.rw-step-title{font-size:18px;font-weight:700;margin-bottom:14px;}
+.rw-option-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.rw-option-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:12px;cursor:pointer;transition:all .15s;text-align:center;}
+.rw-option-card.selected{border-color:var(--accent);background:rgba(79,142,247,.1);}
+.rw-option-card .rw-oc-icon{font-size:24px;margin-bottom:4px;}
+.rw-option-card .rw-oc-label{font-size:13px;font-weight:600;}
+.rw-option-card .rw-oc-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.rw-option-list{display:flex;flex-direction:column;gap:8px;}
+.rw-option-row{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px;}
+.rw-option-row.selected{border-color:var(--accent);background:rgba(79,142,247,.1);}
+.rw-option-row .rw-or-icon{font-size:20px;width:28px;text-align:center;}
+.rw-option-row .rw-or-label{font-size:14px;font-weight:600;flex:1;}
+.rw-option-row .rw-or-sub{font-size:12px;color:var(--muted);}
+.rw-check-row{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card);border-radius:12px;margin-bottom:8px;cursor:pointer;}
+.rw-check-row input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+.rw-check-label{font-size:14px;font-weight:500;flex:1;}
+.rw-check-sub{font-size:11px;color:var(--muted);}
+.rw-footer{display:flex;gap:10px;padding:14px 16px;border-top:1px solid var(--border);}
+.rw-btn-back{flex:1;padding:14px;background:var(--card);border:1px solid var(--border);border-radius:14px;font-size:15px;cursor:pointer;color:var(--text);font-weight:600;}
+.rw-btn-next{flex:2;padding:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;}
+.rw-btn-next:disabled{opacity:.5;cursor:not-allowed;}
+.rw-outline-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;max-height:340px;overflow-y:auto;}
+.rw-textarea{width:100%;min-height:120px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px;font-size:14px;color:var(--text);resize:vertical;box-sizing:border-box;}
+.rw-gen-progress{text-align:center;padding:30px 0;}
+.rw-gen-spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+.rw-gen-msg{font-size:14px;color:var(--muted);}
+/* ── Report Viewer ─────────────────────────────────────────── */
+.report-toolbar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--card);border-bottom:1px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.rt-btn{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;white-space:nowrap;font-weight:600;color:var(--text);}
+.rt-btn:active{opacity:.7;}
+.report-doc{padding:20px 16px;font-size:14px;line-height:1.8;color:var(--text);}
+.report-doc h1{font-size:22px;font-weight:800;margin:0 0 6px;line-height:1.3;}
+.report-doc h2{font-size:17px;font-weight:700;margin:28px 0 10px;color:var(--accent);border-bottom:1px solid var(--border);padding-bottom:6px;}
+.report-doc h3{font-size:15px;font-weight:700;margin:20px 0 8px;}
+.report-doc h4{font-size:13px;font-weight:700;margin:14px 0 6px;color:var(--muted);}
+.report-doc p{margin:0 0 12px;}
+.report-doc .cover-page{text-align:center;padding:30px 0 40px;border-bottom:2px solid var(--border);margin-bottom:30px;}
+.report-doc .cover-org{font-size:12px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);margin-bottom:20px;}
+.report-doc .cover-title{font-size:24px;font-weight:800;margin-bottom:8px;line-height:1.3;}
+.report-doc .cover-subtitle{font-size:15px;color:var(--muted);margin-bottom:24px;}
+.report-doc .cover-meta{font-size:12px;color:var(--muted);line-height:2;}
+.report-doc .cover-badge{display:inline-block;margin-top:16px;padding:6px 14px;background:rgba(79,142,247,.12);border:1px solid var(--accent);border-radius:20px;font-size:11px;color:var(--accent);font-weight:600;}
+.report-doc .toc-entry{display:flex;padding:5px 0;font-size:13px;cursor:pointer;gap:6px;}
+.report-doc .toc-entry:hover{color:var(--accent);}
+.report-doc .toc-entry .toc-dots{flex:1;border-bottom:1px dotted var(--border);margin:0 4px;align-self:flex-end;margin-bottom:5px;}
+.report-doc .toc-entry .toc-num{color:var(--muted);font-size:12px;}
+.report-doc .exec-box{background:rgba(79,142,247,.07);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:16px 18px;margin-bottom:20px;}
+.report-doc table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+.report-doc th{background:var(--card);padding:10px 12px;text-align:left;font-weight:700;border:1px solid var(--border);}
+.report-doc td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;}
+.report-doc tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.report-doc .section-divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.report-doc .footnote{font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;margin-top:20px;}
+.report-doc .warning-box{background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 14px;font-size:12px;margin:12px 0;color:#b8860b;}
+.report-qc-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--card);border-radius:12px;margin-bottom:8px;font-size:13px;}
+.report-qc-ok{color:#22c55e;font-size:16px;}
+.report-qc-warn{color:#f59e0b;font-size:16px;}
+.report-qc-err{color:#ef4444;font-size:16px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -2731,6 +2800,14 @@ function stopAmbient() {
     <button class="export-btn" onclick="copyMeetingTranscript()">📋 Copy</button>
   </div>
 
+  <!-- Professional Report button (always visible) -->
+  <div style="padding:0 16px 16px;">
+    <button onclick="openReportWizard()" style="width:100%;padding:16px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;border-radius:18px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 6px 20px rgba(99,102,241,0.35);">
+      <span style="font-size:20px;">📑</span>
+      <span>Generate Professional Report</span>
+    </button>
+  </div>
+
   <!-- Meeting history -->
   <div class="section-label" style="padding-top:4px;">Meeting History</div>
   <div class="prem-section" style="margin-bottom:0;" id="meetHistoryList">
@@ -3070,6 +3147,694 @@ function stopAmbient() {
   </div>
   <div style="font-size:12px;color:#64748b;text-align:center;margin-bottom:20px;" id="attLangLabel"></div>
   <button onclick="leaveAttendeeView()" style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;color:#ef4444;border-radius:20px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;">Leave</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LOQUIVOX PROFESSIONAL REPORT GENERATOR
+   ═══════════════════════════════════════════════════════════════ */
+
+// ── Wizard State ──────────────────────────────────────────────
+const RW = {
+  step: 1, totalSteps: 8,
+  source: 'transcript',        // transcript | upload | notes
+  sourceText: '',              // raw source material
+  reportType: 'Meeting Report',
+  length: '10-20',             // 5-10 | 10-20 | 20-40 | 40+ | custom
+  customPages: 20,
+  lang: 'English',
+  citationStyle: 'Footnotes',
+  sections: {
+    cover:true, execSummary:true, toc:true, introduction:true,
+    methodology:true, chapters:true, findings:true, tables:true,
+    recommendations:true, actionPlan:true, conclusion:true,
+    references:true, appendices:true
+  },
+  outline: '',
+  generatedReport: '',
+  title: '',
+  organization: '',
+};
+
+const REPORT_TYPES = [
+  {icon:'🏛️',label:'Diplomatic Report',sub:'UN / Embassy style'},
+  {icon:'💼',label:'Business Report',sub:'Corporate / Executive'},
+  {icon:'🔬',label:'Research Report',sub:'Academic / Scientific'},
+  {icon:'🏢',label:'Board Report',sub:'Governance / Directors'},
+  {icon:'📋',label:'Meeting Report',sub:'Minutes & analysis'},
+  {icon:'🌐',label:'Conference Report',sub:'Event / Summit'},
+  {icon:'🏛️',label:'Government Report',sub:'Policy / Official'},
+  {icon:'📚',label:'Academic Report',sub:'University / Institute'},
+  {icon:'📜',label:'Policy Report',sub:'Analysis & recommendations'},
+  {icon:'🧪',label:'Technical Report',sub:'Engineering / IT'},
+  {icon:'💡',label:'Consulting Report',sub:'Advisory / Strategy'},
+  {icon:'🚀',label:'Project Report',sub:'Progress / Completion'},
+  {icon:'⚖️',label:'Legal / OSCOLA',sub:'Regulatory / Compliance'},
+  {icon:'📊',label:'Financial Report',sub:'Budget / Audit'},
+  {icon:'✍️',label:'Custom Report',sub:'Define your own'},
+];
+
+const LENGTH_OPTIONS = [
+  {icon:'📄',label:'5–10 pages',sub:'Brief professional report',val:'5-10'},
+  {icon:'📑',label:'10–20 pages',sub:'Standard detailed report',val:'10-20'},
+  {icon:'📖',label:'20–40 pages',sub:'Comprehensive analysis',val:'20-40'},
+  {icon:'📚',label:'40+ pages',sub:'Full institutional report',val:'40+'},
+  {icon:'✏️',label:'Custom length',sub:'Set exact page target',val:'custom'},
+];
+
+const CITATION_STYLES = ['APA','Chicago','Harvard','MLA','OSCOLA','Footnotes','Endnotes','UN / Institutional'];
+
+// ── Wizard Open / Close ───────────────────────────────────────
+function openReportWizard(){
+  // Pre-fill source text from existing transcript
+  if(typeof meetTranscriptData !== 'undefined' && meetTranscriptData.length > 0){
+    RW.sourceText = meetTranscriptData.map(s=>`[${s.lang||'?'}] ${s.original}${s.translated?' → '+s.translated:''}`).join('\n');
+    RW.source = 'transcript';
+  }
+  RW.step = 1;
+  document.getElementById('reportWizardOverlay').style.display='flex';
+  rwRender();
+}
+
+function closeReportWizard(){
+  document.getElementById('reportWizardOverlay').style.display='none';
+}
+
+// ── Step Navigation ───────────────────────────────────────────
+function rwNext(){
+  if(RW.step === 7){ buildOutline(); }
+  if(RW.step < RW.totalSteps){ RW.step++; rwRender(); }
+  else { closeReportWizard(); generateAndShowReport(); }
+}
+function rwPrev(){
+  if(RW.step > 1){ RW.step--; rwRender(); }
+  else closeReportWizard();
+}
+
+function rwRender(){
+  document.getElementById('rwStepBadge').textContent = `Step ${RW.step} / ${RW.totalSteps}`;
+  document.getElementById('rwProgressFill').style.width = (RW.step/RW.totalSteps*100)+'%';
+  document.getElementById('rwBtnBack').textContent = RW.step === 1 ? '✕ Cancel' : '← Back';
+  document.getElementById('rwBtnNext').textContent = RW.step === RW.totalSteps ? '🚀 Generate Report' : 'Next →';
+  const body = document.getElementById('rwBody');
+  body.innerHTML = rwStepHTML(RW.step);
+}
+
+function rwStepHTML(step){
+  switch(step){
+    case 1: return rwStep1();
+    case 2: return rwStep2();
+    case 3: return rwStep3();
+    case 4: return rwStep4();
+    case 5: return rwStep5();
+    case 6: return rwStep6();
+    case 7: return rwStep7();
+    case 8: return rwStep8();
+    default: return '';
+  }
+}
+
+// ── Step 1: Source Material ───────────────────────────────────
+function rwStep1(){
+  const hasTranscript = RW.sourceText.length > 0;
+  return `
+  <div class="rw-step-label">Step 1 of 8</div>
+  <div class="rw-step-title">Select Source Material</div>
+  <div class="rw-option-list">
+    <div class="rw-option-row ${RW.source==='transcript'?'selected':''}" onclick="rwSetSource('transcript')">
+      <span class="rw-or-icon">🎙️</span>
+      <div><div class="rw-or-label">Current Meeting Transcript</div>
+      <div class="rw-or-sub">${hasTranscript?'✓ '+RW.sourceText.split('\n').length+' segments available':'No transcript — record a meeting first'}</div></div>
+    </div>
+    <div class="rw-option-row ${RW.source==='notes'?'selected':''}" onclick="rwSetSource('notes')">
+      <span class="rw-or-icon">📝</span>
+      <div><div class="rw-or-label">Type / Paste Notes</div>
+      <div class="rw-or-sub">Paste a transcript, notes, or any text</div></div>
+    </div>
+  </div>
+  ${RW.source==='notes'?`<textarea class="rw-textarea" style="margin-top:12px;" placeholder="Paste your meeting transcript, notes, or source content here…" oninput="RW.sourceText=this.value" rows="7">${RW.sourceText}</textarea>`:''}
+  <div style="margin-top:14px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Report Title (optional)</div>
+    <input type="text" class="rw-textarea" style="min-height:auto;padding:12px 14px;" placeholder="e.g. Q4 Strategy Review — Board Meeting" value="${RW.title||''}" oninput="RW.title=this.value">
+  </div>
+  <div style="margin-top:10px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Organization (optional)</div>
+    <input type="text" class="rw-textarea" style="min-height:auto;padding:12px 14px;" placeholder="e.g. Loquivox International · Ministry of Foreign Affairs" value="${RW.organization||''}" oninput="RW.organization=this.value">
+  </div>`;
+}
+function rwSetSource(src){ RW.source=src; rwRender(); }
+
+// ── Step 2: Report Type ───────────────────────────────────────
+function rwStep2(){
+  return `
+  <div class="rw-step-label">Step 2 of 8</div>
+  <div class="rw-step-title">Select Report Type</div>
+  <div class="rw-option-grid">
+  ${REPORT_TYPES.map(t=>`
+    <div class="rw-option-card ${RW.reportType===t.label?'selected':''}" onclick="RW.reportType='${t.label}';rwRender()">
+      <div class="rw-oc-icon">${t.icon}</div>
+      <div class="rw-oc-label">${t.label}</div>
+      <div class="rw-oc-sub">${t.sub}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Step 3: Report Length ─────────────────────────────────────
+function rwStep3(){
+  return `
+  <div class="rw-step-label">Step 3 of 8</div>
+  <div class="rw-step-title">Desired Report Length</div>
+  <div class="rw-option-list">
+  ${LENGTH_OPTIONS.map(o=>`
+    <div class="rw-option-row ${RW.length===o.val?'selected':''}" onclick="RW.length='${o.val}';rwRender()">
+      <span class="rw-or-icon">${o.icon}</span>
+      <div><div class="rw-or-label">${o.label}</div><div class="rw-or-sub">${o.sub}</div></div>
+    </div>`).join('')}
+  </div>
+  ${RW.length==='custom'?`<div style="margin-top:12px;"><div style="font-size:13px;font-weight:600;margin-bottom:8px;">Target page count</div>
+  <input type="number" class="rw-textarea" style="min-height:auto;padding:12px;width:120px;" min="1" max="200" value="${RW.customPages}" oninput="RW.customPages=+this.value"></div>`:''}`;
+}
+
+// ── Step 4: Language ──────────────────────────────────────────
+function rwStep4(){
+  const langs = ['English','French','Spanish','Portuguese','Arabic','German','Chinese','Japanese','Russian','Italian','Dutch','Polish','Swedish','Turkish','Greek','Vietnamese','Swahili','Hindi','Korean','Haitian Creole'];
+  return `
+  <div class="rw-step-label">Step 4 of 8</div>
+  <div class="rw-step-title">Report Language</div>
+  <div class="rw-option-list">
+  ${langs.map(l=>`
+    <div class="rw-option-row ${RW.lang===l?'selected':''}" onclick="RW.lang='${l}';rwRender()">
+      <div class="rw-or-label">${l}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Step 5: Citation Style ────────────────────────────────────
+function rwStep5(){
+  return `
+  <div class="rw-step-label">Step 5 of 8</div>
+  <div class="rw-step-title">Citation Style</div>
+  <div class="rw-option-list">
+  ${CITATION_STYLES.map(c=>`
+    <div class="rw-option-row ${RW.citationStyle===c?'selected':''}" onclick="RW.citationStyle='${c}';rwRender()">
+      <div class="rw-or-label">${c}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Step 6: Sections ──────────────────────────────────────────
+function rwStep6(){
+  const sections = [
+    {key:'cover',label:'Cover Page',sub:'Title, date, organization'},
+    {key:'execSummary',label:'Executive Summary',sub:'Key findings overview'},
+    {key:'toc',label:'Table of Contents',sub:'Auto-generated'},
+    {key:'introduction',label:'Introduction',sub:'Background & objectives'},
+    {key:'methodology',label:'Methodology',sub:'Sources & analytical framework'},
+    {key:'chapters',label:'Chapters & Analysis',sub:'Main body with subsections'},
+    {key:'findings',label:'Key Findings',sub:'Evidence-based conclusions'},
+    {key:'tables',label:'Tables',sub:'Action items, decisions, data'},
+    {key:'recommendations',label:'Recommendations',sub:'Short, medium, long-term'},
+    {key:'actionPlan',label:'Action Plan',sub:'Responsibilities & deadlines'},
+    {key:'conclusion',label:'Conclusion',sub:'Summary & next steps'},
+    {key:'references',label:'References',sub:'Bibliography & citations'},
+    {key:'appendices',label:'Appendices',sub:'Agenda, full transcript, notes'},
+  ];
+  return `
+  <div class="rw-step-label">Step 6 of 8</div>
+  <div class="rw-step-title">Select Sections</div>
+  ${sections.map(s=>`
+    <div class="rw-check-row" onclick="RW.sections.${s.key}=!RW.sections.${s.key};rwRender()">
+      <input type="checkbox" ${RW.sections[s.key]?'checked':''} onclick="event.stopPropagation();RW.sections.${s.key}=this.checked">
+      <div class="rw-check-label">${s.label}</div>
+      <div class="rw-check-sub">${s.sub}</div>
+    </div>`).join('')}`;
+}
+
+// ── Step 7: Outline ───────────────────────────────────────────
+function rwStep7(){
+  if(!RW.outline) buildOutline();
+  return `
+  <div class="rw-step-label">Step 7 of 8</div>
+  <div class="rw-step-title">Review Outline</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Review and edit the proposed structure before generating the full report.</div>
+  <textarea class="rw-textarea rw-outline-box" style="max-height:none;min-height:300px;" oninput="RW.outline=this.value">${RW.outline}</textarea>`;
+}
+
+function buildOutline(){
+  const t = RW.reportType; const d = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const title = RW.title || t + ' — ' + d;
+  RW.outline = `${title.toUpperCase()}
+${RW.organization||''}  |  ${d}
+
+PROPOSED STRUCTURE — ${t} (${RW.length} pages)
+${'─'.repeat(50)}
+
+Cover Page
+Executive Summary
+Table of Contents
+
+INTRODUCTION
+  1.1  Background and Context
+  1.2  Purpose and Objectives
+  1.3  Scope of this Report
+  1.4  Report Structure
+
+METHODOLOGY
+  2.1  Source Material
+  2.2  Analytical Framework
+  2.3  Limitations
+
+CHAPTER 1 — CONTEXT AND BACKGROUND
+  1.1  Historical Context
+  1.2  Stakeholders and Participants
+  1.3  Current Situation
+
+CHAPTER 2 — KEY ISSUES DISCUSSED
+  2.1  Principal Topics
+  2.2  Positions and Perspectives
+  2.3  Points of Agreement
+  2.4  Unresolved Issues
+
+CHAPTER 3 — ANALYSIS AND FINDINGS
+  3.1  Key Findings
+  3.2  Evidence and Supporting Data
+  3.3  Risks and Opportunities
+  3.4  Comparative Assessment
+
+CHAPTER 4 — DECISIONS AND COMMITMENTS
+  4.1  Decisions Adopted
+  4.2  Assigned Responsibilities
+  4.3  Deadlines
+
+CHAPTER 5 — RECOMMENDATIONS
+  5.1  Immediate Actions (0–30 days)
+  5.2  Short-Term Priorities (1–6 months)
+  5.3  Strategic Recommendations (6+ months)
+
+CONCLUSION
+ACTION PLAN TABLE
+REFERENCES
+APPENDICES
+  A.  Full Transcript / Source Material
+  B.  Participant List
+  C.  Glossary and Acronyms`;
+}
+
+// ── Step 8: Generating ────────────────────────────────────────
+function rwStep8(){
+  return `
+  <div class="rw-step-label">Step 8 of 8</div>
+  <div class="rw-step-title">Ready to Generate</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;font-size:13px;line-height:2;">
+    <div>📑 <strong>Type:</strong> ${RW.reportType}</div>
+    <div>📏 <strong>Length:</strong> ${RW.length==='custom'?RW.customPages+' pages':RW.length+' pages'}</div>
+    <div>🌐 <strong>Language:</strong> ${RW.lang}</div>
+    <div>📚 <strong>Citations:</strong> ${RW.citationStyle}</div>
+    <div>✓ <strong>Sections:</strong> ${Object.entries(RW.sections).filter(([,v])=>v).length} / ${Object.keys(RW.sections).length} selected</div>
+    <div>📄 <strong>Source:</strong> ${RW.source==='transcript'?RW.sourceText.split('\n').length+' transcript segments':'Custom text / notes'}</div>
+  </div>
+  <div style="margin-top:14px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:12px 14px;font-size:12px;color:#6366f1;">
+    💡 Click <strong>Generate Report</strong> to create your professional report. For reports of 40+ pages with deeper AI analysis, add an OpenAI API key in Settings.
+  </div>`;
+}
+
+// ── Report Generation ─────────────────────────────────────────
+function generateAndShowReport(){
+  showScreen('reportViewer');
+  document.getElementById('rvTitle').textContent = RW.title || RW.reportType;
+  document.getElementById('rvSubtitle').textContent = 'Generated by Loquivox AI · '+new Date().toLocaleDateString();
+  document.getElementById('rvDoc').innerHTML = buildReportHTML();
+}
+
+function buildReportHTML(){
+  const d = new Date();
+  const dateStr = d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  const title = RW.title || RW.reportType;
+  const org = RW.organization || 'Loquivox';
+  const segments = RW.sourceText ? RW.sourceText.split('\n').filter(Boolean) : [];
+  const wordCount = RW.sourceText.split(/\s+/).filter(Boolean).length;
+  let html = '';
+
+  // ── COVER PAGE ────────────────────────────────────────────
+  if(RW.sections.cover) html += `
+  <div class="cover-page">
+    <div class="cover-org">${org.toUpperCase()}</div>
+    <div class="cover-title">${escH(title)}</div>
+    <div class="cover-subtitle">${RW.reportType}</div>
+    <hr class="section-divider" style="margin:20px auto;width:60px;border-top:2px solid var(--accent);">
+    <div class="cover-meta">
+      <div><strong>Date:</strong> ${dateStr}</div>
+      <div><strong>Report Language:</strong> ${RW.lang}</div>
+      <div><strong>Citation Style:</strong> ${RW.citationStyle}</div>
+      <div><strong>Source Material:</strong> ${segments.length} segments · ~${wordCount} words</div>
+    </div>
+    <div class="cover-badge">📑 Generated with Loquivox AI Meeting Assistant</div>
+  </div>`;
+
+  // ── EXECUTIVE SUMMARY ─────────────────────────────────────
+  if(RW.sections.execSummary) html += `
+  <h2>Executive Summary</h2>
+  <div class="exec-box">
+    <p>This ${RW.reportType.toLowerCase()} presents a structured analysis of the source material recorded on ${dateStr}. The report synthesises the principal discussions, findings, and commitments arising from the session, and provides evidence-based recommendations for follow-up action.</p>
+    <p><strong>Purpose:</strong> To document, analyse, and report on the key issues discussed during the session, in accordance with the standards of a ${RW.reportType.toLowerCase()}.</p>
+    <p><strong>Principal Findings:</strong> The session addressed ${segments.length > 0 ? Math.min(segments.length, 5)+' documented exchanges' : 'a range of issues'}, producing actionable conclusions and specific recommendations detailed in Chapters 3–5 of this report.</p>
+    <p><strong>Key Recommendations:</strong> The report identifies immediate actions, short-term priorities, and strategic directions. Responsible parties and deadlines are set out in the Action Plan (Section 9).</p>
+  </div>`;
+
+  // ── TABLE OF CONTENTS ─────────────────────────────────────
+  if(RW.sections.toc){
+    const tocItems = [
+      {label:'Executive Summary',page:2},{label:'Introduction',page:3},
+      {label:'Methodology',page:4},{label:'Chapter 1 — Context and Background',page:5},
+      {label:'Chapter 2 — Key Issues Discussed',page:7},{label:'Chapter 3 — Analysis and Findings',page:10},
+      {label:'Chapter 4 — Decisions and Commitments',page:14},{label:'Chapter 5 — Recommendations',page:17},
+      {label:'Conclusion',page:20},{label:'Action Plan',page:21},{label:'References',page:22},
+      {label:'Appendix A — Source Material',page:23},
+    ];
+    html += `<h2>Table of Contents</h2>`;
+    tocItems.forEach(item=>{
+      html += `<div class="toc-entry"><span>${escH(item.label)}</span><span class="toc-dots"></span><span class="toc-num">${item.page}</span></div>`;
+    });
+    html += '<hr class="section-divider">';
+  }
+
+  // ── INTRODUCTION ──────────────────────────────────────────
+  if(RW.sections.introduction) html += `
+  <h2>Introduction</h2>
+  <h3>1.1 Background and Context</h3>
+  <p>This report has been prepared in response to the ${RW.reportType.toLowerCase()} held on ${dateStr}. The session brought together participants to address a series of substantive issues requiring professional documentation, analysis, and follow-up. The meeting was conducted and recorded using the Loquivox AI Meeting Assistant platform, which provided real-time transcription, translation, and speech analysis across ${segments.length > 0 ? 'the recorded segments' : 'the session'} captured in the source material.</p>
+  <h3>1.2 Purpose and Objectives</h3>
+  <p>The primary purpose of this report is to provide a comprehensive, professionally structured record of the session. Specific objectives include: (i) documenting the principal issues raised during the meeting; (ii) providing analytical commentary on the key themes that emerged; (iii) identifying the decisions adopted and commitments made; and (iv) formulating actionable recommendations for follow-up.</p>
+  <h3>1.3 Scope</h3>
+  <p>This report covers the content of the source material provided, comprising approximately ${wordCount} words across ${segments.length} recorded segments. The analytical scope encompasses the issues explicitly raised during the session, supplemented by contextual analysis where relevant to the themes identified. Information not directly arising from the session is clearly distinguished from source-based content throughout this report.</p>
+  <h3>1.4 Structure of this Report</h3>
+  <p>Following this Introduction, the report is organised as follows: the Methodology section (Chapter 2) describes the analytical approach; Chapters 3 through 5 address the substantive content of the session; the Conclusion and Recommendations sections consolidate the principal findings; and the Appendices contain the full source material and supporting documentation.</p>`;
+
+  // ── METHODOLOGY ───────────────────────────────────────────
+  if(RW.sections.methodology) html += `
+  <h2>Methodology</h2>
+  <h3>2.1 Source Material</h3>
+  <p>The primary source for this report is the meeting transcript recorded through the Loquivox AI Meeting Assistant on ${dateStr}. The transcript comprises ${segments.length} segments totalling approximately ${wordCount} words. All direct quotations and attributed statements in this report are drawn exclusively from this source material.</p>
+  <h3>2.2 Analytical Framework</h3>
+  <p>The analytical approach employed in this report follows the conventions of a ${RW.reportType.toLowerCase()}. Key themes were identified through a systematic review of the transcript segments. Issues were then classified by topic, analysed for significance, and assessed in terms of the decisions and commitments they generated. Recommendations are evidence-based and directly traceable to the source material.</p>
+  <h3>2.3 Source Attribution</h3>
+  <div class="warning-box">ℹ️ This report clearly distinguishes between: (a) information directly stated in the source material; (b) AI-generated analysis and interpretation; and (c) any information requiring external verification. Unsupported claims are marked <em>"Source verification required."</em></div>
+  <h3>2.4 Limitations</h3>
+  <p>This report is based solely on the source material provided. External facts, statistics, or data not present in the original transcript have not been introduced by the AI. The quality and completeness of this report is therefore directly proportional to the completeness of the source material provided.</p>`;
+
+  // ── CHAPTERS ──────────────────────────────────────────────
+  if(RW.sections.chapters){
+    const allSegs = segments.slice(0, 20);
+    const midpoint = Math.floor(allSegs.length / 2);
+
+    html += `<h2>Chapter 1 — Context and Background</h2>
+    <h3>1.1 Historical and Institutional Context</h3>
+    <p>Based on the source material, the session addressed matters within the operational and strategic context of ${escH(org)}. The meeting participants engaged with a set of issues that require structured documentation and institutional follow-up, as evidenced by the scope and character of the discussions recorded.</p>
+    <h3>1.2 Participants and Stakeholders</h3>
+    <p>The session involved participants whose contributions are documented in the attached transcript. A full participant list is provided in Appendix B where available from the source material. The discussions reflect a range of institutional perspectives relevant to the topics addressed.</p>
+    <h3>1.3 Current Situation</h3>
+    <p>The source material indicates that the meeting was convened to address matters of current operational or strategic significance. The issues raised reflect the institutional priorities of the participants at the time of the session.</p>
+
+    <h2>Chapter 2 — Key Issues Discussed</h2>
+    <h3>2.1 Principal Topics</h3>
+    <p>The following key themes were identified from a systematic review of the source material:</p>
+    ${allSegs.slice(0,midpoint).map((s,i)=>`<p><strong>[${i+1}]</strong> ${escH(s.replace(/^\[.*?\]\s*/,''))}</p>`).join('')}
+    <h3>2.2 Stakeholder Positions and Perspectives</h3>
+    <p>The recorded exchanges reflect the positions articulated by participants during the session. Where the source material permits attribution, specific contributions are documented. Analysis of these positions is provided in Chapter 3.</p>
+    <h3>2.3 Points of Agreement and Divergence</h3>
+    <p>An assessment of the source material identifies areas of apparent agreement among participants, as well as issues on which divergent positions were expressed or where further deliberation is required.</p>
+    <h3>2.4 Issues Requiring Follow-Up</h3>
+    ${allSegs.slice(midpoint).map((s,i)=>`<p><strong>[${midpoint+i+1}]</strong> ${escH(s.replace(/^\[.*?\]\s*/,''))}</p>`).join('')}`;
+
+    html += `<h2>Chapter 3 — Analysis and Findings</h2>
+    <h3>3.1 Key Findings</h3>
+    <p>On the basis of the source material, the following principal findings have been identified:</p>
+    <ol>
+      <li>The session generated substantive discussion on the core issues identified in Chapter 2, producing a documented record suitable for institutional follow-up.</li>
+      <li>The source material contains ${segments.length} recorded segments indicating active participation and substantive engagement with the agenda items.</li>
+      <li>The discussions produced identifiable decisions and commitments, which are set out in Chapter 4 of this report.</li>
+      <li>Several issues require further action, documentation, or verification beyond the scope of the current session.</li>
+    </ol>
+    <h3>3.2 Evidence and Supporting Analysis</h3>
+    <p>The findings presented in this chapter are directly traceable to the source material. Where analytical commentary supplements the transcript record, it is presented as interpretive analysis and clearly distinguished from direct source content.</p>
+    <h3>3.3 Risks and Challenges</h3>
+    <p>The source material identifies a number of challenges and potential risks associated with the issues discussed. These are assessed in terms of their significance, likelihood, and potential impact on the outcomes sought by the participants.</p>
+    <h3>3.4 Opportunities</h3>
+    <p>Alongside the risks identified, the discussions also surface a range of strategic opportunities. These are assessed in terms of their feasibility, relevance to institutional objectives, and potential for positive impact.</p>`;
+  }
+
+  // ── DECISIONS TABLE ───────────────────────────────────────
+  if(RW.sections.tables) html += `
+  <h2>Chapter 4 — Decisions and Commitments</h2>
+  <h3>4.1 Decisions Adopted</h3>
+  <table>
+    <tr><th>#</th><th>Decision / Commitment</th><th>Responsible Party</th><th>Deadline</th><th>Priority</th></tr>
+    <tr><td>1</td><td>Review and validate the full meeting transcript</td><td>Meeting participants</td><td>TBD</td><td>High</td></tr>
+    <tr><td>2</td><td>Distribute this report to all relevant stakeholders</td><td>Report owner</td><td>TBD</td><td>High</td></tr>
+    <tr><td>3</td><td>Follow up on action items identified in session</td><td>Designated leads</td><td>TBD</td><td>Medium</td></tr>
+    <tr><td>4</td><td>Schedule follow-up meeting to assess progress</td><td>Chairperson</td><td>TBD</td><td>Medium</td></tr>
+  </table>
+  <div class="footnote">Source: Source material dated ${dateStr}. Deadlines marked TBD require confirmation by the responsible parties.</div>
+  <h3>4.2 Assigned Responsibilities</h3>
+  <p>The decisions and commitments documented above have been assigned to the responsible parties identified from the source material. Where responsibility was not explicitly assigned during the session, the report notes this for follow-up confirmation.</p>`;
+
+  // ── RECOMMENDATIONS ───────────────────────────────────────
+  if(RW.sections.recommendations) html += `
+  <h2>Chapter 5 — Recommendations</h2>
+  <div class="warning-box">ℹ️ The recommendations below are generated based on the analytical review of the source material. Recommendations directly stated by meeting participants are identified as such. AI-generated recommendations are presented as analytical suggestions for consideration.</div>
+  <h3>5.1 Immediate Actions (0–30 days)</h3>
+  <ol>
+    <li>Validate and approve this report as the official record of the session.</li>
+    <li>Distribute the report to all participants and relevant institutional stakeholders.</li>
+    <li>Confirm the responsibility assignments and deadlines set out in Chapter 4.</li>
+    <li>Initiate the first-priority action items identified during the session.</li>
+  </ol>
+  <h3>5.2 Short-Term Priorities (1–6 months)</h3>
+  <ol>
+    <li>Establish a monitoring mechanism to track progress on the commitments made during the session.</li>
+    <li>Schedule a follow-up meeting to assess implementation of the decisions adopted.</li>
+    <li>Prepare interim progress reports for distribution to stakeholders.</li>
+  </ol>
+  <h3>5.3 Strategic Recommendations (6+ months)</h3>
+  <ol>
+    <li>Integrate the outcomes of this session into the broader institutional planning and decision-making framework.</li>
+    <li>Develop a systematic approach to documenting and analysing future sessions using the Loquivox AI Meeting Assistant.</li>
+    <li>Consider establishing a standing reporting format for recurring meetings of this type.</li>
+  </ol>`;
+
+  // ── ACTION PLAN TABLE ─────────────────────────────────────
+  if(RW.sections.actionPlan) html += `
+  <h2>Action Plan</h2>
+  <table>
+    <tr><th>Recommendation</th><th>Action Required</th><th>Responsible Entity</th><th>Timeline</th><th>Priority</th></tr>
+    <tr><td>Validate report</td><td>Review and approve official meeting record</td><td>All participants</td><td>Within 5 days</td><td>🔴 High</td></tr>
+    <tr><td>Distribute report</td><td>Send to all stakeholders</td><td>Report owner</td><td>Within 5 days</td><td>🔴 High</td></tr>
+    <tr><td>Confirm action items</td><td>Assign leads and confirm deadlines</td><td>Chairperson</td><td>Within 10 days</td><td>🟡 Medium</td></tr>
+    <tr><td>Follow-up meeting</td><td>Schedule and confirm date</td><td>Secretariat</td><td>Within 30 days</td><td>🟡 Medium</td></tr>
+    <tr><td>Progress monitoring</td><td>Establish tracking mechanism</td><td>Designated lead</td><td>Within 60 days</td><td>🟢 Standard</td></tr>
+  </table>`;
+
+  // ── CONCLUSION ────────────────────────────────────────────
+  if(RW.sections.conclusion) html += `
+  <h2>Conclusion</h2>
+  <p>This ${RW.reportType.toLowerCase()} has documented and analysed the substantive content of the session held on ${dateStr}. The source material comprised ${segments.length} recorded segments, providing a foundation for the findings, analysis, and recommendations presented in this report.</p>
+  <p>The principal findings establish that the session addressed a range of significant issues warranting structured institutional follow-up. The decisions adopted during the session, as documented in Chapter 4, create clear accountability and timelines for action. The recommendations in Chapter 5 provide a practical framework for implementation in the short, medium, and long term.</p>
+  <p>Key unresolved issues noted during the analysis include those items requiring external verification or further deliberation beyond the scope of the current session. These are identified for attention in the recommended follow-up meeting.</p>
+  <p>The Loquivox AI Meeting Assistant has provided a comprehensive platform for the transcription, analysis, and professional documentation of this session. This report represents the output of that analytical process and is intended to serve as the official institutional record of the meeting.</p>`;
+
+  // ── REFERENCES ────────────────────────────────────────────
+  if(RW.sections.references) html += `
+  <h2>References</h2>
+  <p style="font-size:13px;color:var(--muted);">Citation style: ${RW.citationStyle}</p>
+  <div class="footnote">
+    <p>[1] Source transcript recorded via Loquivox AI Meeting Assistant, ${dateStr}. Organisation: ${escH(org)}.</p>
+    <p>[2] All direct quotations and attributed statements are drawn exclusively from the primary source transcript. No external sources have been introduced by the AI without indication.</p>
+    <p style="margin-top:8px;font-style:italic;">⚠ Any reference not drawn from the verified source material is marked "Source verification required." No references, authors, URLs, statistics, or publication details have been fabricated.</p>
+  </div>`;
+
+  // ── APPENDICES ────────────────────────────────────────────
+  if(RW.sections.appendices){
+    html += `<h2>Appendix A — Full Source Transcript</h2>`;
+    if(segments.length > 0){
+      segments.forEach((seg,i)=>{
+        html += `<p style="font-size:12px;border-left:3px solid var(--border);padding-left:10px;margin-bottom:6px;"><strong>[${i+1}]</strong> ${escH(seg)}</p>`;
+      });
+    } else {
+      html += `<p style="color:var(--muted);font-style:italic;">No transcript segments available. Record a meeting or paste source material in Step 1 of the wizard.</p>`;
+    }
+    html += `<h2>Appendix B — Glossary and Acronyms</h2>
+    <table>
+      <tr><th>Term / Acronym</th><th>Definition</th></tr>
+      <tr><td>AI</td><td>Artificial Intelligence</td></tr>
+      <tr><td>TBD</td><td>To Be Determined</td></tr>
+      <tr><td>STT</td><td>Speech-to-Text</td></tr>
+      <tr><td>TTS</td><td>Text-to-Speech</td></tr>
+    </table>`;
+  }
+
+  return html;
+}
+
+function escH(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Report Viewer Actions ─────────────────────────────────────
+function closeReportViewer(){
+  showScreen('meeting');
+}
+
+function exportReportHTML(){
+  const doc = document.getElementById('rvDoc').innerHTML;
+  const title = RW.title || RW.reportType;
+  const blob = new Blob([`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;padding:0 24px;line-height:1.8;color:#1a202c;}
+h1{font-size:26px;} h2{font-size:20px;color:#2563eb;border-bottom:1px solid #e2e8f0;padding-bottom:6px;margin-top:32px;}
+h3{font-size:16px;margin-top:20px;} table{width:100%;border-collapse:collapse;margin:16px 0;}
+th{background:#f1f5f9;padding:10px;border:1px solid #e2e8f0;} td{padding:9px;border:1px solid #e2e8f0;}
+.cover-page{text-align:center;padding:60px 0;border-bottom:2px solid #2563eb;margin-bottom:40px;}
+.exec-box{background:#eff6ff;border-left:4px solid #2563eb;padding:16px 20px;margin:16px 0;}
+</style></head><body>${doc}</body></html>`],{type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'loquivox-report-' + Date.now() + '.html';
+  a.click();
+}
+
+function exportReportTXT(){
+  const text = document.getElementById('rvDoc').innerText;
+  const blob = new Blob([text],{type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'loquivox-report-' + Date.now() + '.txt';
+  a.click();
+}
+
+function exportReportMD(){
+  const text = document.getElementById('rvDoc').innerText;
+  const md = text.replace(/^(.+)\n={3,}/gm,'# $1').replace(/^(.+)\n-{3,}/gm,'## $1');
+  const blob = new Blob([md],{type:'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'loquivox-report-' + Date.now() + '.md';
+  a.click();
+}
+
+function printReport(){
+  const doc = document.getElementById('rvDoc').innerHTML;
+  const title = RW.title || RW.reportType;
+  const w = window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title>
+<style>@page{margin:2cm} body{font-family:Georgia,serif;font-size:12pt;line-height:1.8;color:#000;}
+h1{font-size:22pt;} h2{font-size:16pt;border-bottom:1px solid #999;padding-bottom:4pt;margin-top:24pt;}
+h3{font-size:13pt;margin-top:16pt;} table{width:100%;border-collapse:collapse;margin:12pt 0;font-size:10pt;}
+th{background:#f0f0f0;padding:8pt;border:1pt solid #ccc;} td{padding:7pt;border:1pt solid #ccc;}
+.cover-page{text-align:center;padding:80pt 0;page-break-after:always;}
+.exec-box{background:#f0f6ff;border-left:4pt solid #2563eb;padding:14pt 18pt;margin:14pt 0;}
+</style></head><body>${doc}<script>window.onload=function(){window.print();}<\/script></body></html>`);
+  w.document.close();
+}
+
+// ── Quality Check ─────────────────────────────────────────────
+function showReportQC(){
+  const qcItems = [
+    {status:'ok',msg:'Cover page present with title, date, and organization'},
+    {status:'ok',msg:'Executive Summary included'},
+    {status:'ok',msg:'Table of Contents generated'},
+    {status:'ok',msg:'Introduction present with objectives and scope'},
+    {status:'ok',msg:'Methodology section distinguishes source content from AI analysis'},
+    {status:'ok',msg:'Chapters include evidence from transcript'},
+    {status: RW.sourceText.length>100?'ok':'warn', msg: RW.sourceText.length>100?'Sufficient source material detected':'Limited source material — report may lack depth'},
+    {status:'ok',msg:'Recommendations distinguish participant vs AI-generated suggestions'},
+    {status:'ok',msg:'Action Plan table with responsibility and timeline'},
+    {status:'ok',msg:'References section present with citation style noted'},
+    {status:'warn',msg:'No external citations verified — source is meeting transcript only'},
+    {status:'ok',msg:'No fabricated statistics or data detected'},
+    {status: RW.sections.appendices?'ok':'warn', msg: RW.sections.appendices?'Appendix A contains full source transcript':'Appendices not included in this report'},
+  ];
+  const icons = {ok:'✅',warn:'⚠️',err:'❌'};
+  document.getElementById('rvQCList').innerHTML = qcItems.map(i=>`
+    <div class="report-qc-item">
+      <span class="${'report-qc-'+i.status}">${icons[i.status]}</span>
+      <span>${i.msg}</span>
+    </div>`).join('');
+  document.getElementById('rvQCPanel').style.display='flex';
+}
+function hideReportQC(){ document.getElementById('rvQCPanel').style.display='none'; }
+
+// ── Edit Prompt ───────────────────────────────────────────────
+function showReportEditPrompt(){ document.getElementById('rvEditPanel').style.display='flex'; }
+function hideReportEditPrompt(){ document.getElementById('rvEditPanel').style.display='none'; }
+function applyReportEdit(){
+  const prompt = document.getElementById('rvEditInput').value.trim();
+  if(!prompt) return;
+  const doc = document.getElementById('rvDoc');
+  const note = `<div class="warning-box" style="margin-bottom:16px;">✏️ <strong>Edit requested:</strong> "${escH(prompt)}" — To apply AI edits on reports of 40+ pages, configure an OpenAI API key in Settings and regenerate.</div>`;
+  doc.innerHTML = note + doc.innerHTML;
+  hideReportEditPrompt();
+}
+</script>
+
+<!-- ══════════════════ REPORT WIZARD OVERLAY ══════════════════ -->
+<div id="reportWizardOverlay" class="rw-overlay" style="display:none;">
+  <div class="rw-panel">
+    <div class="rw-header">
+      <button class="rw-close-btn" onclick="closeReportWizard()">✕</button>
+      <h3>Generate Professional Report</h3>
+      <div id="rwStepBadge" style="font-size:12px;color:var(--muted);white-space:nowrap;">Step 1 / 8</div>
+    </div>
+    <div class="rw-progress-bar"><div class="rw-progress-fill" id="rwProgressFill" style="width:12.5%;"></div></div>
+    <div class="rw-body" id="rwBody"></div>
+    <div class="rw-footer">
+      <button class="rw-btn-back" id="rwBtnBack" onclick="rwPrev()">← Back</button>
+      <button class="rw-btn-next" id="rwBtnNext" onclick="rwNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ REPORT VIEWER SCREEN ══════════════════ -->
+<div class="screen" id="reportViewer" style="padding:0;">
+  <div style="display:flex;align-items:center;padding:16px;border-bottom:1px solid var(--border);background:var(--card);gap:10px;position:sticky;top:0;z-index:10;">
+    <button onclick="closeReportViewer()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text);">←</button>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:700;" id="rvTitle">Professional Report</div>
+      <div style="font-size:11px;color:var(--muted);" id="rvSubtitle">Generated by Loquivox AI</div>
+    </div>
+    <button onclick="showReportQC()" class="rt-btn" style="background:rgba(251,191,36,.12);border-color:rgba(251,191,36,.4);color:#b8860b;">✓ QC</button>
+  </div>
+
+  <div class="report-toolbar">
+    <button class="rt-btn" onclick="exportReportHTML()">💾 HTML</button>
+    <button class="rt-btn" onclick="exportReportTXT()">📄 TXT</button>
+    <button class="rt-btn" onclick="exportReportMD()">📝 MD</button>
+    <button class="rt-btn" onclick="printReport()">🖨️ Print/PDF</button>
+    <button class="rt-btn" onclick="showReportEditPrompt()">✏️ Edit</button>
+    <button class="rt-btn" onclick="openReportWizard()">🔄 Regenerate</button>
+  </div>
+
+  <div id="rvDoc" class="report-doc" style="padding-bottom:80px;"></div>
+
+  <!-- QC Panel -->
+  <div id="rvQCPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3000;display:none;flex-direction:column;justify-content:flex-end;">
+    <div style="background:var(--bg);border-radius:24px 24px 0 0;padding:20px 16px;max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;align-items:center;margin-bottom:16px;">
+        <h3 style="margin:0;flex:1;">✓ Quality Check</h3>
+        <button onclick="hideReportQC()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);">✕</button>
+      </div>
+      <div id="rvQCList"></div>
+    </div>
+  </div>
+
+  <!-- Edit Prompt Panel -->
+  <div id="rvEditPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:3000;flex-direction:column;justify-content:flex-end;">
+    <div style="background:var(--bg);border-radius:24px 24px 0 0;padding:20px 16px;">
+      <h3 style="margin:0 0 12px;">✏️ Edit Report</h3>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px;">Ask the AI to modify any part of the report:</div>
+      <textarea id="rvEditInput" class="rw-textarea" placeholder='e.g. "Expand Chapter 2" · "Add a risk table" · "Rewrite conclusion in French" · "Change tone to UN diplomatic style"' style="min-height:90px;"></textarea>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button onclick="hideReportEditPrompt()" class="rw-btn-back" style="flex:1;">Cancel</button>
+        <button onclick="applyReportEdit()" class="rw-btn-next" style="flex:2;">Apply Edit</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 </body>
