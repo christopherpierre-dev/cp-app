@@ -19,8 +19,8 @@
 
 <!-- Azure Speech SDK -->
 <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-<!-- PWA: Manifest -->
-<link rel="manifest" href="manifest.json"/>
+<!-- PWA: Web App Manifest -->
+<link rel="manifest" href="site.webmanifest"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -3837,40 +3837,5 @@ function applyReportEdit(){
   </div>
 </div>
 
-
-<!-- ===== Loquivox demo hardening (UN high-level week 21-24 Sep) — remove after proper cleanup ===== -->
-<script>
-(function(){
-  try{ if(typeof CALL_VOICES!=='undefined') CALL_VOICES.fr='fr-FR-DeniseNeural'; }catch(e){}
-  try{ if(typeof CONF_VOICES!=='undefined') CONF_VOICES.fr='fr-FR-DeniseNeural'; }catch(e){}
-  function _lqUnlock(){
-    try{
-      var c=(typeof getRCAudioCtx==='function')?getRCAudioCtx():null;
-      if(c){ var b=c.createBuffer(1,1,22050); var s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(0); if(c.state==='suspended') c.resume(); }
-      if(window._getRemoteAudioCtx){ var c2=window._getRemoteAudioCtx(); if(c2 && c2.state==='suspended') c2.resume(); }
-    }catch(e){}
-    document.removeEventListener('touchend',_lqUnlock,true);
-    document.removeEventListener('click',_lqUnlock,true);
-  }
-  document.addEventListener('touchend',_lqUnlock,true);
-  document.addEventListener('click',_lqUnlock,true);
-  function _lqHideDemo(){
-    try{
-      document.querySelectorAll('.section-label').forEach(function(l){
-        if(/Premium Services|Recent Conversations/i.test(l.textContent||'')){
-          l.style.display='none';
-          var sib=l.nextElementSibling;
-          while(sib && !sib.classList.contains('section-label')){ sib.style.display='none'; sib=sib.nextElementSibling; }
-        }
-      });
-      ["showScreen('meeting')","showScreen('ambient')","showScreen('number')","showScreen('workspace')"].forEach(function(oc){
-        document.querySelectorAll('.mode-card').forEach(function(c){ if((c.getAttribute('onclick')||'').indexOf(oc)>=0) c.style.display='none'; });
-      });
-    }catch(e){}
-  }
-  if(document.readyState!=='loading') _lqHideDemo(); else document.addEventListener('DOMContentLoaded',_lqHideDemo);
-  window.addEventListener('load',_lqHideDemo);
-})();
-</script>
 </body>
 </html>
