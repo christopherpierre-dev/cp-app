@@ -1,0 +1,28 @@
+{
+  "name": "Loquivox – Real-Time AI Translator",
+  "short_name": "Loquivox",
+  "description": "Real-time AI voice translation for live calls and meetings. Supports 20+ languages.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1117",
+  "theme_color": "#4f8ef7",
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false
+}
