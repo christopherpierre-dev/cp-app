@@ -1,14 +1,14 @@
 [
-  {
-    "relation": [
-      "delegate_permission/common.handle_all_urls"
-    ],
-    "target": {
-      "namespace": "android_app",
-      "package_name": "app.loquivox.twa",
-      "sha256_cert_fingerprints": [
-        "11:BB:96:52:EF:ED:5F:5C:43:17:AB:98:71:40:A4:C3:4D:8D:8E:DD:C6:8F:73:07:6B:11:59:B9:29:0F:2E:37\nSignature algorithm name: SHA256withRSA"
-      ]
+    {
+          "relation": [
+                  "delegate_permission/common.handle_all_urls"
+          ],
+          "target": {
+                  "namespace": "android_app",
+                  "package_name": "app.loquivox.twa",
+                  "sha256_cert_fingerprints": [
+                            "11:BB:96:52:EF:ED:5F:5C:43:17:AB:98:71:40:A4:C3:4D:8D:8E:DD:C6:8F:73:07:6B:11:59:B9:29:0F:2E:37"
+                  ]
+          }
     }
-  }
 ]
