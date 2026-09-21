@@ -2830,91 +2830,14 @@ function stopAmbient() {
     <span class="prem-pill">Business</span>
   </div>
 
-  <!-- Number hero -->
-  <div class="number-hero">
-    <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Your Virtual Number</div>
-    <div class="number-display" id="lnNumberDisplay">+1 (786) 555-0147</div>
-    <div style="font-size:13px;color:var(--green);margin-bottom:14px;"><span class="number-status-dot"></span>Active · AI Receptionist On</div>
-    <div style="display:flex;gap:10px;justify-content:center;">
-      <button onclick="copyLnNumber()" style="background:rgba(79,142,247,0.15);border:1px solid rgba(79,142,247,0.3);color:var(--accent);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">📋 Copy</button>
-      <button onclick="shareLnNumber()" style="background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);border-radius:20px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;">↗ Share</button>
-    </div>
-  </div>
-
-  <!-- AI Receptionist -->
-  <div class="prem-section">
-    <div class="prem-section-title">AI Receptionist</div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🤖</div>
-      <div class="prem-row-info"><strong>Auto-Answer</strong><span>Greet callers in their language</span></div>
-      <button class="toggle on" id="aiReceptionistToggle" onclick="this.classList.toggle('on')"></button>
-    </div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(34,197,94,0.12);">🌐</div>
-      <div class="prem-row-info"><strong>Language Detection</strong><span>Auto-detect caller's language</span></div>
-      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-    </div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">📝</div>
-      <div class="prem-row-info"><strong>Voicemail Transcription</strong><span>Voicemails converted to text</span></div>
-      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-    </div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(245,158,11,0.12);">🕐</div>
-      <div class="prem-row-info"><strong>Business Hours</strong><span>Mon–Fri, 9am–6pm</span></div>
-      <span style="color:var(--muted);font-size:16px;">›</span>
-    </div>
-  </div>
-
-  <!-- Departments -->
-  <div class="prem-section">
-    <div class="prem-section-title">Departments & Extensions</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;">
-      <div class="dept-chip active">📞 Sales · Ext. 1</div>
-      <div class="dept-chip">🛠 Support · Ext. 2</div>
-      <div class="dept-chip">💼 Billing · Ext. 3</div>
-      <div class="dept-chip" onclick="alert('Add department — coming soon')">+ Add</div>
-    </div>
-  </div>
-
-  <!-- Smart Routing -->
-  <div class="prem-section">
-    <div class="prem-section-title">Smart Routing</div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.12);">🔀</div>
-      <div class="prem-row-info"><strong>Language-Based Routing</strong><span>Route Spanish callers to bilingual agents</span></div>
-      <button class="toggle on" onclick="this.classList.toggle('on')"></button>
-    </div>
-    <div class="prem-row">
-      <div class="prem-row-icon" style="background:rgba(124,92,252,0.12);">🎵</div>
-      <div class="prem-row-info"><strong>Hold Music</strong><span>Multi-language on-hold messages</span></div>
-      <span style="color:var(--muted);font-size:16px;">›</span>
-    </div>
-  </div>
-
-  <!-- Call Log -->
-  <div class="section-label" style="padding-top:4px;">Recent Calls</div>
-  <div class="prem-section" style="margin-bottom:0;">
-    <div class="call-log-item">
-      <div class="call-log-icon in">📲</div>
-      <div class="call-log-info"><strong>🇫🇷 French caller · Sales</strong><span>Auto-translated to English · 3m 42s</span></div>
-      <div class="call-log-time">10:24 AM</div>
-    </div>
-    <div class="call-log-item">
-      <div class="call-log-icon missed">⛔</div>
-      <div class="call-log-info"><strong>🇪🇸 Spanish caller · Support</strong><span>Voicemail left — tap to read</span></div>
-      <div class="call-log-time">9:11 AM</div>
-    </div>
-    <div class="call-log-item">
-      <div class="call-log-icon in">📲</div>
-      <div class="call-log-info"><strong>🇩🇪 German caller · Billing</strong><span>Auto-translated to English · 6m 18s</span></div>
-      <div class="call-log-time">Yesterday</div>
-    </div>
-    <div class="call-log-item">
-      <div class="call-log-icon out">📤</div>
-      <div class="call-log-info"><strong>🇺🇸 Outbound · +1 305 555-0199</strong><span>Outgoing call · 2m 05s</span></div>
-      <div class="call-log-time">Yesterday</div>
-    </div>
+  <!-- Coming Soon -->
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;min-height:0;">
+    <div style="font-size:56px;margin-bottom:16px;">📞</div>
+    <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);background:rgba(79,142,247,0.12);padding:5px 14px;border-radius:20px;margin-bottom:20px;">Coming Soon</div>
+    <h3 style="font-size:22px;font-weight:800;margin:0 0 12px;color:var(--text);">Virtual Business Number</h3>
+    <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 28px;max-width:280px;">Get a virtual number with an AI receptionist, multilingual voicemail transcription, smart call routing, and department extensions.</p>
+    <button onclick="alert('Noted! You will be first to know when this feature launches.')" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:24px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(79,142,247,0.3);width:100%;max-width:260px;">🔔 Get Early Access</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:14px;">First to know · No spam ever</p>
   </div>
 
   <div class="bottom-nav">
@@ -2933,108 +2856,14 @@ function stopAmbient() {
     <span class="prem-pill">Enterprise</span>
   </div>
 
-  <!-- Stats -->
-  <div class="ws-stat-grid">
-    <div class="ws-stat">
-      <div class="ws-stat-val" id="wsStatMeetings">47</div>
-      <div class="ws-stat-label">Meetings this month</div>
-    </div>
-    <div class="ws-stat">
-      <div class="ws-stat-val">12</div>
-      <div class="ws-stat-label">Languages used</div>
-    </div>
-    <div class="ws-stat">
-      <div class="ws-stat-val">98%</div>
-      <div class="ws-stat-label">Translation accuracy</div>
-    </div>
-    <div class="ws-stat">
-      <div class="ws-stat-val">5</div>
-      <div class="ws-stat-label">Team members</div>
-    </div>
-  </div>
-
-  <!-- Team -->
-  <div class="prem-section">
-    <div class="prem-section-title">Team Members</div>
-    <div class="ws-member">
-      <div class="ws-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;">CP</div>
-      <div class="ws-member-info"><strong id="wsOwnerName">You</strong><span>English · Admin</span></div>
-      <span class="ws-role admin">Admin</span>
-    </div>
-    <div class="ws-member">
-      <div class="ws-avatar" style="background:rgba(34,197,94,0.15);color:var(--green);">ML</div>
-      <div class="ws-member-info"><strong>Marie Leclerc</strong><span>French · Member</span></div>
-      <span class="ws-role member">Member</span>
-    </div>
-    <div class="ws-member">
-      <div class="ws-avatar" style="background:rgba(245,158,11,0.15);color:#f59e0b;">JR</div>
-      <div class="ws-member-info"><strong>Juan Rodriguez</strong><span>Spanish · Member</span></div>
-      <span class="ws-role member">Member</span>
-    </div>
-    <div class="ws-member">
-      <div class="ws-avatar" style="background:rgba(124,92,252,0.15);color:var(--accent2);">AK</div>
-      <div class="ws-member-info"><strong>Aiko Kimura</strong><span>Japanese · Viewer</span></div>
-      <span class="ws-role viewer">Viewer</span>
-    </div>
-    <div class="prem-row" style="cursor:pointer;" onclick="alert('Invite member — coming soon')">
-      <div class="prem-row-icon" style="background:rgba(79,142,247,0.1);color:var(--accent);">➕</div>
-      <div class="prem-row-info"><strong style="color:var(--accent);">Invite Team Member</strong><span>Send invite by email</span></div>
-    </div>
-  </div>
-
-  <!-- Projects & Tasks -->
-  <div class="section-label" style="padding-top:4px;">Projects &amp; Tasks</div>
-  <div class="task-kanban">
-    <div class="kanban-col">
-      <h5>📋 To Do</h5>
-      <div class="kanban-card">Translate client proposal EN→FR</div>
-      <div class="kanban-card">Set up Zoom integration</div>
-    </div>
-    <div class="kanban-col">
-      <h5>🔄 In Progress</h5>
-      <div class="kanban-card">Q3 multilingual report</div>
-      <div class="kanban-card">Staff training — FR team</div>
-    </div>
-    <div class="kanban-col">
-      <h5>✅ Done</h5>
-      <div class="kanban-card">Client call ES→EN 7/28</div>
-      <div class="kanban-card">Onboard JP team</div>
-    </div>
-  </div>
-
-  <!-- Analytics -->
-  <div class="prem-section">
-    <div class="prem-section-title">Analytics</div>
-    <div style="padding:14px 16px;">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;"><span>Most used languages</span><span>This month</span></div>
-      <div style="display:flex;flex-direction:column;gap:8px;">
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇺🇸 English</span><span style="color:var(--muted);">68%</span></div>
-          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:68%;height:100%;background:var(--accent);border-radius:3px;"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇫🇷 French</span><span style="color:var(--muted);">45%</span></div>
-          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:45%;height:100%;background:var(--accent2);border-radius:3px;"></div></div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>🇪🇸 Spanish</span><span style="color:var(--muted);">28%</span></div>
-          <div style="height:6px;background:var(--border);border-radius:3px;"><div style="width:28%;height:100%;background:var(--green);border-radius:3px;"></div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Integrations -->
-  <div class="section-label" style="padding-top:4px;">Integrations</div>
-  <div class="prem-section" style="margin-bottom:0;">
-    <div class="integrations-row">
-      <div class="int-badge connected">✅ Zoom</div>
-      <div class="int-badge connected">✅ Google Meet</div>
-      <div class="int-badge">+ Microsoft Teams</div>
-      <div class="int-badge">+ Slack</div>
-      <div class="int-badge">+ Google Workspace</div>
-      <div class="int-badge">+ Microsoft 365</div>
-    </div>
+  <!-- Coming Soon -->
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;min-height:0;">
+    <div style="font-size:56px;margin-bottom:16px;">💼</div>
+    <div style="display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);background:rgba(124,92,252,0.12);padding:5px 14px;border-radius:20px;margin-bottom:20px;">Coming Soon</div>
+    <h3 style="font-size:22px;font-weight:800;margin:0 0 12px;color:var(--text);">Business Workspace</h3>
+    <p style="font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 28px;max-width:280px;">A full collaboration hub for multilingual teams — shared meeting transcripts, task boards, analytics, and integrations with Zoom, Teams &amp; Google Meet.</p>
+    <button onclick="alert('Noted! You will be first to know when this feature launches.')" style="background:linear-gradient(135deg,var(--accent2),var(--accent));color:#fff;border:none;border-radius:24px;padding:14px 32px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(124,92,252,0.3);width:100%;max-width:260px;">🔔 Get Early Access</button>
+    <p style="font-size:12px;color:var(--muted);margin-top:14px;">First to know · No spam ever</p>
   </div>
 
   <div class="bottom-nav">
@@ -3837,40 +3666,5 @@ function applyReportEdit(){
   </div>
 </div>
 
-
-<!-- ===== Loquivox demo hardening (UN high-level week 21-24 Sep) — KEEP THIS BLOCK when editing index.html ===== -->
-<script>
-(function(){
-  try{ if(typeof CALL_VOICES!=='undefined') CALL_VOICES.fr='fr-FR-DeniseNeural'; }catch(e){}
-  try{ if(typeof CONF_VOICES!=='undefined') CONF_VOICES.fr='fr-FR-DeniseNeural'; }catch(e){}
-  function _lqUnlock(){
-    try{
-      var c=(typeof getRCAudioCtx==='function')?getRCAudioCtx():null;
-      if(c){ var b=c.createBuffer(1,1,22050); var s=c.createBufferSource(); s.buffer=b; s.connect(c.destination); s.start(0); if(c.state==='suspended') c.resume(); }
-      if(window._getRemoteAudioCtx){ var c2=window._getRemoteAudioCtx(); if(c2 && c2.state==='suspended') c2.resume(); }
-    }catch(e){}
-    document.removeEventListener('touchend',_lqUnlock,true);
-    document.removeEventListener('click',_lqUnlock,true);
-  }
-  document.addEventListener('touchend',_lqUnlock,true);
-  document.addEventListener('click',_lqUnlock,true);
-  function _lqHideDemo(){
-    try{
-      document.querySelectorAll('.section-label').forEach(function(l){
-        if(/Premium Services|Recent Conversations/i.test(l.textContent||'')){
-          l.style.display='none';
-          var sib=l.nextElementSibling;
-          while(sib && !sib.classList.contains('section-label')){ sib.style.display='none'; sib=sib.nextElementSibling; }
-        }
-      });
-      ["showScreen('meeting')","showScreen('ambient')","showScreen('number')","showScreen('workspace')"].forEach(function(oc){
-        document.querySelectorAll('.mode-card').forEach(function(c){ if((c.getAttribute('onclick')||'').indexOf(oc)>=0) c.style.display='none'; });
-      });
-    }catch(e){}
-  }
-  if(document.readyState!=='loading') _lqHideDemo(); else document.addEventListener('DOMContentLoaded',_lqHideDemo);
-  window.addEventListener('load',_lqHideDemo);
-})();
-</script>
 </body>
 </html>
