@@ -16,7 +16,13 @@
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "screenshots": [],
+  "screenshots": [
+    { "src": "/screenshots/1-home.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Home" },
+    { "src": "/screenshots/2-two-way.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Two-Way translation" },
+    { "src": "/screenshots/3-conference.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Conference" },
+    { "src": "/screenshots/4-remote-qr.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Remote Call QR" },
+    { "src": "/screenshots/5-kreyol.png", "sizes": "1080x1920", "type": "image/png", "form_factor": "narrow", "label": "Haitian Creole" }
+  ],
   "categories": ["productivity", "utilities"],
   "related_applications": [
     { "platform": "play", "id": "ca.credia.translate", "url": "https://play.google.com/store/apps/details?id=ca.credia.translate" }
