@@ -1,14 +1,13 @@
 [
-    {
-          "relation": [
-                  "delegate_permission/common.handle_all_urls"
-          ],
-          "target": {
-                  "namespace": "android_app",
-                  "package_name": "app.loquivox.twa",
-                  "sha256_cert_fingerprints": [
-                            "11:BB:96:52:EF:ED:5F:5C:43:17:AB:98:71:40:A4:C3:4D:8D:8E:DD:C6:8F:73:07:6B:11:59:B9:29:0F:2E:37"
-                  ]
-          }
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ca.credia.translate",
+      "sha256_cert_fingerprints": [
+        "FF:68:69:C0:FF:D8:4C:EF:08:B6:54:F9:35:C5:E5:A6:8E:82:38:96:43:0F:6F:C5:60:0A:2C:D7:B2:60:30:01",
+        "EE:55:F3:1F:14:7D:D0:8C:FE:D4:30:77:CD:40:46:06:B1:02:5C:A0:F3:B6:8F:44:89:13:C6:EC:48:01:E3:F8"
+      ]
     }
+  }
 ]
